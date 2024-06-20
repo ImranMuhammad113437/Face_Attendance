@@ -3,8 +3,8 @@ import numpy as np
 import os
 
 # Ensure the cascade files are in the correct path
-eye_cascade_path = r'C:\Users\night\Documents\FYP\Face_Attendance\Library\haarcascade_eye.xml'
-face_cascade_path = r'C:\Users\night\Documents\FYP\Face_Attendance\Library\haarcascade_frontalface_default.xml'
+eye_cascade_path = r'Library\haarcascade_eye.xml'
+face_cascade_path = r'Library\haarcascade_frontalface_default.xml'
 
 face_cascade = cv2.CascadeClassifier(face_cascade_path)
 eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
