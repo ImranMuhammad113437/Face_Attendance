@@ -11,7 +11,7 @@ class Face_Attendance:
 
         
         #Background Image
-        background_img=Image.open(r"C:\Users\night\Desktop\Face_Attendance\Image\Background.png")
+        background_img=Image.open(r"Image\Background.png")
         background_img=background_img.resize((1024, 590),Image.Resampling.LANCZOS)
         self.photo_background_img=ImageTk.PhotoImage(background_img)
 
@@ -20,12 +20,12 @@ class Face_Attendance:
 
         #Title of the System
         
-        title=Image.open(r"C:\Users\night\Desktop\Face_Attendance\Image\Title.png")     
+        title=Image.open(r"Image\Title.png")     
         self.phototitle=ImageTk.PhotoImage(title)
         f_lbl=Label(self.root,image=self.phototitle)
         f_lbl.place(x=251,y=267,width=275,height=57)
 
-        logo=Image.open(r"C:\Users\night\Desktop\Face_Attendance\Image\Artboard 3.png")     
+        logo=Image.open(r"Image\Background.png")     
         self.photologo=ImageTk.PhotoImage(logo)
         f_lbl=Label(self.root,image=self.photologo)
         f_lbl.place(x=100,y=222,width=150,height=150)

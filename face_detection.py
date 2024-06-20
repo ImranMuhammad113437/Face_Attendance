@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import os
 
-# Ensure the cascade files are in the correct path
+
 eye_cascade_path = r'Library\haarcascade_eye.xml'
 face_cascade_path = r'Library\haarcascade_frontalface_default.xml'
 

@@ -22,8 +22,14 @@ class Student:
         left_title_position=Label(self.root,image=self.photoleft_title)
         left_title_position.place(x=0,y=0,width=163,height=60)
         
-        main_frame=Frame(background_img_position,bd=2)
-        main_frame.place(x=20,y=70,width=800,height=400)
+    #Frame
+        main_frame=Frame(background_img_position,bd=2,bg="orange")
+
+        main_frame.place(x=20,y=70,width=984,height=500)
+        
+    #Left Label Frame    
+        left_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
+        left_frame.place(x=10,y=10,width=200,height=200)
 
 if __name__ == "__main__":
     root=Tk()
