@@ -1,13 +1,16 @@
 import cv2
 import numpy as np
+import os
 
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-eye_cascade = cv2.CascadeClassifier('haarcascade_eye.xml')
+# Ensure the cascade files are in the correct path
+eye_cascade_path = r'C:\Users\night\Documents\FYP\Face_Attendance\Library\haarcascade_eye.xml'
+face_cascade_path = r'C:\Users\night\Documents\FYP\Face_Attendance\Library\haarcascade_frontalface_default.xml'
+
+face_cascade = cv2.CascadeClassifier(face_cascade_path)
+eye_cascade = cv2.CascadeClassifier(eye_cascade_path)
 
 def draw_green_rectangle(image, x, y, w, h):
     cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Green color with thickness 2
-
-
 
 cap = cv2.VideoCapture(0)
 
