@@ -215,7 +215,7 @@ class Student:
         delete_button.grid(row=0,column=2)
 
         #Reset Button
-        reset_button=Button(button_upper_frame,text="Reset",bg="orange",fg="white",width=15)
+        reset_button=Button(button_upper_frame,text="Reset",command=self.reset_data,bg="orange",fg="white",width=15)
         reset_button.grid(row=0,column=3)
 
        #Button Lower Frame Section
@@ -493,6 +493,29 @@ class Student:
             conn.close()
             messagebox.showinfo("Deletion","Successfully Deleted")
         
+
+
+
+
+
+    #Clearing the information Field
+    def reset_data(self):
+            self.var_department.set("Select Department"),
+            self.var_course.set("Select Course"),
+            self.var_year.set("Select Year"),
+            self.var_semester.set("Select Semester"),
+            self.var_student_id.set(""),
+            self.var_student_name.set(""),
+            self.var_gender.set("Select Gender"),
+            self.var_date_of_birth.set(""),
+            self.var_email.set(""),
+            self.var_phone_number.set(""),
+            self.var_address.set(""),
+            self.var_teacher.set(""),
+            self.var_take_photo.set("")
+
+    
+    
 
 if __name__ == "__main__":
     root=Tk()
