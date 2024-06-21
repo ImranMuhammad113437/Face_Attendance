@@ -24,7 +24,6 @@ class Student:
         
     #Frame
         main_frame=Frame(background_img_position,bd=2,bg="orange")
-
         main_frame.place(x=20,y=70,width=984,height=500)
         
     #Left Label Frame(Student Information: Current Course,Class Student Information)    

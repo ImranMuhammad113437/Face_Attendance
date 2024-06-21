@@ -25,7 +25,7 @@ class Face_Attendance:
         f_lbl=Label(self.root,image=self.phototitle)
         f_lbl.place(x=251,y=267,width=275,height=57)
 
-        logo=Image.open(r"Image\Background.png")     
+        logo=Image.open(r"Image\Logo.png")     
         self.photologo=ImageTk.PhotoImage(logo)
         f_lbl=Label(self.root,image=self.photologo)
         f_lbl.place(x=100,y=222,width=150,height=150)
