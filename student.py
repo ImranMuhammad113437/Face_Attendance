@@ -334,6 +334,7 @@ class Student:
         self.student_database.column("Photo",width=100)
         
         self.student_database.pack(fill=BOTH,expand=1)
+        self.student_database.bind("<ButtonRelease>",self.get_cursor)
         self.fetch_data()
 
 
@@ -414,9 +415,25 @@ class Student:
 
       #Getting the Cursor
     
-    def get_cursor(self):
-        cu
-          
+    def get_cursor(self,event=""):
+        cursor_focus=self.student_database.focus()
+        content=self.student_database.item(cursor_focus)
+        data=content["values"]
+
+        self.var_department.set(data[0]),
+        self.var_course.set(data[1]),
+        self.var_year.set(data[2]),
+        self.var_semester.set(data[3]),
+        self.var_student_id.set(data[4]),
+        self.var_student_name.set(data[5]),
+        self.var_gender.set(data[6]),
+        self.var_date_of_birth.set(data[7]),
+        self.var_email.set(data[8]),
+        self.var_phone_number.set(data[9]),
+        self.var_address.set(data[10]),
+        self.var_teacher.set(data[11]),
+        self.var_take_photo.set(data[12])
+  
         
 if __name__ == "__main__":
     root=Tk()
