@@ -9,6 +9,11 @@ class Student:
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow")
 
+    #Variable
+        self.var_department=StringVar()
+        self.var_department=StringVar()
+        
+
     #Background Image
         background_img=Image.open(r"Image\Background.png")
         background_img=background_img.resize((1024, 590),Image.Resampling.LANCZOS)
