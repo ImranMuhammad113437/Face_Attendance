@@ -211,7 +211,7 @@ class Student:
         update_button.grid(row=0,column=1)
 
         #Delete Button
-        delete_button=Button(button_upper_frame,text="Delete",bg="orange",fg="white",width=14)
+        delete_button=Button(button_upper_frame,text="Delete",command=self.delete_data,bg="orange",fg="white",width=14)
         delete_button.grid(row=0,column=2)
 
         #Reset Button
@@ -472,8 +472,26 @@ class Student:
             self.fetch_data()
             conn.close()
             
-            
-            
+
+
+    #Delect Function        
+    def delete_data(self):
+            conn = mysql.connector.connect(
+                host=connection_details["server"],
+                port=connection_details["port"],
+                user=connection_details["username"],
+                password=connection_details["password"],
+                database=connection_details["database"]
+            )
+            my_cursor=conn.cursor()
+            sql="DELETE FROM students WHERE student_id=%s"
+            val=(self.var_student_id.get(),)
+            my_cursor.execute(sql,val)
+
+            conn.commit()
+            self.fetch_data()
+            conn.close()
+            messagebox.showinfo("Deletion","Successfully Deleted")
         
 
 if __name__ == "__main__":
