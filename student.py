@@ -4,6 +4,10 @@ from PIL  import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
 import json
+import subprocess
+
+
+
 
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
@@ -224,7 +228,7 @@ class Student:
         
 
         #Take Photo Sample
-        take_photo_button=Button(button_lower_frame,text="Take Photo Sample",bg="orange",fg="white",width=31)
+        take_photo_button=Button(button_lower_frame,text="Take Photo Sample",command=self.generate_dataset,bg="orange",fg="white",width=31)
         take_photo_button.grid(row=1,column=0)
  
         #Update Photo Sample
@@ -474,7 +478,7 @@ class Student:
             
 
 
-    #Delect Function        
+    #Delete Function        
     def delete_data(self):
             conn = mysql.connector.connect(
                 host=connection_details["server"],
@@ -515,6 +519,46 @@ class Student:
             self.var_take_photo.set("")
 
     
+
+
+
+
+    #Dataset generate
+    def generate_dataset(self):
+            conn = mysql.connector.connect(
+                host=connection_details["server"],
+                port=connection_details["port"],
+                user=connection_details["username"],
+                password=connection_details["password"],
+                database=connection_details["database"]
+            )
+            my_cursor=conn.cursor()
+            my_cursor.execute("SELECT * FROM students")
+            myresult=my_cursor.fetchall()
+            id=0
+            for i in myresult:
+                id+-1
+            my_cursor.execute("UPDATE students SET department=%s,course=%s,year=%s,semester=%s,student_name=%s,gender=%s,date_of_birth=%s,email=%s,phone_number=%s,address=%s,teacher=%s,photo_sample=%s WHERE student_id=%s",
+            (
+                self.var_department.get(),
+                self.var_course.get(),
+                self.var_year.get(),
+                self.var_semester.get(),
+                self.var_student_name.get(),    
+                self.var_gender.get(),
+                self.var_date_of_birth.get(),
+                self.var_email.get(),
+                self.var_phone_number.get(),
+                self.var_address.get(),
+                self.var_teacher.get(),
+                self.var_take_photo.get(),
+                self.var_student_id.get()
+            ))
+            conn.commit()
+            self.fetch_data()
+            self.reset_data()
+            conn.close()
+            subprocess.run(["python", r"face_detection.py"])
     
 
 if __name__ == "__main__":
