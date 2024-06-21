@@ -175,13 +175,65 @@ class Student:
         update_photo_button.grid(row=1,column=1)
 
 
-    #Right Label Frame     
+    #Right Label Frame(Search System, Table Information)     
         right_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
-        right_frame.place(x=497,y=10,width=475,height=200)
+        right_frame.place(x=497,y=10,width=475,height=470)
 
+    #Search Frame
+        search_frame=LabelFrame(right_frame,bd=2,relief=RIDGE,text="Search System")
+        search_frame.place(x=5,y=5,width=462,height=50)
+
+    #Search Title
+        search_label=Label(search_frame,text="Search By: ")
+        search_label.grid(row=0,column=0)
+    #Dropdown Menu for Searching
+        search_dropdown=ttk.Combobox(search_frame,state="readonly",width=12)
+        search_dropdown["values"]=("Select Search","DOD")
+        search_dropdown.current(0)
+        search_dropdown.grid(row=0,column=1,padx=3,pady=5,sticky=W)
+
+    #Search InputField
+        search_input=ttk.Entry(search_frame,width=15)
+        search_input.grid(row=0,column=2,padx=3)
+    #Search Button
+        search_button=Button(search_frame,text="Search",bg="orange",fg="white",width=12)
+        search_button.grid(row=0,column=3,padx=3)
+    
+    #Show All
+        show_all_button=Button(search_frame,text="Show All",bg="orange",fg="white",width=10)
+        show_all_button.grid(row=0,column=4,padx=3)
+
+    #Database Frame
+        database_frame=LabelFrame(right_frame,bd=2,relief=RIDGE)
+        database_frame.place(x=5,y=55,width=462,height=150)
+     
+        scroll_left_right=ttk.Scrollbar(database_frame,orient=HORIZONTAL)
+        scroll_up_down=ttk.Scrollbar(database_frame,orient=VERTICAL)
+        self.student_database=ttk.Treeview(database_frame,columns=("Department","Course","Year","Semester","Student ID","Student Name","Gender","Date of Birth","Email","Phone Number","Address","Teacher", "Photo"),xscrollcommand=scroll_left_right.set,yscrollcommand=scroll_up_down.set)
+        
+        scroll_left_right.pack(side=BOTTOM,fill=X)
+        scroll_up_down.pack(side=RIGHT,fill=Y)
+        
+        scroll_left_right.config(command=self.student_database.xview)
+        scroll_up_down.config(command=self.student_database.yview)
         
 
+        self.student_database.heading("Department",text="Department")
+        self.student_database.heading("Course",text="Course")
+        self.student_database.heading("Year",text="Year")
+        self.student_database.heading("Semester",text="Semester")
+        self.student_database.heading("Student ID",text="Student ID")
+        self.student_database.heading("Student Name",text="Student Name")
+        self.student_database.heading("Gender",text="Gender")
+        self.student_database.heading("Date of Birth",text="Date of Birth")
+        self.student_database.heading("Email",text="Email")
+        self.student_database.heading("Phone Number",text="Phone Number")
+        self.student_database.heading("Address",text="Address")
+        self.student_database.heading("Teacher",text="Teacher")
+        self.student_database.heading("Photo",text="Photo")
+        self.student_database["show"]="headings"
 
+        self.student_database.pack(fill=BOTH,expand=1)
 
 
 if __name__ == "__main__":
