@@ -72,13 +72,117 @@ class Student:
         semester_dropdown.current(0)
         semester_dropdown.grid(row=1,column=3,pady=10,sticky=W)
 
-    #Class Student Information
+    #Class Student Information Frame
         class_student_frame=LabelFrame(left_frame,bd=2,relief=RIDGE,text="Class Student Information")
-        class_student_frame.place(x=5,y=110,width=462,height=50) 
+        class_student_frame.place(x=5,y=110,width=462,height=300)
+
+        #Student ID  Section
+        student_ID_label=Label(class_student_frame,text="Student ID")
+        student_ID_label.grid(row=0,column=0,padx=5,sticky=W)
+
+        student_ID_input=ttk.Entry(class_student_frame)
+        student_ID_input.grid(row=0,column=1,pady=10,sticky=W)
+
+        #Student Name
+        student_Name_label=Label(class_student_frame,text="Student Name")
+        student_Name_label.grid(row=0,column=2,padx=5,sticky=W)
+
+        student_Name_input=ttk.Entry(class_student_frame)
+        student_Name_input.grid(row=0,column=3,pady=10,sticky=W)
+
+        #Gender
+        gender_label=Label(class_student_frame,text="Gender")
+        gender_label.grid(row=1,column=0,padx=5,sticky=W)
+
+        gender_dropdown=ttk.Combobox(class_student_frame,state="readonly")
+        gender_dropdown["values"]=("Select Gender","Male","Female")
+        gender_dropdown.current(0)
+        gender_dropdown.grid(row=1,column=1,pady=10,sticky=W)
+
+        #Date of Birth
+        DOB_label=Label(class_student_frame,text="Date of Birth")
+        DOB_label.grid(row=1,column=2,padx=5,sticky=W)
+
+        DOB_input=ttk.Entry(class_student_frame)
+        DOB_input.grid(row=1,column=3,pady=10,sticky=W)
+        #Email
+        email_label=Label(class_student_frame,text="Email")
+        email_label.grid(row=2,column=0,padx=5,sticky=W)
+
+        email_input=ttk.Entry(class_student_frame)
+        email_input.grid(row=2,column=1,pady=10,sticky=W)
+
+        #Phone No
+        phone_num_label=Label(class_student_frame,text="Phone Number")
+        phone_num_label.grid(row=2,column=2,padx=5,sticky=W)
+
+        phone_num_input=ttk.Entry(class_student_frame)
+        phone_num_input.grid(row=2,column=3,pady=10,sticky=W)
+
+        #Address
+        address_label=Label(class_student_frame,text="Address")
+        address_label.grid(row=3,column=0,padx=5,sticky=W)
+
+        address_input=ttk.Entry(class_student_frame)
+        address_input.grid(row=3,column=1,pady=10,sticky=W)
+
+        #Teacher Name
+        teacher_label=Label(class_student_frame,text="Teacher")
+        teacher_label.grid(row=3,column=2,padx=5,sticky=W)
+
+        teacher_input=ttk.Entry(class_student_frame)
+        teacher_input.grid(row=3,column=3,pady=10,sticky=W)
+
+        #Selection Button
+        take_photo=ttk.Radiobutton(class_student_frame,text="Take Photo",value="Yes")
+        take_photo.grid(row=4,column=0,padx=5,sticky=W)
+
+        no_photo=ttk.Radiobutton(class_student_frame,text="No Photo",value="Yes")
+        no_photo.grid(row=4,column=1,padx=5,sticky=W)
+
+        #Button Upper Frame Section 
+        button_upper_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
+        button_upper_frame.place(x=5,y=190,width=450)
+        
+         
+        #Save Button
+        save_button=Button(button_upper_frame,text="Save",bg="orange",fg="white",width=14)
+        save_button.grid(row=0,column=0)
+
+        #Update Button
+        update_button=Button(button_upper_frame,text="Update",bg="orange",fg="white",width=15)
+        update_button.grid(row=0,column=1)
+
+        #Delete Button
+        delete_button=Button(button_upper_frame,text="Delete",bg="orange",fg="white",width=14)
+        delete_button.grid(row=0,column=2)
+
+        #Reset Button
+        reset_button=Button(button_upper_frame,text="Reset",bg="orange",fg="white",width=15)
+        reset_button.grid(row=0,column=3)
+
+       #Button Lower Frame Section
+        button_lower_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
+        button_lower_frame.place(x=5,y=219,width=450)
+        
+
+        #Take Photo Sample
+        take_photo_button=Button(button_lower_frame,text="Take Photo Sample",bg="orange",fg="white",width=31)
+        take_photo_button.grid(row=1,column=0)
+ 
+        #Update Photo Sample
+        update_photo_button=Button(button_lower_frame,text="Update Photo Sample",bg="orange",fg="white",width=30)
+        update_photo_button.grid(row=1,column=1)
+
 
     #Right Label Frame     
         right_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
         right_frame.place(x=497,y=10,width=475,height=200)
+
+        
+
+
+
 
 if __name__ == "__main__":
     root=Tk()
