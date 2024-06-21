@@ -11,7 +11,18 @@ class Student:
 
     #Variable
         self.var_department=StringVar()
-        self.var_department=StringVar()
+        self.var_course=StringVar()
+        self.var_year=StringVar()
+        self.var_semester=StringVar()
+        self.var_student_id=StringVar()
+        self.var_student_name=StringVar()
+        self.var_gender=StringVar()
+        self.var_date_of_birth=StringVar()
+        self.var_email=StringVar()
+        self.var_phone_number=StringVar()
+        self.var_address=StringVar()
+        self.var_teacher=StringVar()
+        
         
 
     #Background Image
@@ -50,7 +61,7 @@ class Student:
         department_label=Label(current_course_frame,text="Department")
         department_label.grid(row=0,column=0,padx=10,sticky=W)
 
-        department_dropdown=ttk.Combobox(current_course_frame,state="readonly")
+        department_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_department,state="readonly")
         department_dropdown["values"]=("Select Department","Software Engineer")
         department_dropdown.current(0)
         department_dropdown.grid(row=0,column=1,pady=10,sticky=W)
@@ -59,7 +70,7 @@ class Student:
         course_label=Label(current_course_frame,text="Course")
         course_label.grid(row=0,column=2,padx=10,sticky=W)
 
-        course_dropdown=ttk.Combobox(current_course_frame,state="readonly")
+        course_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_course,state="readonly")
         course_dropdown["values"]=("Select Course","Software")
         course_dropdown.current(0)
         course_dropdown.grid(row=0,column=3,pady=10,sticky=W)
@@ -68,7 +79,7 @@ class Student:
         year_label=Label(current_course_frame,text="Year")
         year_label.grid(row=1,column=0,padx=10,sticky=W)
 
-        year_dropdown=ttk.Combobox(current_course_frame,state="readonly")
+        year_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_year,state="readonly")
         year_dropdown["values"]=("Select Year","2024","2025","2026")
         year_dropdown.current(0)
         year_dropdown.grid(row=1,column=1,pady=10,sticky=W)
@@ -78,7 +89,7 @@ class Student:
         semester_label=Label(current_course_frame,text="Semester")
         semester_label.grid(row=1,column=2,padx=10,sticky=W)
 
-        semester_dropdown=ttk.Combobox(current_course_frame,state="readonly")
+        semester_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_semester,state="readonly")
         semester_dropdown["values"]=("Select Semester","Semester-1","Semester-2","Semester-3","Semester-4","Semester-5","Semester-6","Semester-7","Semester-8")
         semester_dropdown.current(0)
         semester_dropdown.grid(row=1,column=3,pady=10,sticky=W)
@@ -91,21 +102,21 @@ class Student:
         student_ID_label=Label(class_student_frame,text="Student ID")
         student_ID_label.grid(row=0,column=0,padx=5,sticky=W)
 
-        student_ID_input=ttk.Entry(class_student_frame)
+        student_ID_input=ttk.Entry(class_student_frame,textvariable=self.var_student_id)
         student_ID_input.grid(row=0,column=1,pady=10,sticky=W)
 
         #Student Name
         student_Name_label=Label(class_student_frame,text="Student Name")
         student_Name_label.grid(row=0,column=2,padx=5,sticky=W)
 
-        student_Name_input=ttk.Entry(class_student_frame)
+        student_Name_input=ttk.Entry(class_student_frame,textvariable=self.var_student_name)
         student_Name_input.grid(row=0,column=3,pady=10,sticky=W)
 
         #Gender
         gender_label=Label(class_student_frame,text="Gender")
         gender_label.grid(row=1,column=0,padx=5,sticky=W)
 
-        gender_dropdown=ttk.Combobox(class_student_frame,state="readonly")
+        gender_dropdown=ttk.Combobox(class_student_frame,textvariable=self.var_gender,state="readonly")
         gender_dropdown["values"]=("Select Gender","Male","Female")
         gender_dropdown.current(0)
         gender_dropdown.grid(row=1,column=1,pady=10,sticky=W)
@@ -114,42 +125,46 @@ class Student:
         DOB_label=Label(class_student_frame,text="Date of Birth")
         DOB_label.grid(row=1,column=2,padx=5,sticky=W)
 
-        DOB_input=ttk.Entry(class_student_frame)
+        DOB_input=ttk.Entry(class_student_frame,textvariable=self.var_date_of_birth)
         DOB_input.grid(row=1,column=3,pady=10,sticky=W)
         #Email
         email_label=Label(class_student_frame,text="Email")
         email_label.grid(row=2,column=0,padx=5,sticky=W)
 
-        email_input=ttk.Entry(class_student_frame)
+        email_input=ttk.Entry(class_student_frame,textvariable=self.var_email)
         email_input.grid(row=2,column=1,pady=10,sticky=W)
 
         #Phone No
         phone_num_label=Label(class_student_frame,text="Phone Number")
         phone_num_label.grid(row=2,column=2,padx=5,sticky=W)
 
-        phone_num_input=ttk.Entry(class_student_frame)
+        phone_num_input=ttk.Entry(class_student_frame,textvariable=self.var_phone_number)
         phone_num_input.grid(row=2,column=3,pady=10,sticky=W)
 
         #Address
         address_label=Label(class_student_frame,text="Address")
         address_label.grid(row=3,column=0,padx=5,sticky=W)
 
-        address_input=ttk.Entry(class_student_frame)
+        address_input=ttk.Entry(class_student_frame,textvariable=self.var_address)
         address_input.grid(row=3,column=1,pady=10,sticky=W)
 
         #Teacher Name
         teacher_label=Label(class_student_frame,text="Teacher")
         teacher_label.grid(row=3,column=2,padx=5,sticky=W)
 
-        teacher_input=ttk.Entry(class_student_frame)
+        teacher_input=ttk.Entry(class_student_frame,textvariable=self.var_teacher)
         teacher_input.grid(row=3,column=3,pady=10,sticky=W)
 
         #Selection Button
-        take_photo=ttk.Radiobutton(class_student_frame,text="Take Photo",value="Yes")
-        take_photo.grid(row=4,column=0,padx=5,sticky=W)
+        self.var_take_photo=StringVar()
+        take_photo1=ttk.Radiobutton(class_student_frame,textvariable=self.var_take_photo,text="Take Photo",value="Yes")
+        take_photo1.grid(row=4,column=0,padx=5)
 
-        no_photo=ttk.Radiobutton(class_student_frame,text="No Photo",value="Yes")
-        no_photo.grid(row=4,column=1,padx=5,sticky=W)
+        #No
+        self.var_no_photo=StringVar()
+        no_photo2=ttk.Radiobutton(class_student_frame,text="No Photo",textvariable=self.var_no_photo,value="Yes")
+        no_photo2.grid(row=4,column=1,padx=5)
+
 
         #Button Upper Frame Section 
         button_upper_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")

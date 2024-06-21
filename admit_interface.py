@@ -27,6 +27,7 @@ class Admit_Interface:
         
         save_button=Button(text="Student Information",command=self.student_detail,bg="orange",fg="white",font=("League_Spartan"))
         save_button.place(x=200,y=15,width=150,height=40)
+
     
 
 #========================Function Buttone
