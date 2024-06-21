@@ -39,6 +39,9 @@ class Student:
         background_img_position=Label(self.root,image=self.photo_background_img)
         background_img_position.place(x=0,y=0,width=1024,height=590)
 
+
+
+
     #LogoTitle Image
         left_title=Image.open(r"Image\LogoTitle_Left Top.png")     
         self.photoleft_title=ImageTk.PhotoImage(left_title)
@@ -46,19 +49,35 @@ class Student:
         left_title_position.place(x=0,y=0,width=163,height=60)
 
 
-    #Navigation Bar
-        
 
+
+    #Navigation Bar
         save_button=Button(text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
         save_button.place(x=200,y=15,width=150,height=40)
-        
+
+
+
+
     #Frame
         main_frame=Frame(background_img_position,bd=2,bg="orange")
         main_frame.place(x=20,y=70,width=984,height=500)
-        
+
+
+
+
+
+
+
+
+
     #Left Label Frame(Student Information: Current Course,Class Student Information)    
         left_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
         left_frame.place(x=10,y=10,width=477,height=470)
+
+
+
+
+
 
     #Current Course Information
         current_course_frame=LabelFrame(left_frame,bd=2,relief=RIDGE,text="Current Course Information")
@@ -100,6 +119,9 @@ class Student:
         semester_dropdown["values"]=("Select Semester","Semester-1","Semester-2","Semester-3","Semester-4","Semester-5","Semester-6","Semester-7","Semester-8")
         semester_dropdown.current(0)
         semester_dropdown.grid(row=1,column=3,pady=10,sticky=W)
+
+
+
 
     #Class Student Information Frame
         class_student_frame=LabelFrame(left_frame,bd=2,relief=RIDGE,text="Class Student Information")
@@ -210,6 +232,15 @@ class Student:
         update_photo_button.grid(row=1,column=1)
 
 
+
+
+
+
+
+
+
+
+
     #Right Label Frame(Search System, Table Information)     
         right_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
         right_frame.place(x=497,y=10,width=475,height=470)
@@ -238,9 +269,17 @@ class Student:
         show_all_button=Button(search_frame,text="Show All",bg="orange",fg="white",width=10)
         show_all_button.grid(row=0,column=4,padx=3)
 
+
+
+
+
+
+
+
+
     #Database Frame
         database_frame=LabelFrame(right_frame,bd=2,relief=RIDGE)
-        database_frame.place(x=5,y=55,width=462,height=150)
+        database_frame.place(x=5,y=55,width=462,height=390)
      
         scroll_left_right=ttk.Scrollbar(database_frame,orient=HORIZONTAL)
         scroll_up_down=ttk.Scrollbar(database_frame,orient=VERTICAL)
@@ -280,10 +319,38 @@ class Student:
         self.student_database.heading("Photo",text="Photo")
         self.student_database["show"]="headings"
 
+        self.student_database.column("Department",width=100)
+        self.student_database.column("Course",width=100)
+        self.student_database.column("Year",width=100)
+        self.student_database.column("Semester",width=100)
+        self.student_database.column("Student ID",width=100)
+        self.student_database.column("Student Name",width=100)
+        self.student_database.column("Gender",width=100)
+        self.student_database.column("Date of Birth",width=100)
+        self.student_database.column("Email",width=100)
+        self.student_database.column("Phone Number",width=100)
+        self.student_database.column("Address",width=100)
+        self.student_database.column("Teacher",width=100)
+        self.student_database.column("Photo",width=100)
+        
         self.student_database.pack(fill=BOTH,expand=1)
+        self.fetch_data()
+
+
+
+
+
+
+
+
+
+
+
 
 
     #Function
+
+    #This is to ADD the information to the database.
     def add_data(self):
         if self.var_department.get()=="Select Department" or self.var_course.get()=="Select Course":
             messagebox.showerror("Missing Field","All Field are required to be fill!",parent=self.root)
@@ -313,8 +380,43 @@ class Student:
                 self.var_take_photo.get()
 ))
             conn.commit()
+            self.fetch_data()
             conn.close()
             messagebox.showinfo("Successful","Student Added", parent=self.root)
+        
+
+
+    #This is to display the data in the table.
+    def fetch_data(self):
+        conn = mysql.connector.connect(
+            host=connection_details["server"],
+            port=connection_details["port"],
+            user=connection_details["username"],
+            password=connection_details["password"],
+            database=connection_details["database"]
+            )
+        my_cursor=conn.cursor()
+        my_cursor.execute("SELECT * FROM students")
+        data=my_cursor.fetchall()
+
+        if len(data)!=0:
+            self.student_database.delete(*self.student_database.get_children())
+            for i in data:
+                self.student_database.insert("",END,values=i)
+                conn.commit()
+        conn.close()
+
+
+
+
+
+
+
+      #Getting the Cursor
+    
+    def get_cursor(self):
+        cu
+          
         
 if __name__ == "__main__":
     root=Tk()
