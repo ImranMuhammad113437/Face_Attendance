@@ -207,7 +207,7 @@ class Student:
         save_button.grid(row=0,column=0)
 
         #Update Button
-        update_button=Button(button_upper_frame,text="Update",bg="orange",fg="white",width=15)
+        update_button=Button(button_upper_frame,text="Update",command=self.update_data,bg="orange",fg="white",width=15)
         update_button.grid(row=0,column=1)
 
         #Delete Button
@@ -435,6 +435,47 @@ class Student:
         self.var_take_photo.set(data[12])
   
         
+
+
+    #Update the information
+    def update_data(self):
+        if self.var_department.get()=="Select Department" or self.var_course.get()=="Select Course":
+            messagebox.showerror("Missing Field","All Field are required to be fill!",parent=self.root)
+        
+        else:
+            conn = mysql.connector.connect(
+            host=connection_details["server"],
+            port=connection_details["port"],
+            user=connection_details["username"],
+            password=connection_details["password"],
+            database=connection_details["database"]
+            )
+            my_cursor=conn.cursor()
+            my_cursor.execute("UPDATE students SET department=%s,course=%s,year=%s,semester=%s,student_name=%s,gender=%s,date_of_birth=%s,email=%s,phone_number=%s,address=%s,teacher=%s,photo_sample=%s WHERE student_id=%s",
+            (
+                self.var_department.get(),
+                self.var_course.get(),
+                self.var_year.get(),
+                self.var_semester.get(),
+                self.var_student_name.get(),
+                self.var_gender.get(),
+                self.var_date_of_birth.get(),
+                self.var_email.get(),
+                self.var_phone_number.get(),
+                self.var_address.get(),
+                self.var_teacher.get(),
+                self.var_take_photo.get(),
+                self.var_student_id.get()
+            ))
+            messagebox.showinfo("Success","Student Updated")
+            conn.commit()
+            self.fetch_data()
+            conn.close()
+            
+            
+            
+        
+
 if __name__ == "__main__":
     root=Tk()
     obj=Student(root)
