@@ -21,6 +21,13 @@ class Student:
         self.photoleft_title=ImageTk.PhotoImage(left_title)
         left_title_position=Label(self.root,image=self.photoleft_title)
         left_title_position.place(x=0,y=0,width=163,height=60)
+
+
+    #Navigation Bar
+        
+
+        save_button=Button(text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
+        save_button.place(x=200,y=15,width=150,height=40)
         
     #Frame
         main_frame=Frame(background_img_position,bd=2,bg="orange")
