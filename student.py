@@ -3,14 +3,12 @@ from tkinter import ttk
 from PIL  import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
-import mysql.connector
 import json
 
-with open(r'.vscode\settings.json') as file:
+with open(r".vscode\settings.json") as file:
     settings = json.load(file)
-connection_details = settings["sqltools.connections"][0]
 
-# Establish the connection
+connection_details = settings["sqltools.connections"][0]
 
 class Student:
     def __init__(self,root):
@@ -246,7 +244,19 @@ class Student:
      
         scroll_left_right=ttk.Scrollbar(database_frame,orient=HORIZONTAL)
         scroll_up_down=ttk.Scrollbar(database_frame,orient=VERTICAL)
-        self.student_database=ttk.Treeview(database_frame,columns=("Department","Course","Year","Semester","Student ID","Student Name","Gender","Date of Birth","Email","Phone Number","Address","Teacher", "Photo"),xscrollcommand=scroll_left_right.set,yscrollcommand=scroll_up_down.set)
+        self.student_database=ttk.Treeview(database_frame,columns=("Department",
+                                                                   "Course",
+                                                                   "Year",
+                                                                   "Semester",
+                                                                   "Student ID",
+                                                                   "Student Name",
+                                                                   "Gender",
+                                                                   "Date of Birth",
+                                                                   "Email",
+                                                                   "Phone Number",
+                                                                   "Address",
+                                                                   "Teacher", 
+                                                                   "Photo"),xscrollcommand=scroll_left_right.set,yscrollcommand=scroll_up_down.set)
         
         scroll_left_right.pack(side=BOTTOM,fill=X)
         scroll_up_down.pack(side=RIGHT,fill=Y)
@@ -276,17 +286,36 @@ class Student:
     #Function
     def add_data(self):
         if self.var_department.get()=="Select Department" or self.var_course.get()=="Select Course":
-           messagebox.showerror("Missing Field","All Field are required to be fill!",paren=self.root)
+            messagebox.showerror("Missing Field","All Field are required to be fill!",parent=self.root)
         else:
             conn = mysql.connector.connect(
-                host=connection_details["server"],
-                port=connection_details["port"],
-                user=connection_details["username"],
-                password=connection_details["password"],
-                database=connection_details["database"])
-            
-
-
+            host=connection_details["server"],
+            port=connection_details["port"],
+            user=connection_details["username"],
+            password=connection_details["password"],
+            database=connection_details["database"]
+            )
+            my_cursor=conn.cursor()
+            my_cursor.execute("INSERT INTO students VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (
+                self.var_department.get(),
+                self.var_course.get(),
+                self.var_year.get(),
+                self.var_semester.get(),
+                self.var_student_id.get(),
+                self.var_student_name.get(),
+                self.var_gender.get(),
+                self.var_date_of_birth.get(),
+                self.var_email.get(),
+                self.var_phone_number.get(),
+                self.var_address.get(),
+                self.var_teacher.get(),
+                self.var_take_photo.get()
+))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("Successful","Student Added", parent=self.root)
+        
 if __name__ == "__main__":
     root=Tk()
     obj=Student(root)
