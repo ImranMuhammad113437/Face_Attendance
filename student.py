@@ -1,7 +1,16 @@
 from tkinter import *
 from tkinter import ttk 
 from PIL  import Image, ImageTk
+from tkinter import messagebox
+import mysql.connector
+import mysql.connector
+import json
 
+with open(r'.vscode\settings.json') as file:
+    settings = json.load(file)
+connection_details = settings["sqltools.connections"][0]
+
+# Establish the connection
 
 class Student:
     def __init__(self,root):
@@ -155,24 +164,26 @@ class Student:
         teacher_input=ttk.Entry(class_student_frame,textvariable=self.var_teacher)
         teacher_input.grid(row=3,column=3,pady=10,sticky=W)
 
+        
         #Selection Button
         self.var_take_photo=StringVar()
-        take_photo1=ttk.Radiobutton(class_student_frame,textvariable=self.var_take_photo,text="Take Photo",value="Yes")
-        take_photo1.grid(row=4,column=0,padx=5)
+        
+        take_photo_label=Label(class_student_frame,text="Photo Sample")
+        take_photo_label.grid(row=4,column=0,padx=5,sticky=W)
+        
+        take_photo_dropdown=ttk.Combobox(class_student_frame,text="Take Photo",textvariable=self.var_take_photo,state="readonly")
+        take_photo_dropdown["value"]=("Select Option","Yes","No")
+        take_photo_dropdown.current(0)
+        take_photo_dropdown.grid(row=4,column=1,pady=10)
 
-        #No
-        self.var_no_photo=StringVar()
-        no_photo2=ttk.Radiobutton(class_student_frame,text="No Photo",textvariable=self.var_no_photo,value="Yes")
-        no_photo2.grid(row=4,column=1,padx=5)
-
-
+        
         #Button Upper Frame Section 
         button_upper_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
-        button_upper_frame.place(x=5,y=190,width=450)
+        button_upper_frame.place(x=5,y=210,width=450)
         
          
         #Save Button
-        save_button=Button(button_upper_frame,text="Save",bg="orange",fg="white",width=14)
+        save_button=Button(button_upper_frame,text="Save",command=self.add_data,bg="orange",fg="white",width=14)
         save_button.grid(row=0,column=0)
 
         #Update Button
@@ -189,7 +200,7 @@ class Student:
 
        #Button Lower Frame Section
         button_lower_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
-        button_lower_frame.place(x=5,y=219,width=450)
+        button_lower_frame.place(x=5,y=239,width=450)
         
 
         #Take Photo Sample
@@ -260,6 +271,20 @@ class Student:
         self.student_database["show"]="headings"
 
         self.student_database.pack(fill=BOTH,expand=1)
+
+
+    #Function
+    def add_data(self):
+        if self.var_department.get()=="Select Department" or self.var_course.get()=="Select Course":
+           messagebox.showerror("Missing Field","All Field are required to be fill!",paren=self.root)
+        else:
+            conn = mysql.connector.connect(
+                host=connection_details["server"],
+                port=connection_details["port"],
+                user=connection_details["username"],
+                password=connection_details["password"],
+                database=connection_details["database"])
+            
 
 
 if __name__ == "__main__":
