@@ -29,15 +29,20 @@ class Admit_Interface:
     #Navigation Bar
 
         main_frame=Frame(background_img_main_position,bd=2,bg="white")
-        main_frame.place(x=200,y=5,width=500,height=50)
+        main_frame.place(x=200,y=100,width=500,height=50)
 
-        save_button=Button(main_frame,text="Student Information",command=self.student_detail,bg="orange",fg="white",font=("League_Spartan"))
-        save_button.place(x=5,y=2 ,width=150,height=40)
+        student_information=Button(main_frame,text="Student Information",command=self.student_detail,bg="orange",fg="white",font=("League_Spartan"))
+        student_information.place(x=5,y=2 ,width=150,height=40)
 
-        
-        
         train_data=Button(main_frame,text="Train Data",command=self.training_data,bg="orange",fg="white",font=("League_Spartan"))
         train_data.place(x=160,y=2,width=150,height=40)
+
+        storage_image=Button(main_frame,text="Storage",command=self.open_image,bg="orange",fg="white",font=("League_Spartan"))
+        storage_image.place(x=315,y=2,width=150,height=40)
+
+
+
+
 
        
 
@@ -54,8 +59,10 @@ class Admit_Interface:
         
 
     def student_detail(self):
+        
         self.new_window=Toplevel(self.root)
         self.app=Student(self.new_window)
+        
         
 if __name__ == "__main__":
     root=Tk()
