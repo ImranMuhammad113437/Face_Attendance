@@ -4,9 +4,8 @@ from PIL  import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
 import json
-import subprocess
-
-
+import cv2
+import os
 
 
 with open(r".vscode\settings.json") as file:
@@ -525,42 +524,73 @@ class Student:
 
     #Dataset generate
     def generate_dataset(self):
-            conn = mysql.connector.connect(
-                host=connection_details["server"],
-                port=connection_details["port"],
-                user=connection_details["username"],
-                password=connection_details["password"],
-                database=connection_details["database"]
-            )
-            my_cursor=conn.cursor()
-            my_cursor.execute("SELECT * FROM students")
-            myresult=my_cursor.fetchall()
-            id=0
-            for i in myresult:
-                id+-1
-            my_cursor.execute("UPDATE students SET department=%s,course=%s,year=%s,semester=%s,student_name=%s,gender=%s,date_of_birth=%s,email=%s,phone_number=%s,address=%s,teacher=%s,photo_sample=%s WHERE student_id=%s",
-            (
-                self.var_department.get(),
-                self.var_course.get(),
-                self.var_year.get(),
-                self.var_semester.get(),
-                self.var_student_name.get(),    
-                self.var_gender.get(),
-                self.var_date_of_birth.get(),
-                self.var_email.get(),
-                self.var_phone_number.get(),
-                self.var_address.get(),
-                self.var_teacher.get(),
-                self.var_take_photo.get(),
-                self.var_student_id.get()
-            ))
-            conn.commit()
-            self.fetch_data()
-            self.reset_data()
-            conn.close()
-            subprocess.run(["python", r"face_detection.py"])
-    
+        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course" or self.var_student_id.get() == "" or self.var_take_photo == "No":
+            messagebox.showerror("Missing Field", "All fields are required to be filled!", parent=self.root)
+        else:
+            val=self.var_student_id.get()
 
+            face_cascade_path = r'Library\haarcascade_frontalface_default.xml'
+
+
+            face_cascade = cv2.CascadeClassifier(face_cascade_path)
+
+
+            def draw_green_rectangle(image, x, y, w, h):
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)  
+
+
+            if not os.path.exists('data'):
+                os.makedirs('data')
+
+
+            cap = cv2.VideoCapture(0)
+
+
+            image_count = 0
+
+            while image_count < 100:
+
+                ret, frame = cap.read()
+
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+
+                for (x, y, w, h) in faces:
+                    draw_green_rectangle(frame, x, y, w, h)
+                    face_image = frame[y:y+h, x:x+w]
+                    face_image_path = f'data/user_{val}_{image_count + 1}.jpg'
+                    cv2.imwrite(face_image_path, face_image)
+                    image_count += 1
+                    if image_count >= 100:
+                        break
+                cv2.imshow('Face Detection', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            
+
+        cap.release()
+        cv2.destroyAllWindows()
+
+        
+           
+            
+           
+
+
+
+
+
+                     
+
+
+
+
+
+        
+         
+    
 if __name__ == "__main__":
     root=Tk()
     obj=Student(root)
