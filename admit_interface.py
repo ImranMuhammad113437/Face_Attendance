@@ -24,6 +24,10 @@ class Admit_Interface:
 
     
     #Navigation Bar
+        save_button=Button(text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
+        save_button.place(x=200,y=15,width=150,height=40)
+
+        
         
         train_data=Button(text="Train Data",command=self.student_detail,bg="orange",fg="white",font=("League_Spartan"))
         train_data.place(x=360,y=15,width=150,height=40)
