@@ -36,11 +36,11 @@ class Student:
         
 
     #Background Image
-        background_img=Image.open(r"Image\Background.png")
-        background_img=background_img.resize((1024, 590),Image.Resampling.LANCZOS)
-        self.photo_background_img=ImageTk.PhotoImage(background_img)
-        background_img_position=Label(self.root,image=self.photo_background_img)
-        background_img_position.place(x=0,y=0,width=1024,height=590)
+        background_img_student=Image.open(r"Image\Background.png")
+        background_img_student=background_img_student.resize((1024, 590),Image.Resampling.LANCZOS)
+        self.photo_background_img_student=ImageTk.PhotoImage(background_img_student)
+        background_img_student_position=Label(self.root,image=self.photo_background_img_student)
+        background_img_student_position.place(x=0,y=0,width=1024,height=590)
 
 
 
@@ -55,14 +55,23 @@ class Student:
 
 
     #Navigation Bar
-        save_button=Button(text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
-        save_button.place(x=200,y=15,width=150,height=40)
+        main_frame=Frame(background_img_student_position,bd=2,bg="white")
+        main_frame.place(x=200,y=5,width=500,height=50)
+
+        save_button=Button(main_frame,text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
+        save_button.place(x=5,y=2 ,width=150,height=40)
+
+        
+        
+        train_data=Button(main_frame,text="Train Data",bg="orange",fg="white",font=("League_Spartan"))
+        train_data.place(x=160,y=2,width=150,height=40)
+
 
 
 
 
     #Frame
-        main_frame=Frame(background_img_position,bd=2,bg="orange")
+        main_frame=Frame(background_img_student_position,bd=2,bg="orange")
         main_frame.place(x=20,y=70,width=984,height=500)
 
 
@@ -524,7 +533,7 @@ class Student:
 
     #Dataset generate
     def generate_dataset(self):
-        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course" or self.var_student_id.get() == "" or self.var_take_photo == "No":
+        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course" or self.var_student_id.get() == "" or self.var_take_photo.get() == "Yes":
             messagebox.showerror("Missing Field", "All fields are required to be filled!", parent=self.root)
         else:
             val=self.var_student_id.get()
@@ -560,7 +569,7 @@ class Student:
                 for (x, y, w, h) in faces:
                     draw_green_rectangle(frame, x, y, w, h)
                     face_image = frame[y:y+h, x:x+w]
-                    face_image_path = f'data/user_{val}_{image_count + 1}.jpg'
+                    face_image_path = f'data/user.{val}.{image_count + 1}.jpg'
                     cv2.imwrite(face_image_path, face_image)
                     image_count += 1
                     if image_count >= 100:
