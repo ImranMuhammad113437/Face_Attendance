@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk 
 from PIL import Image, ImageTk
 from student import Student
+from data_training import Data_Training
 import os
 
 
@@ -47,10 +48,14 @@ class Admit_Interface:
     def open_image(self):
         os.startfile("data")
     
-    
-    def student_detail(self):
+    def training_data(self):
         self.new_window=Toplevel(self.root)
         self.app=Student(self.new_window)
+        
+
+    def student_detail(self):
+        self.new_window=Toplevel(self.root)
+        self.app=Data_Training(self.new_window)
         
 if __name__ == "__main__":
     root=Tk()
