@@ -36,7 +36,7 @@ class Admit_Interface:
 
         
         
-        train_data=Button(main_frame,text="Train Data",bg="orange",fg="white",font=("League_Spartan"))
+        train_data=Button(main_frame,text="Train Data",command=self.training_data,bg="orange",fg="white",font=("League_Spartan"))
         train_data.place(x=160,y=2,width=150,height=40)
 
        
@@ -50,12 +50,12 @@ class Admit_Interface:
     
     def training_data(self):
         self.new_window=Toplevel(self.root)
-        self.app=Student(self.new_window)
+        self.app=Data_Training(self.new_window)
         
 
     def student_detail(self):
         self.new_window=Toplevel(self.root)
-        self.app=Data_Training(self.new_window)
+        self.app=Student(self.new_window)
         
 if __name__ == "__main__":
     root=Tk()
