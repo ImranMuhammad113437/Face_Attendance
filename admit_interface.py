@@ -60,7 +60,6 @@ class Admit_Interface:
         
 
     def student_detail(self):
-        
         self.new_window=Toplevel(self.root)
         self.app=Student(self.new_window)
         

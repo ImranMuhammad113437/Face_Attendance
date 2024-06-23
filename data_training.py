@@ -35,8 +35,8 @@ class Data_Training:
         main_frame=Frame(background_img_data_training_position,bd=2,bg="orange")
         main_frame.place(x=200,y=5,width=700,height=50)
 
-        save_button=Label(main_frame,text="Data Training Center",bg="white",fg="orange",font=("New Time Roman", 20, "bold"))
-        save_button.place(x=5,y=2 ,width=400,height=40)
+        save_button=Label(main_frame,text="Data Training",bg="orange",fg="white",font=("New Time Roman", 20, "bold"))
+        save_button.place(x=5,y=2 ,width=600,height=40)
 
 
         #button

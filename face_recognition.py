@@ -3,6 +3,8 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
+from time import strftime
+from datetime import datetime
 import cv2
 import os
 import numpy as np
@@ -37,7 +39,20 @@ class Face_Recognition:
         face_recogntion_button.place(x=200,y=200,width=150,height=40)
 
 
-
+    def mark_attendance(self,id,student_name):
+        with open("Attendance.csv","r+",newline="\n") as f:
+            myDataList=f.readlines()
+            name_list=[]
+            for line in myDataList:
+                entry=line.split((","))
+                name_list.append(entry[0])
+            if((id not in name_list) and (student_name )):
+                now=datetime.now()
+                d1=now.strftime("%d/%m/%Y")
+                dtString=now.strftime("%H:%M:%S")
+                f.writelines(f"\n{id},{student_name},{dtString},{d1},Preset")
+                 
+        
 
 
     def face_recog(self):
@@ -81,6 +96,7 @@ class Face_Recognition:
                 if confidence > 77:
                     cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                     cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+                    self.mark_attendance(id,student_name)
                 else:
                     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
                     cv2.putText(img, "Unknown Student", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
