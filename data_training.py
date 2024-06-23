@@ -4,7 +4,6 @@ from PIL import Image, ImageTk
 from tkinter import messagebox
 import mysql.connector
 import cv2
-
 import os
 import numpy as np
 
@@ -13,7 +12,7 @@ class Data_Training:
     def __init__(self,root):
         self.root=root
         self.root.geometry("1024x590+0+0")
-        self.root.title("AttendNow")\
+        self.root.title("AttendNow")
         
 
         #Background Image
@@ -32,14 +31,12 @@ class Data_Training:
 
 
         #Navigation Bar
-        main_frame=Frame(background_img_data_training_position,bd=2,bg="white")
-        main_frame.place(x=200,y=5,width=500,height=50)
+        
+        main_frame=Frame(background_img_data_training_position,bd=2,bg="orange")
+        main_frame.place(x=200,y=5,width=700,height=50)
 
-        save_button=Button(main_frame,text="Student Information",bg="orange",fg="white",font=("League_Spartan"))
-        save_button.place(x=5,y=2 ,width=150,height=40)
-
-        train_data=Button(main_frame,text="Train Data",bg="orange",fg="white",font=("League_Spartan"))
-        train_data.place(x=160,y=2,width=150,height=40)
+        save_button=Label(main_frame,text="Data Training Center",bg="white",fg="orange",font=("New Time Roman", 20, "bold"))
+        save_button.place(x=5,y=2 ,width=400,height=40)
 
 
         #button

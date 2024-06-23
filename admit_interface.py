@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from student import Student
 from data_training import Data_Training
+from face_recognition import Face_Recognition
 import os
 
 
