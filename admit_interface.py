@@ -26,11 +26,18 @@ class Admit_Interface:
         left_title_position=Label(self.root,image=self.photoleft_title)
         left_title_position.place(x=0,y=0,width=163,height=60)
 
+        main_frame2=Frame(background_img_main_position,bd=2,bg="orange")
+        main_frame2.place(x=200,y=5,width=700,height=50)
+
+        save_button=Label(main_frame2,text="Admin Interface",bg="orange",fg="white",font=("New Time Roman", 20, "bold"))
+        save_button.place(x=5,y=2 ,width=600,height=40)
+
+
     
     #Navigation Bar
 
         main_frame=Frame(background_img_main_position,bd=2,bg="white")
-        main_frame.place(x=200,y=100,width=500,height=50)
+        main_frame.place(x=200,y=100,width=650,height=50)
 
         student_information=Button(main_frame,text="Student Information",command=self.student_detail,bg="orange",fg="white",font=("League_Spartan"))
         student_information.place(x=5,y=2 ,width=150,height=40)
@@ -40,6 +47,10 @@ class Admit_Interface:
 
         storage_image=Button(main_frame,text="Storage",command=self.open_image,bg="orange",fg="white",font=("League_Spartan"))
         storage_image.place(x=315,y=2,width=150,height=40)
+
+        face_recon=Button(main_frame,text="Face Recognition",command=self.face_page,bg="orange",fg="white",font=("League_Spartan"))
+        face_recon.place(x=470,y=2,width=150,height=40)
+        
 
 
 
@@ -62,6 +73,10 @@ class Admit_Interface:
     def student_detail(self):
         self.new_window=Toplevel(self.root)
         self.app=Student(self.new_window)
+
+    def face_page(self):
+        self.new_window=Toplevel(self.root)
+        self.app=Face_Recognition(self.new_window)
         
         
 if __name__ == "__main__":

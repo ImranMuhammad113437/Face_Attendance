@@ -6,6 +6,7 @@ import mysql.connector
 from time import strftime
 from datetime import datetime
 import cv2
+import csv
 import os
 import numpy as np
 import json
@@ -35,23 +36,30 @@ class Face_Recognition:
         left_title_position=Label(self.root,image=self.photoleft_title)
         left_title_position.place(x=0,y=0,width=163,height=60)
 
-        face_recogntion_button=Button(background_img_face_recognition_position,command=self.face_recog,text="Train Data")
+        main_frame=Frame(background_img_face_recognition_position,bd=2,bg="orange")
+        main_frame.place(x=200,y=5,width=700,height=50)
+
+        save_button=Label(main_frame,text="Face Recognition",bg="orange",fg="white",font=("New Time Roman", 20, "bold"))
+        save_button.place(x=5,y=2 ,width=600,height=40)
+
+
+        face_recogntion_button=Button(background_img_face_recognition_position,command=self.face_recog,text="Start Face Recognition")
         face_recogntion_button.place(x=200,y=200,width=150,height=40)
 
 
-    def mark_attendance(self,id,student_name):
-        with open("Attendance.csv","r+",newline="\n") as f:
-            myDataList=f.readlines()
-            name_list=[]
+    def mark_attendance(self, id, student_name):
+        with open(r"Attendance.csv", "a+", newline="\n") as f:
+            f.seek(0)  # Move the cursor to the start of the file
+            myDataList = f.readlines()
+            name_list = []
             for line in myDataList:
-                entry=line.split((","))
+                entry = line.strip().split(",")
                 name_list.append(entry[0])
-            if((id not in name_list) and (student_name )):
-                now=datetime.now()
-                d1=now.strftime("%d/%m/%Y")
-                dtString=now.strftime("%H:%M:%S")
-                f.writelines(f"\n{id},{student_name},{dtString},{d1},Preset")
-                 
+            if id not in name_list and student_name:
+                now = datetime.now()
+                d1 = now.strftime("%d/%m/%Y")
+                dtString = now.strftime("%H:%M:%S")
+                f.write(f"{id},{student_name},{dtString},{d1},Present\n")             
         
 
 
