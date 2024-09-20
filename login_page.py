@@ -1,9 +1,10 @@
 from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import mysql.connector
 import admit_interface  # Import the admit_interface module
 
-class Face_Attendance:
+class Login_Page:
     def __init__(self, root):
         self.root = root
         self.root.geometry("1024x590+0+0")
@@ -48,22 +49,48 @@ class Face_Attendance:
         self.login_button = Button(self.login_frame, text="Login", command=self.login, font=("Arial", 14), bg="orange", fg="white")
         self.login_button.place(x=150, y=150, width=100)
 
+        self.signup_button = Button(self.login_frame, text="Sign Up", command=self.open_signup_page, font=("Arial", 14), bg="orange", fg="white")
+        self.signup_button.place(x=270, y=150, width=100)
+
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
 
-        if username == "admin" and password == "password":
-            # Open the admit interface window
-            self.open_admit_interface()
+        if username and password:
+            try:
+                connection = mysql.connector.connect(
+                    host='localhost',
+                    user='root',
+                    password='Nightcore_1134372019!',
+                    database='attendnow'
+                )
+                
+                cursor = connection.cursor()
+                cursor.execute("SELECT * FROM admin_user WHERE user_name = %s AND user_password = %s", (username, password))
+                result = cursor.fetchone()
+                
+                if result:
+                    self.open_admit_interface(username)  # Pass the username to Admit_Interface
+                else:
+                    messagebox.showerror("Login Error", "Invalid Username or Password")
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
         else:
-            messagebox.showerror("Login Error", "Invalid Username or Password")
+            messagebox.showerror("Input Error", "Please fill in both fields")
 
-    def open_admit_interface(self):
-        # Create a new window for the admit interface
+    def open_admit_interface(self, username):
         new_window = Toplevel(self.root)
-        admit_interface.Admit_Interface(new_window)
+        admit_interface.Admit_Interface(new_window, username)  # Pass the username
+
+    def open_signup_page(self):
+        # Implement the sign-up logic here
+        pass
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Face_Attendance(root)
+    obj = Login_Page(root)
     root.mainloop()

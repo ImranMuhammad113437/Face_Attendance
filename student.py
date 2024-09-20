@@ -6,7 +6,7 @@ import mysql.connector
 import json
 import cv2
 import os
-
+from tkcalendar import DateEntry
 
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
@@ -98,9 +98,32 @@ class Student:
         department_label.grid(row=0,column=0,padx=10,sticky=W)
 
         department_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_department,state="readonly")
-        department_dropdown["values"]=("Select Department","Software Engineer")
+        department_dropdown["values"] = (
+    "Select Department",
+    "Software Engineering",
+    "Computer Science",
+    "Information Technology",
+    "Data Science",
+    "Electrical Engineering",
+    "Mechanical Engineering",
+    "Civil Engineering",
+    "Chemical Engineering",
+    "Business Administration",
+    "Marketing",
+    "Accounting",
+    "Finance",
+    "Economics",
+    "Psychology",
+    "Sociology",
+    "Political Science",
+    "English Literature",
+    "History",
+    "Art and Design",
+    "Performing Arts"
+)
         department_dropdown.current(0)
         department_dropdown.grid(row=0,column=1,pady=10,sticky=W)
+
 
         #Course Section
         course_label=Label(current_course_frame,text="Course")
@@ -161,11 +184,15 @@ class Student:
         gender_dropdown.grid(row=1,column=1,pady=10,sticky=W)
 
         #Date of Birth
-        DOB_label=Label(class_student_frame,text="Date of Birth")
-        DOB_label.grid(row=1,column=2,padx=5,sticky=W)
+        #Assuming this is within a class method
+        # Date of Birth
+        DOB_label = Label(class_student_frame, text="Date of Birth")
+        DOB_label.grid(row=1, column=2, padx=5, sticky=W)
 
-        DOB_input=ttk.Entry(class_student_frame,textvariable=self.var_date_of_birth)
-        DOB_input.grid(row=1,column=3,pady=10,sticky=W)
+        # Use DateEntry for the calendar widget
+        DOB_input = DateEntry(class_student_frame, textvariable=self.var_date_of_birth, width=12, background='orange',
+                      foreground='white', borderwidth=2)
+        DOB_input.grid(row=1, column=3, pady=10, sticky=W)
         #Email
         email_label=Label(class_student_frame,text="Email")
         email_label.grid(row=2,column=0,padx=5,sticky=W)

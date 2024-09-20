@@ -1,13 +1,13 @@
 from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
-import admit_interface  # Import the admit_interface module
+import mysql.connector
 
 class Sign_Up_Page:
     def __init__(self, root):
         self.root = root
         self.root.geometry("1024x590+0+0")
-        self.root.title("AttendNow")
+        self.root.title("Sign Up - AttendNow")
 
         # Background Image
         background_img = Image.open(r"Image\Background.png")
@@ -22,12 +22,6 @@ class Sign_Up_Page:
         self.photo_title_img = ImageTk.PhotoImage(title_img)
         title_label = Label(self.root, image=self.photo_title_img)
         title_label.place(x=251, y=267, width=275, height=57)
-
-        # Logo
-        logo_img = Image.open(r"Image\Logo.png")
-        self.photo_logo_img = ImageTk.PhotoImage(logo_img)
-        logo_label = Label(self.root, image=self.photo_logo_img)
-        logo_label.place(x=100, y=222, width=150, height=150)
 
         # Sign Up Form
         self.signup_frame = Frame(self.root, bg="white")
@@ -53,17 +47,37 @@ class Sign_Up_Page:
         password = self.password_entry.get()
 
         if username and password:
-            # Here, you can implement saving user credentials or further processing
-            messagebox.showinfo("Sign Up Success", "Account Created Successfully!")
-            # Open the admit interface window after sign up
-            self.open_admit_interface()
+            # Connect to the database
+            try:
+                connection = mysql.connector.connect(
+                    host='localhost',  # Change if necessary
+                    user='root',  # Your MySQL username
+                    password='Nightcore_1134372019!',  # Your MySQL password
+                    database='attendnow'
+                )
+                
+                cursor = connection.cursor()
+                # Insert the user credentials into the admin_user table
+                cursor.execute("INSERT INTO admin_user (user_name, user_password) VALUES (%s, %s)", (username, password))
+                connection.commit()
+                
+                messagebox.showinfo("Sign Up Success", "Account Created Successfully!")
+                
+                # Redirect to the Login_Page after successful sign-up
+                self.root.destroy()  # Close the current window
+                from login_page import Login_Page  # Import the login page class
+                new_window = Tk()  # Create a new window for the login page
+                Login_Page(new_window)  # Initialize the login page
+                new_window.mainloop()  # Start the login page loop
+
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
         else:
             messagebox.showerror("Sign Up Error", "Please fill in all fields")
-
-    def open_admit_interface(self):
-        # Create a new window for the admit interface
-        new_window = Toplevel(self.root)
-        admit_interface.Admit_Interface(new_window)
 
 if __name__ == "__main__":
     root = Tk()

@@ -6,7 +6,7 @@ from data_training import Data_Training
 from face_recognition import Face_Recognition
 
 class Admit_Interface:
-    def __init__(self, root):
+    def __init__(self, root, username):
         self.root = root
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow")
@@ -25,10 +25,14 @@ class Admit_Interface:
         left_title_position.place(x=0, y=0, width=163, height=60)
 
         main_frame2 = Frame(background_img_main_position, bd=2, bg="orange")
-        main_frame2.place(x=200, y=5, width=700, height=50)
+        main_frame2.place(x=200, y=5, width=400, height=50)
 
         save_button = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
-        save_button.place(x=5, y=2, width=600, height=40)
+        save_button.place(x=5, y=2, width=400, height=40)
+
+        # Display username on the top right corner
+        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        self.username_label.place(x=800, y=15)
 
         # Navigation Bar
         main_frame = Frame(background_img_main_position, bd=2, bg="white")
@@ -64,5 +68,5 @@ class Admit_Interface:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Admit_Interface(root)
+    obj = Admit_Interface(root, "Username")  # Replace "Username" with actual username
     root.mainloop()
