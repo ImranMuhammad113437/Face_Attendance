@@ -49,19 +49,20 @@ class Login_Page:
         self.login_button = Button(self.login_frame, text="Login", command=self.login, font=("Arial", 14), bg="orange", fg="white")
         self.login_button.place(x=150, y=150, width=100)
 
-        self.signup_button = Button(self.login_frame, text="Sign Up", command=self.open_signup_page, font=("Arial", 14), bg="orange", fg="white")
-        self.signup_button.place(x=270, y=150, width=100)
+        self.signup_button = Button(self.login_frame, text="Sign Up", command=self.open_signup_interface, font=("Arial", 14), bg="orange", fg="white")
+        self.signup_button.place(x=260, y=150, width=100)
 
     def login(self):
         username = self.username_entry.get()
         password = self.password_entry.get()
 
         if username and password:
+            # Connect to the database
             try:
                 connection = mysql.connector.connect(
-                    host='localhost',
-                    user='root',
-                    password='Nightcore_1134372019!',
+                    host='localhost',  # Change if necessary
+                    user='root',  # Your MySQL username
+                    password='Nightcore_1134372019!',  # Your MySQL password
                     database='attendnow'
                 )
                 
@@ -70,7 +71,10 @@ class Login_Page:
                 result = cursor.fetchone()
                 
                 if result:
-                    self.open_admit_interface(username)  # Pass the username to Admit_Interface
+                    # Close the current window and open the admit interface
+                    self.root.destroy()  # Close the login page
+                    self.open_admit_interface(username)  # Pass username
+                    
                 else:
                     messagebox.showerror("Login Error", "Invalid Username or Password")
             except mysql.connector.Error as err:
@@ -83,12 +87,15 @@ class Login_Page:
             messagebox.showerror("Input Error", "Please fill in both fields")
 
     def open_admit_interface(self, username):
-        new_window = Toplevel(self.root)
+        # Create a new window for the admit interface and pass the username
+        new_window = Tk()  # Create a new Tkinter instance
         admit_interface.Admit_Interface(new_window, username)  # Pass the username
 
-    def open_signup_page(self):
-        # Implement the sign-up logic here
-        pass
+    def open_signup_interface(self):
+        # Create a new window for the sign-up interface
+        new_window = Toplevel(self.root)
+        from sign_up_page import Sign_Up_Page  # Assuming you have a separate module for the sign-up page
+        Sign_Up_Page(new_window)
 
 if __name__ == "__main__":
     root = Tk()

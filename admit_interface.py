@@ -1,9 +1,7 @@
 from tkinter import *
 from PIL import Image, ImageTk
 import os
-from student import Student
-from data_training import Data_Training
-from face_recognition import Face_Recognition
+import login_page  # Import the login_page module for logout functionality
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -24,8 +22,13 @@ class Admit_Interface:
         left_title_position = Label(self.root, image=self.photoleft_title)
         left_title_position.place(x=0, y=0, width=163, height=60)
 
+        # Logout Button (next to the logo)
+        logout_button = Button(self.root, text="Logout", command=self.logout, bg="red", fg="white", font=("Arial", 12, "bold"))
+        logout_button.place(x=175, y=15, width=80, height=30)
+
+        # Main Frame for Admin Interface
         main_frame2 = Frame(background_img_main_position, bd=2, bg="orange")
-        main_frame2.place(x=200, y=5, width=400, height=50)
+        main_frame2.place(x=300, y=5, width=400, height=50)
 
         save_button = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
         save_button.place(x=5, y=2, width=400, height=40)
@@ -65,6 +68,16 @@ class Admit_Interface:
     def face_page(self):
         self.new_window = Toplevel(self.root)
         self.app = Face_Recognition(self.new_window)
+
+    # Logout Function
+    def logout(self):
+        self.root.destroy()  # Close the admit_interface window
+        self.open_login_page()  # Open the login page again
+
+    def open_login_page(self):
+        # Create a new window for the login page
+        new_window = Tk()  # Create a new Tk window
+        login_page.Login_Page(new_window)  # Open the login page interface
 
 if __name__ == "__main__":
     root = Tk()

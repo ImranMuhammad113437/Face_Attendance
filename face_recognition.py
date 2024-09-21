@@ -1,16 +1,16 @@
 from tkinter import *
-from tkinter import ttk
 from PIL import Image, ImageTk
-from tkinter import messagebox
 import mysql.connector
-from time import strftime, time
 from datetime import datetime
 import cv2
+import csv
 import json
+
 
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
 connection_details = settings["sqltools.connections"][0]
+
 
 class Face_Recognition:
     def __init__(self, root):
@@ -40,19 +40,27 @@ class Face_Recognition:
         face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
         face_recognition_button.place(x=200, y=200, width=150, height=40)
 
-    def mark_attendance(self, id, student_name):
+        self.attendance_records = {}  # To track start times
+
+    def mark_attendance(self, id, student_name, is_end=False):
         with open(r"Attendance.csv", "a+", newline="\n") as f:
-            f.seek(0)  # Move the cursor to the start of the file
-            myDataList = f.readlines()
-            name_list = []
-            for line in myDataList:
-                entry = line.strip().split(",")
-                name_list.append(entry[0])
-            if id not in name_list and student_name:
-                now = datetime.now()
-                d1 = now.strftime("%d/%m/%Y")
-                dtString = now.strftime("%H:%M:%S")
-                f.write(f"{id},{student_name},{dtString},{d1},Present\n")
+            writer = csv.writer(f)
+            if f.tell() == 0:  # If the file is empty, write the header
+                writer.writerow(["Student's Name", "Start", "End"])
+
+            now = datetime.now()
+            dtString = now.strftime("%H:%M:%S")
+
+            if is_end:
+                # Record end time
+                if id in self.attendance_records:
+                    start_time = self.attendance_records[id]
+                    writer.writerow([student_name, start_time, dtString])
+                    del self.attendance_records[id]  # Remove from the record
+            else:
+                # Record start time
+                if id not in self.attendance_records:
+                    self.attendance_records[id] = dtString
 
     def face_recog(self):
         def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
@@ -84,21 +92,11 @@ class Face_Recognition:
                 if confidence > 77:
                     cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                     cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                    self.mark_attendance(id, student_name)
+                    self.mark_attendance(id, student_name)  # Record start time
                 else:
                     cv2.putText(img, "Unknown Student", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
 
                 coord = [x, y, w, h]
-
-                # Eye Detection Logic
-                eyes = eye_cascade.detectMultiScale(gray_image[y:y + h, x:x + w], scaleFactor=1.1, minNeighbors=5)
-                if len(eyes) == 0:
-                    if eyes_closed_start_time is None:
-                        eyes_closed_start_time = time()
-                    elif time() - eyes_closed_start_time >= eyes_closed_duration_threshold:
-                        cv2.putText(img, "Asleep/Not Paying Attention", (x, y + h + 10), cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 0, 255), 3)
-                else:
-                    eyes_closed_start_time = None  # Reset if eyes are open
 
             return coord
 
@@ -107,15 +105,12 @@ class Face_Recognition:
             return img
 
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
 
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.read("classifier.xml")
 
         video_cap = cv2.VideoCapture(0)
-
-        eyes_closed_start_time = None
-        eyes_closed_duration_threshold = 10  # 10 seconds threshold
+        student_present = set()  # Track recognized students
 
         while True:
             ret, img = video_cap.read()
@@ -124,14 +119,33 @@ class Face_Recognition:
             img = recognize(img, clf, faceCascade)
             cv2.imshow("Face Recognition", img)
 
+            for (x, y, w, h) in features:
+                id, predict = clf.predict(gray_image[y:y + h, x:x + w])
+                confidence = int((100 * (1 - predict / 300)))
+
+                if confidence > 77 and id not in student_present:
+                    student_present.add(id)
+                    my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (id,))
+                    result = my_cursor.fetchone()
+                    student_name = result[0] if result else "Unknown"
+                    self.mark_attendance(id, student_name)  # Record start time
+
             if cv2.waitKey(1) == 13:  # Press 'Enter' key to break
                 break
+
+        # After exiting the loop, mark end time for all recognized students
+        for student_id in student_present:
+            my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (student_id,))
+            result = my_cursor.fetchone()
+            student_name = result[0] if result else "Unknown"
+            self.mark_attendance(student_id, student_name, is_end=True)
 
         video_cap.release()
         cv2.destroyAllWindows()
 
+
 if __name__ == "__main__":
     root = Tk()
     obj = Face_Recognition(root)
-    root.resizable(False, False)
     root.mainloop()
+    root.resizable(False, False)
