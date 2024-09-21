@@ -1,15 +1,10 @@
-from tkinter import *
 from PIL import Image
 import os
 import numpy as np
 import cv2
 
 class Data_Training:
-    def __init__(self, root):
-        self.root = root
-        self.root.geometry("400x200")
-        self.root.title("AttendNow")
-        
+    def __init__(self):
         # Call the training function when the application starts
         self.train_classifier()
 
@@ -46,6 +41,4 @@ class Data_Training:
         cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    root = Tk()
-    obj = Data_Training(root)
-    root.mainloop()
+    obj = Data_Training()

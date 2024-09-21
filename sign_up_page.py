@@ -17,6 +17,12 @@ class Sign_Up_Page:
         background_img_position = Label(self.root, image=self.photo_background_img)
         background_img_position.place(x=0, y=0, width=1024, height=590)
 
+         # Logo
+        logo_img = Image.open(r"Image\Logo.png")
+        self.photo_logo_img = ImageTk.PhotoImage(logo_img)
+        logo_label = Label(self.root, image=self.photo_logo_img)
+        logo_label.place(x=100, y=222, width=150, height=150)
+
         # Title of the System
         title_img = Image.open(r"Image\Title.png")
         self.photo_title_img = ImageTk.PhotoImage(title_img)

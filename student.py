@@ -7,6 +7,7 @@ import json
 import cv2
 import os
 from tkcalendar import DateEntry
+import admit_interface
 
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
@@ -43,6 +44,9 @@ class Student:
         background_img_student_position.place(x=0,y=0,width=1024,height=590)
 
 
+     # Return Button (next to the logo)
+        return_button = Button(self.root, text="Back", command=self.return_to_admit_interface, bg="blue", fg="white", font=("Arial", 12, "bold"))
+        return_button.place(x=170, y=15, width=80, height=30)
 
 
     #LogoTitle Image
@@ -51,12 +55,12 @@ class Student:
         left_title_position=Label(self.root,image=self.photoleft_title)
         left_title_position.place(x=0,y=0,width=163,height=60)
 
-
+    
 
 
     #Title Bar
         main_frame=Frame(background_img_student_position,bd=2,bg="orange")
-        main_frame.place(x=200,y=5,width=700,height=50)
+        main_frame.place(x=300,y=5,width=700,height=50)
 
         save_button=Label(main_frame,text="Student's Information Management Table",bg="orange",fg="white",font=("New Time Roman", 20, "bold"))
         save_button.place(x=5,y=2 ,width=600,height=40)
@@ -423,6 +427,10 @@ class Student:
             messagebox.showinfo("Successful","Student Added", parent=self.root)
         
 
+    def return_to_admit_interface(self):
+        self.root.destroy()  # Close the student interface
+        new_window = Tk()  # Create a new Tk window for the admit interface
+        admit_interface.Admit_Interface(new_window, "Username")  # Replace "Username" with actual username
 
     #This is to display the data in the table.
     def fetch_data(self):

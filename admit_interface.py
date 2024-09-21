@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 import os
 import login_page  # Import the login_page module for logout functionality
+import student  # Import the student module
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -58,12 +59,13 @@ class Admit_Interface:
         os.startfile("data")
 
     def training_data(self):
-        self.new_window = Toplevel(self.root)
-        self.app = Data_Training(self.new_window)
+        # Run data_training.py as a separate process
+        subprocess.run(["python", "data_training.py"])
 
     def student_detail(self):
-        self.new_window = Toplevel(self.root)
-        self.app = Student(self.new_window)
+        self.root.destroy()  # Close the admit_interface window
+        new_window = Tk()  # Create a new Tk window for the student interface
+        student.Student(new_window)  # Open the student interface
 
     def face_page(self):
         self.new_window = Toplevel(self.root)
@@ -75,7 +77,6 @@ class Admit_Interface:
         self.open_login_page()  # Open the login page again
 
     def open_login_page(self):
-        # Create a new window for the login page
         new_window = Tk()  # Create a new Tk window
         login_page.Login_Page(new_window)  # Open the login page interface
 
