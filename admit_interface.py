@@ -33,8 +33,8 @@ class Admit_Interface:
         save_button = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
         save_button.place(x=5, y=2, width=400, height=40)
 
-        # Display username on the top right corner
-        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        # Display username on the top right corner with bold text
+        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12, "bold"))
         self.username_label.place(x=800, y=15)
 
         # Navigation Bar
@@ -81,5 +81,5 @@ class Admit_Interface:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Admit_Interface(root, "Username")  # Replace "Username" with actual username
+    obj = Admit_Interface(root, "")  # Replace "Username" with actual username
     root.mainloop()
