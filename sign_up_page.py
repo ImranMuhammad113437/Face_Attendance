@@ -17,7 +17,7 @@ class Sign_Up_Page:
         background_img_position = Label(self.root, image=self.photo_background_img)
         background_img_position.place(x=0, y=0, width=1024, height=590)
 
-         # Logo
+        # Logo
         logo_img = Image.open(r"Image\Logo.png")
         self.photo_logo_img = ImageTk.PhotoImage(logo_img)
         logo_label = Label(self.root, image=self.photo_logo_img)
@@ -31,28 +31,50 @@ class Sign_Up_Page:
 
         # Sign Up Form
         self.signup_frame = Frame(self.root, bg="white")
-        self.signup_frame.place(x=550, y=150, width=400, height=300)
+        self.signup_frame.place(x=550, y=150, width=400, height=400)
 
+        # First Name
+        self.first_name_label = Label(self.signup_frame, text="First Name", bg="white", font=("Arial", 14))
+        self.first_name_label.place(x=30, y=20)
+        self.first_name_entry = Entry(self.signup_frame, font=("Arial", 14))
+        self.first_name_entry.place(x=150, y=20, width=200)
+
+        # Last Name
+        self.last_name_label = Label(self.signup_frame, text="Last Name", bg="white", font=("Arial", 14))
+        self.last_name_label.place(x=30, y=70)
+        self.last_name_entry = Entry(self.signup_frame, font=("Arial", 14))
+        self.last_name_entry.place(x=150, y=70, width=200)
+
+        # Username
         self.username_label = Label(self.signup_frame, text="Username", bg="white", font=("Arial", 14))
-        self.username_label.place(x=30, y=50)
-
+        self.username_label.place(x=30, y=120)
         self.username_entry = Entry(self.signup_frame, font=("Arial", 14))
-        self.username_entry.place(x=150, y=50, width=200)
+        self.username_entry.place(x=150, y=120, width=200)
 
+        # Password
         self.password_label = Label(self.signup_frame, text="Password", bg="white", font=("Arial", 14))
-        self.password_label.place(x=30, y=100)
-
+        self.password_label.place(x=30, y=170)
         self.password_entry = Entry(self.signup_frame, show="*", font=("Arial", 14))
-        self.password_entry.place(x=150, y=100, width=200)
+        self.password_entry.place(x=150, y=170, width=200)
 
-        self.signup_button = Button(self.signup_frame, text="Sign Up", command=self.signup, font=("Arial", 14), bg="orange", fg="white")
-        self.signup_button.place(x=150, y=150, width=100)
+        # Email
+        self.email_label = Label(self.signup_frame, text="Email", bg="white", font=("Arial", 14))
+        self.email_label.place(x=30, y=220)
+        self.email_entry = Entry(self.signup_frame, font=("Arial", 14))
+        self.email_entry.place(x=150, y=220, width=200)
+
+        # Sign Up Button
+        self.signup_button = Button(self.signup_frame, text="Register", command=self.signup, font=("Arial", 14), bg="orange", fg="white")
+        self.signup_button.place(x=150, y=270, width=100)
 
     def signup(self):
+        first_name = self.first_name_entry.get()
+        last_name = self.last_name_entry.get()
         username = self.username_entry.get()
         password = self.password_entry.get()
+        email = self.email_entry.get()
 
-        if username and password:
+        if first_name and last_name and username and password and email:
             # Connect to the database
             try:
                 connection = mysql.connector.connect(
@@ -61,14 +83,17 @@ class Sign_Up_Page:
                     password='Nightcore_1134372019!',  # Your MySQL password
                     database='attendnow'
                 )
-                
+
                 cursor = connection.cursor()
                 # Insert the user credentials into the admin_user table
-                cursor.execute("INSERT INTO admin_user (user_name, user_password) VALUES (%s, %s)", (username, password))
+                cursor.execute(
+                    "INSERT INTO admin_user (first_name, last_name, user_name, user_password, email) VALUES (%s, %s, %s, %s, %s)",
+                    (first_name, last_name, username, password, email)
+                )
                 connection.commit()
-                
+
                 messagebox.showinfo("Sign Up Success", "Account Created Successfully!")
-                
+
                 # Redirect to the Login_Page after successful sign-up
                 self.root.destroy()  # Close the current window
                 from login_page import Login_Page  # Import the login page class
