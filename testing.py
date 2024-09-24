@@ -77,7 +77,6 @@ class Login_Page:
                     # Close the current window and open the admit interface
                     self.root.destroy()  # Close the login page
                     self.open_admit_interface(username)  # Pass username
-                    
                 else:
                     messagebox.showerror("Login Error", "Invalid Username or Password")
             except mysql.connector.Error as err:

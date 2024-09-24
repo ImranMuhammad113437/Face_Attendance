@@ -1,116 +1,85 @@
 from tkinter import *
-from tkinter import messagebox
 from PIL import Image, ImageTk
-import mysql.connector
+import os
+import login_page  # Import the login_page module for logout functionality
 
-class Sign_Up_Page:
-    def __init__(self, root):
+class Admit_Interface:
+    def __init__(self, root, username):
         self.root = root
         self.root.geometry("1024x590+0+0")
-        self.root.title("Sign Up - AttendNow")
+        self.root.title("AttendNow")
 
         # Background Image
-        background_img = Image.open(r"Image\Background.png")
-        background_img = background_img.resize((1024, 590), Image.Resampling.LANCZOS)
-        self.photo_background_img = ImageTk.PhotoImage(background_img)
+        background_img_main = Image.open(r"Image\Background.png")
+        background_img_main = background_img_main.resize((1024, 590), Image.Resampling.LANCZOS)
+        self.photo_background_img_main = ImageTk.PhotoImage(background_img_main)
+        background_img_main_position = Label(self.root, image=self.photo_background_img_main)
+        background_img_main_position.place(x=0, y=0, width=1024, height=590)
 
-        background_img_position = Label(self.root, image=self.photo_background_img)
-        background_img_position.place(x=0, y=0, width=1024, height=590)
+        # LogoTitle Image
+        left_title = Image.open(r"Image\LogoTitle_Left Top.png")
+        self.photoleft_title = ImageTk.PhotoImage(left_title)
+        left_title_position = Label(self.root, image=self.photoleft_title)
+        left_title_position.place(x=0, y=0, width=163, height=60)
 
-        # Logo
-        logo_img = Image.open(r"Image\Logo.png")
-        self.photo_logo_img = ImageTk.PhotoImage(logo_img)
-        logo_label = Label(self.root, image=self.photo_logo_img)
-        logo_label.place(x=100, y=222, width=150, height=150)
+        # Logout Button (next to the logo)
+        logout_button = Button(self.root, text="Logout", command=self.logout, bg="red", fg="white", font=("Arial", 12, "bold"))
+        logout_button.place(x=175, y=15, width=80, height=30)
 
-        # Title of the System
-        title_img = Image.open(r"Image\Title.png")
-        self.photo_title_img = ImageTk.PhotoImage(title_img)
-        title_label = Label(self.root, image=self.photo_title_img)
-        title_label.place(x=251, y=267, width=275, height=57)
+        # Main Frame for Admin Interface
+        main_frame2 = Frame(background_img_main_position, bd=2, bg="orange")
+        main_frame2.place(x=300, y=5, width=400, height=50)
 
-        # Sign Up Form
-        self.signup_frame = Frame(self.root, bg="white")
-        self.signup_frame.place(x=550, y=150, width=400, height=400)
+        save_button = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        save_button.place(x=5, y=2, width=400, height=40)
 
-        # First Name
-        self.first_name_label = Label(self.signup_frame, text="First Name", bg="white", font=("Arial", 14))
-        self.first_name_label.place(x=30, y=20)
-        self.first_name_entry = Entry(self.signup_frame, font=("Arial", 14))
-        self.first_name_entry.place(x=150, y=20, width=200)
+        # Display username on the top right corner
+        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        self.username_label.place(x=800, y=15)
 
-        # Last Name
-        self.last_name_label = Label(self.signup_frame, text="Last Name", bg="white", font=("Arial", 14))
-        self.last_name_label.place(x=30, y=70)
-        self.last_name_entry = Entry(self.signup_frame, font=("Arial", 14))
-        self.last_name_entry.place(x=150, y=70, width=200)
+        # Navigation Bar
+        main_frame = Frame(background_img_main_position, bd=2, bg="white")
+        main_frame.place(x=200, y=100, width=650, height=50)
 
-        # Username
-        self.username_label = Label(self.signup_frame, text="Username", bg="white", font=("Arial", 14))
-        self.username_label.place(x=30, y=120)
-        self.username_entry = Entry(self.signup_frame, font=("Arial", 14))
-        self.username_entry.place(x=150, y=120, width=200)
+        student_information = Button(main_frame, text="Student Information", command=self.student_detail, bg="orange", fg="white", font=("League_Spartan"))
+        student_information.place(x=5, y=2, width=150, height=40)
 
-        # Password
-        self.password_label = Label(self.signup_frame, text="Password", bg="white", font=("Arial", 14))
-        self.password_label.place(x=30, y=170)
-        self.password_entry = Entry(self.signup_frame, show="*", font=("Arial", 14))
-        self.password_entry.place(x=150, y=170, width=200)
+        train_data = Button(main_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
+        train_data.place(x=160, y=2, width=150, height=40)
 
-        # Email
-        self.email_label = Label(self.signup_frame, text="Email", bg="white", font=("Arial", 14))
-        self.email_label.place(x=30, y=220)
-        self.email_entry = Entry(self.signup_frame, font=("Arial", 14))
-        self.email_entry.place(x=150, y=220, width=200)
+        storage_image = Button(main_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
+        storage_image.place(x=315, y=2, width=150, height=40)
 
-        # Sign Up Button
-        self.signup_button = Button(self.signup_frame, text="Sign Up", command=self.signup, font=("Arial", 14), bg="orange", fg="white")
-        self.signup_button.place(x=150, y=270, width=100)
+        face_recon = Button(main_frame, text="Face Recognition", command=self.face_page, bg="orange", fg="white", font=("League_Spartan"))
+        face_recon.place(x=470, y=2, width=150, height=40)
 
-    def signup(self):
-        first_name = self.first_name_entry.get()
-        last_name = self.last_name_entry.get()
-        username = self.username_entry.get()
-        password = self.password_entry.get()
-        email = self.email_entry.get()
+    # Function Buttons
+    def open_image(self):
+        os.startfile("data")
 
-        if first_name and last_name and username and password and email:
-            # Connect to the database
-            try:
-                connection = mysql.connector.connect(
-                    host='localhost',  # Change if necessary
-                    user='root',  # Your MySQL username
-                    password='Nightcore_1134372019!',  # Your MySQL password
-                    database='attendnow'
-                )
+    def training_data(self):
+        self.new_window = Toplevel(self.root)
+        self.app = Data_Training(self.new_window)
 
-                cursor = connection.cursor()
-                # Insert the user credentials into the admin_user table
-                cursor.execute(
-                    "INSERT INTO admin_user (first_name, last_name, user_name, user_password, email) VALUES (%s, %s, %s, %s, %s)",
-                    (first_name, last_name, username, password, email)
-                )
-                connection.commit()
+    def student_detail(self):
+        self.new_window = Toplevel(self.root)
+        self.app = Student(self.new_window)
 
-                messagebox.showinfo("Sign Up Success", "Account Created Successfully!")
+    def face_page(self):
+        self.new_window = Toplevel(self.root)
+        self.app = Face_Recognition(self.new_window)
 
-                # Redirect to the Login_Page after successful sign-up
-                self.root.destroy()  # Close the current window
-                from login_page import Login_Page  # Import the login page class
-                new_window = Tk()  # Create a new window for the login page
-                Login_Page(new_window)  # Initialize the login page
-                new_window.mainloop()  # Start the login page loop
+    # Logout Function
+    def logout(self):
+        self.root.destroy()  # Close the admit_interface window
+        self.open_login_page()  # Open the login page again
 
-            except mysql.connector.Error as err:
-                messagebox.showerror("Database Error", f"Error: {err}")
-            finally:
-                if connection.is_connected():
-                    cursor.close()
-                    connection.close()
-        else:
-            messagebox.showerror("Sign Up Error", "Please fill in all fields")
+    def open_login_page(self):
+        # Create a new window for the login page
+        new_window = Tk()  # Create a new Tk window
+        login_page.Login_Page(new_window)  # Open the login page interface
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Sign_Up_Page(root)
+    obj = Admit_Interface(root, "Username")  # Replace "Username" with actual username
     root.mainloop()
