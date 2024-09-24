@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import Image, ImageTk
 import os
 import login_page  # Import the login_page module for logout functionality
+from student import Student  # Import the Student class from student.py
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -63,7 +64,7 @@ class Admit_Interface:
 
     def student_detail(self):
         self.new_window = Toplevel(self.root)
-        self.app = Student(self.new_window)
+        self.app = Student(self.new_window)  # Opens the Student page from student.py
 
     def face_page(self):
         self.new_window = Toplevel(self.root)
