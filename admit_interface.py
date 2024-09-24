@@ -1,8 +1,10 @@
-from tkinter import *
+from tkinter import *  # Ensure you import Tk, Button, Frame, Toplevel, etc.
 from PIL import Image, ImageTk
 import os
 import login_page  # Import the login_page module for logout functionality
 from student import Student  # Import the Student class from student.py
+import student
+
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -42,7 +44,7 @@ class Admit_Interface:
         main_frame = Frame(background_img_main_position, bd=2, bg="white")
         main_frame.place(x=200, y=100, width=650, height=50)
 
-        student_information = Button(main_frame, text="Student Information", command=self.student_detail, bg="orange", fg="white", font=("League_Spartan"))
+        student_information = Button(main_frame, text="Student Information", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
         student_information.place(x=5, y=2, width=150, height=40)
 
         train_data = Button(main_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
@@ -62,9 +64,13 @@ class Admit_Interface:
         self.new_window = Toplevel(self.root)
         self.app = Data_Training(self.new_window)
 
-    def student_detail(self):
-        self.new_window = Toplevel(self.root)
-        self.app = Student(self.new_window)  # Opens the Student page from student.py
+    def student_detail(self, username):
+        self.root.destroy()
+        self.open_student_information(username)
+
+    def open_student_information(self, username):
+        new_window = Tk()
+        student.Student(new_window, username)  # Pass the username to the Student class
 
     def face_page(self):
         self.new_window = Toplevel(self.root)
@@ -82,5 +88,5 @@ class Admit_Interface:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Admit_Interface(root, "Username")  # Replace "Username" with actual username
+    obj = Admit_Interface(root, "Guest")  # Replace "Guest" with actual username
     root.mainloop()

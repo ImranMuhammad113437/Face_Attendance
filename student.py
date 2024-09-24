@@ -14,8 +14,8 @@ with open(r".vscode\settings.json") as file:
 
 connection_details = settings["sqltools.connections"][0]
 class Student:
-    def __init__(self,root):
-        self.root=root
+    def __init__(self, root, username):
+        self.root = root
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow")
     #Variable
@@ -47,9 +47,16 @@ class Student:
         left_title_position.place(x=0,y=0,width=163,height=60)
     #Title Bar
         main_frame=Frame(background_img_student_position,bd=2,bg="orange")
-        main_frame.place(x=300,y=5,width=700,height=50)
+        main_frame.place(x=260,y=5,width=550,height=50)
         save_button=Label(main_frame,text="Student's Information Management Table",bg="orange",fg="white",font=("New Time Roman", 20, "bold"))
-        save_button.place(x=5,y=2 ,width=600,height=40)
+        save_button.place(x=2,y=2 ,width=545,height=40)
+
+    
+    # Display the username
+    self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+    self.username_label.place(x=820, y=15)  # Corrected indentation
+    
+
     #Frame
         main_frame=Frame(background_img_student_position,bd=2,bg="orange")
         main_frame.place(x=20,y=70,width=984,height=500)
@@ -550,6 +557,6 @@ class Student:
         cv2.destroyAllWindows()       
     
 if __name__ == "__main__":
-    root=Tk()
-    obj=Student(root)
+    root = Tk()
+    obj = Student(root, "TestUser")  # Replace "TestUser" with actual username for testing
     root.mainloop()
