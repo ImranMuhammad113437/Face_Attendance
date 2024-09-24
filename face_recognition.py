@@ -6,11 +6,9 @@ import cv2
 import csv
 import json
 
-
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
 connection_details = settings["sqltools.connections"][0]
-
 
 class Face_Recognition:
     def __init__(self, root):
@@ -37,10 +35,21 @@ class Face_Recognition:
         save_button = Label(main_frame, text="Face Recognition", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
         save_button.place(x=5, y=2, width=600, height=40)
 
+        # Start Face Recognition Button
         face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
         face_recognition_button.place(x=200, y=200, width=150, height=40)
 
+        # Stop Face Recognition Button (below the Start button)
+        stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Face Recognition", bg="red", fg="white")
+        stop_button.place(x=200, y=250, width=150, height=40)
+
+        # Video display area on the right of the buttons
+        self.video_label = Label(background_img_face_recognition_position)
+        self.video_label.place(x=400, y=100, width=600, height=400)
+
         self.attendance_records = {}  # To track start times
+        self.student_present = set()  # Track recognized students
+        self.video_cap = None  # Video capture object
 
     def mark_attendance(self, id, student_name, is_end=False):
         with open(r"Attendance.csv", "a+", newline="\n") as f:
@@ -63,86 +72,68 @@ class Face_Recognition:
                     self.attendance_records[id] = dtString
 
     def face_recog(self):
-        def draw_boundary(img, classifier, scaleFactor, minNeighbors, color, text, clf):
-            gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            features = classifier.detectMultiScale(gray_image, scaleFactor, minNeighbors)
-
-            coord = []
-
-            for (x, y, w, h) in features:
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
-                id, predict = clf.predict(gray_image[y:y + h, x:x + w])
-                confidence = int((100 * (1 - predict / 300)))
-
-                conn = mysql.connector.connect(
-                    host=connection_details["server"],
-                    port=connection_details["port"],
-                    user=connection_details["username"],
-                    password=connection_details["password"],
-                    database=connection_details["database"]
-                )
-                my_cursor = conn.cursor()
-
-                my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (id,))
-                result = my_cursor.fetchone()
-                student_name = result[0] if result else "Unknown"
-
-                conn.close()
-
-                if confidence > 77:
-                    cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                    cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                    self.mark_attendance(id, student_name)  # Record start time
-                else:
-                    cv2.putText(img, "Unknown Student", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-
-                coord = [x, y, w, h]
-
-            return coord
-
-        def recognize(img, clf, faceCascade):
-            coord = draw_boundary(img, faceCascade, 1.1, 10, (255, 25, 255), "Face", clf)
-            return img
-
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.read("classifier.xml")
 
-        video_cap = cv2.VideoCapture(0)
-        student_present = set()  # Track recognized students
+        self.video_cap = cv2.VideoCapture(0)
+        self.recognize(faceCascade, clf)
 
-        while True:
-            ret, img = video_cap.read()
-            if not ret:
-                break
-            img = recognize(img, clf, faceCascade)
-            cv2.imshow("Face Recognition", img)
+    def recognize(self, faceCascade, clf):
+        ret, img = self.video_cap.read()
+        if not ret:
+            self.video_cap.release()
+            return
 
-            for (x, y, w, h) in features:
-                id, predict = clf.predict(gray_image[y:y + h, x:x + w])
-                confidence = int((100 * (1 - predict / 300)))
+        gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        features = faceCascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=10)
 
-                if confidence > 77 and id not in student_present:
-                    student_present.add(id)
-                    my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (id,))
-                    result = my_cursor.fetchone()
-                    student_name = result[0] if result else "Unknown"
-                    self.mark_attendance(id, student_name)  # Record start time
+        for (x, y, w, h) in features:
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            id, predict = clf.predict(gray_image[y:y + h, x:x + w])
+            confidence = int((100 * (1 - predict / 300)))
 
-            if cv2.waitKey(1) == 13:  # Press 'Enter' key to break
-                break
+            conn = mysql.connector.connect(
+                host=connection_details["server"],
+                port=connection_details["port"],
+                user=connection_details["username"],
+                password=connection_details["password"],
+                database=connection_details["database"]
+            )
+            my_cursor = conn.cursor()
 
-        # After exiting the loop, mark end time for all recognized students
-        for student_id in student_present:
-            my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (student_id,))
+            my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (id,))
             result = my_cursor.fetchone()
             student_name = result[0] if result else "Unknown"
-            self.mark_attendance(student_id, student_name, is_end=True)
 
-        video_cap.release()
-        cv2.destroyAllWindows()
+            conn.close()
 
+            if confidence > 77:
+                cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+                cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+                if id not in self.student_present:
+                    self.student_present.add(id)
+                    self.mark_attendance(id, student_name)  # Record start time
+            else:
+                cv2.putText(img, "Unknown Student", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+
+        # Convert OpenCV image to ImageTk format for Tkinter display
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img_pil = Image.fromarray(img_rgb)
+        imgtk = ImageTk.PhotoImage(image=img_pil)
+
+        # Update video feed in the Tkinter interface
+        self.video_label.imgtk = imgtk
+        self.video_label.configure(image=imgtk)
+
+        # Continuously update the video feed
+        self.video_label.after(10, lambda: self.recognize(faceCascade, clf))
+
+    def stop_recog(self):
+        if self.video_cap:
+            self.video_cap.release()
+        self.video_label.config(image="")  # Clear the video feed from the label
 
 if __name__ == "__main__":
     root = Tk()

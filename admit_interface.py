@@ -4,7 +4,8 @@ import os
 import login_page  # Import the login_page module for logout functionality
 from student import Student  # Import the Student class from student.py
 import student
-
+import face_recognition
+import curriculum
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -42,10 +43,14 @@ class Admit_Interface:
 
         # Navigation Bar
         main_frame = Frame(background_img_main_position, bd=2, bg="white")
-        main_frame.place(x=200, y=100, width=650, height=50)
+        main_frame.place(x=200, y=100, width=650, height=140)
 
         student_information = Button(main_frame, text="Student Information", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
         student_information.place(x=5, y=2, width=150, height=40)
+
+        # Add Curriculum Button below Student Information
+        curriculum_button = Button(main_frame, text="Curriculum", command=lambda: self.open_curriculum(username), bg="orange", fg="white", font=("League_Spartan"))
+        curriculum_button.place(x=5, y=50, width=150, height=40)  # Adjusted position below Student Information
 
         train_data = Button(main_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
         train_data.place(x=160, y=2, width=150, height=40)
@@ -63,28 +68,37 @@ class Admit_Interface:
     def training_data(self):
         self.new_window = Toplevel(self.root)
         self.app = Data_Training(self.new_window)
-
+#------------------------------------------------------------------------------------------
     def student_detail(self, username):
         self.root.destroy()
-        self.open_student_information(username)
-
-    def open_student_information(self, username):
         new_window = Tk()
-        student.Student(new_window, username)  # Pass the username to the Student class
+        student.Student(new_window, username)
 
+    
+#-------------------------------------------------------------------------------------------
     def face_page(self):
-        self.new_window = Toplevel(self.root)
-        self.app = Face_Recognition(self.new_window)
+        self.root.destroy()
+        new_window = Tk()
+        face_recognition.Face_Recognition(new_window)
+
+
+
+#-------------------------------------------------------------------------------------
+
+    def open_curriculum(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        curriculum.Curriculum_Interface(new_window, username)
+        
 
     # Logout Function
     def logout(self):
         self.root.destroy()  # Close the admit_interface window
-        self.open_login_page()  # Open the login page again
-
-    def open_login_page(self):
-        # Create a new window for the login page
         new_window = Tk()  # Create a new Tk window
-        login_page.Login_Page(new_window)  # Open the login page interface
+        login_page.Login_Page(new_window)# Open the login page again
+
+    
+
 
 if __name__ == "__main__":
     root = Tk()

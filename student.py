@@ -38,6 +38,7 @@ class Student:
         background_img_student_position=Label(self.root,image=self.photo_background_img_student)
         background_img_student_position.place(x=0,y=0,width=1024,height=590)
      # Return Button (next to the logo)
+    
         return_button = Button(self.root, text="Back", command=self.return_to_admit_interface, bg="blue", fg="white", font=("Arial", 12, "bold"))
         return_button.place(x=170, y=15, width=80, height=30)
     #LogoTitle Image
