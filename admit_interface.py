@@ -88,5 +88,6 @@ class Admit_Interface:
 
 if __name__ == "__main__":
     root = Tk()
+    root.resizable(False, False)
     obj = Admit_Interface(root, "Guest")  # Replace "Guest" with actual username
     root.mainloop()

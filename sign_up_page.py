@@ -112,5 +112,6 @@ class Sign_Up_Page:
 
 if __name__ == "__main__":
     root = Tk()
+    root.resizable(False, False)
     obj = Sign_Up_Page(root)
     root.mainloop()

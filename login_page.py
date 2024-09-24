@@ -102,5 +102,6 @@ class Login_Page:
 
 if __name__ == "__main__":
     root = Tk()
+    root.resizable(False, False)
     obj = Login_Page(root)
     root.mainloop()

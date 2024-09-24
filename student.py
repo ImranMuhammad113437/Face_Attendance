@@ -53,8 +53,8 @@ class Student:
 
     
     # Display the username
-    self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
-    self.username_label.place(x=820, y=15)  # Corrected indentation
+        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        self.username_label.place(x=820, y=15)  # Corrected indentation
     
 
     #Frame
@@ -71,28 +71,28 @@ class Student:
         department_label.grid(row=0,column=0,padx=10,sticky=W)
         department_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_department,state="readonly")
         department_dropdown["values"] = (
-    "Select Department",
-    "Software Engineering",
-    "Computer Science",
-    "Information Technology",
-    "Data Science",
-    "Electrical Engineering",
-    "Mechanical Engineering",
-    "Civil Engineering",
-    "Chemical Engineering",
-    "Business Administration",
-    "Marketing",
-    "Accounting",
-    "Finance",
-    "Economics",
-    "Psychology",
-    "Sociology",
-    "Political Science",
-    "English Literature",
-    "History",
-    "Art and Design",
-    "Performing Arts"
-)
+                                        "Select Department",
+                                        "Software Engineering",
+                                        "Computer Science",
+                                        "Information Technology",
+                                        "Data Science",
+                                        "Electrical Engineering",
+                                        "Mechanical Engineering",
+                                        "Civil Engineering",
+                                        "Chemical Engineering",
+                                        "Business Administration",
+                                        "Marketing",
+                                        "Accounting",
+                                        "Finance",
+                                        "Economics",
+                                        "Psychology",
+                                        "Sociology",
+                                        "Political Science",
+                                        "English Literature",
+                                        "History",
+                                        "Art and Design",
+                                        "Performing Arts"
+                                        )
         department_dropdown.current(0)
         department_dropdown.grid(row=0,column=1,pady=10,sticky=W)
         #Course Section
@@ -558,5 +558,6 @@ class Student:
     
 if __name__ == "__main__":
     root = Tk()
+    root.resizable(False, False)
     obj = Student(root, "TestUser")  # Replace "TestUser" with actual username for testing
     root.mainloop()
