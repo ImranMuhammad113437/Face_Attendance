@@ -55,6 +55,10 @@ class Admit_Interface:
         train_data = Button(main_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
         train_data.place(x=160, y=2, width=150, height=40)
 
+        # New Teacher Information Button below "Train Data"
+        teacher_info_button = Button(main_frame, text="Teacher Information", command=self.open_teacher_info, bg="orange", fg="white", font=("League_Spartan"))
+        teacher_info_button.place(x=160, y=50, width=150, height=40)  # Positioned below the "Train Data" button
+
         storage_image = Button(main_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
         storage_image.place(x=315, y=2, width=150, height=40)
 
@@ -68,6 +72,11 @@ class Admit_Interface:
     def training_data(self):
         self.new_window = Toplevel(self.root)
         self.app = Data_Training(self.new_window)
+
+    # Add the new function for Teacher Information
+    def open_teacher_info(self):
+        print("Teacher Information button clicked")
+        # Add functionality for opening teacher information here
 #------------------------------------------------------------------------------------------
     def student_detail(self, username):
         self.root.destroy()
