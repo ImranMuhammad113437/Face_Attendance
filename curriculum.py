@@ -49,7 +49,7 @@ class Curriculum_Interface:
 
         # Main Frame for Curriculum Interface
         main_frame = Frame(background_img_main_position, bd=2, bg="orange")
-        main_frame.place(x=150, y=100, width=700, height=400)
+        main_frame.place(x=150, y=100, width=700, height=450)
 
         # Upper Section Frame
         upper_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Table", bg="white")
@@ -117,11 +117,11 @@ class Curriculum_Interface:
 
         # Lower Section Frame
         lower_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Table Management", bg="white")
-        lower_frame.place(x=5, y=200, width=687, height=185)  # Adjusted height for the gap
+        lower_frame.place(x=5, y=200, width=687, height=237)  # Adjusted height for the gap
 
         # Database Frame inside the Lower Section
         database_frame = LabelFrame(lower_frame, bd=2, relief=RIDGE)
-        database_frame.place(x=5, y=5, width=677, height=170)
+        database_frame.place(x=5, y=5, width=677, height=210)
 
         # Scrollbars
         scroll_left_right = ttk.Scrollbar(database_frame, orient=HORIZONTAL)
@@ -133,9 +133,7 @@ class Curriculum_Interface:
                                               yscrollcommand=scroll_up_down.set)
 
         # Packing Scrollbars
-        scroll_left_right.pack(side=BOTTOM, fill=X)
         scroll_up_down.pack(side=RIGHT, fill=Y)       
-        scroll_left_right.config(command=self.student_database.xview)
         scroll_up_down.config(command=self.student_database.yview)
 
         # Setting up headings

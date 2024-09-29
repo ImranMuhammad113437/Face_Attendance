@@ -49,11 +49,34 @@ class Login_Page:
         self.password_entry = Entry(self.login_frame, show="*", font=("Arial", 14))
         self.password_entry.place(x=150, y=100, width=200)
 
+        # Load eye icons
+        self.eye_open_img = ImageTk.PhotoImage(Image.open("Image/view.png").resize((20, 20)))
+        self.eye_closed_img = ImageTk.PhotoImage(Image.open("Image/hide.png").resize((20, 20)))
+
+        # Password visibility toggle button
+        self.toggle_password_btn = Button(self.login_frame, image=self.eye_closed_img, command=self.toggle_password, bg="white", borderwidth=0)
+        self.toggle_password_btn.place(x=360, y=100)
+
+        self.is_password_visible = False  # Track visibility state
+
+
         self.login_button = Button(self.login_frame, text="Login", command=self.login, font=("Arial", 14), bg="orange", fg="white")
         self.login_button.place(x=150, y=150, width=100)
 
         self.signup_button = Button(self.login_frame, text="Sign Up", command=self.open_signup_interface, font=("Arial", 14), bg="orange", fg="white")
         self.signup_button.place(x=260, y=150, width=100)
+
+
+    def toggle_password(self):
+        """Toggle the visibility of the password."""
+        if self.is_password_visible:
+            self.password_entry.config(show="*")  # Hide password
+            self.toggle_password_btn.config(image=self.eye_closed_img)  # Change to closed eye icon
+        else:
+            self.password_entry.config(show="")  # Show password
+            self.toggle_password_btn.config(image=self.eye_open_img)  # Change to open eye icon
+        
+        self.is_password_visible = not self.is_password_visible  # Toggle state
 
     def login(self):
         username = self.username_entry.get()

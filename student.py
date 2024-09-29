@@ -9,6 +9,8 @@ import cv2
 import os
 from tkcalendar import DateEntry
 import admit_interface
+
+
 with open(r".vscode\settings.json") as file:
     settings = json.load(file)
 
@@ -16,6 +18,7 @@ connection_details = settings["sqltools.connections"][0]
 class Student:
     def __init__(self, root, username):
         self.root = root
+        self.username = username 
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow")
     #Variable
@@ -54,7 +57,7 @@ class Student:
 
     
     # Display the username
-        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        self.username_label = Label(self.root, text=f"Logged in as: {self.username}", bg="orange", fg="white", font=("Arial", 12))
         self.username_label.place(x=820, y=15)  # Corrected indentation
     
 
@@ -70,39 +73,22 @@ class Student:
     #Department Section
         department_label=Label(current_course_frame,text="Department")
         department_label.grid(row=0,column=0,padx=10,sticky=W)
-        department_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_department,state="readonly")
-        department_dropdown["values"] = (
-                                        "Select Department",
-                                        "Software Engineering",
-                                        "Computer Science",
-                                        "Information Technology",
-                                        "Data Science",
-                                        "Electrical Engineering",
-                                        "Mechanical Engineering",
-                                        "Civil Engineering",
-                                        "Chemical Engineering",
-                                        "Business Administration",
-                                        "Marketing",
-                                        "Accounting",
-                                        "Finance",
-                                        "Economics",
-                                        "Psychology",
-                                        "Sociology",
-                                        "Political Science",
-                                        "English Literature",
-                                        "History",
-                                        "Art and Design",
-                                        "Performing Arts"
-                                        )
-        department_dropdown.current(0)
-        department_dropdown.grid(row=0,column=1,pady=10,sticky=W)
+        self.department_dropdown = ttk.Combobox(current_course_frame, textvariable=self.var_department, state="readonly")
+        self.department_dropdown["values"] = self.get_departments()  # Call the method to get departments
+        self.department_dropdown.current(0)
+        self.department_dropdown.grid(row=0, column=1, pady=10, sticky=W)
+
         #Course Section
         course_label=Label(current_course_frame,text="Course")
         course_label.grid(row=0,column=2,padx=10,sticky=W)
-        course_dropdown=ttk.Combobox(current_course_frame,textvariable=self.var_course,state="readonly")
-        course_dropdown["values"]=("Select Course","Software")
-        course_dropdown.current(0)
-        course_dropdown.grid(row=0,column=3,pady=10,sticky=W)
+        self.course_dropdown = ttk.Combobox(current_course_frame, textvariable=self.var_course, state="readonly")
+        self.course_dropdown["values"] = ("Select Course",)  # Default option
+        self.course_dropdown.current(0)
+        self.course_dropdown.grid(row=0, column=3, pady=10, sticky=W)
+
+        # Bind the department dropdown to fetch courses on selection change
+        self.department_dropdown.bind("<<ComboboxSelected>>", self.update_courses)
+
         #Year Section
         year_label=Label(current_course_frame,text="Year")
         year_label.grid(row=1,column=0,padx=10,sticky=W)
@@ -293,7 +279,47 @@ class Student:
     #Function
     #This is to ADD the information to the database.
 
- 
+    def get_departments(self):
+            # Connect to the MySQL database
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",  # Your MySQL username
+                password="Nightcore_1134372019!",  # Your MySQL password
+                database="attendnow"
+            )
+            
+            cursor = connection.cursor()
+            cursor.execute("SELECT DISTINCT department FROM curriculum")  # Adjust the column name as needed
+            departments = [row[0] for row in cursor.fetchall()]  # Fetch all unique department names
+
+            cursor.close()
+            connection.close()
+
+            return ["Select Department"] + departments  # Add default option
+
+    def update_courses(self, event):
+        selected_department = self.var_department.get()  # Get the selected department
+        self.course_dropdown["values"] = self.get_courses(selected_department)  # Fetch corresponding courses
+        self.course_dropdown.current(0)  # Reset the course dropdown
+
+    def get_courses(self, department):
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",  # Your MySQL username
+            password="Nightcore_1134372019!",  # Your MySQL password
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+        cursor.execute("SELECT course FROM curriculum WHERE department = %s", (department,))  # Adjust column names as needed
+        courses = [row[0] for row in cursor.fetchall()]  # Fetch course names based on selected department
+
+        cursor.close()
+        connection.close()
+
+        return ["Select Course"] + courses  # Add default option
+
     def show_search(self):
         selected_option = self.search_dropdown.get()
         input_text = self.search_input.get()
@@ -378,16 +404,18 @@ class Student:
                 self.var_address.get(),
                 self.var_teacher.get(),
                 self.var_take_photo.get()
-))
+            ))
             conn.commit()
             self.fetch_data()
             conn.close()
             messagebox.showinfo("Successful","Student Added", parent=self.root)
+    
     def return_to_admit_interface(self):
         self.root.destroy()  # Close the student interface
         new_window = Tk()  # Create a new Tk window for the admit interface
-        admit_interface.Admit_Interface(new_window, "Username")  # Replace "Username" with actual username
-    #This is to display the data in the table.
+        admit_interface.Admit_Interface(new_window, self.username)      #This is to display the data in the table.
+
+
     def fetch_data(self):
 
         try:
