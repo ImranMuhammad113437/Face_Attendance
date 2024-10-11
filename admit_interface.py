@@ -92,8 +92,18 @@ class Admit_Interface:
         attendance_summary_button.place(x=160, y=100, width=150, height=40)  # Positioned below "Teacher Information"
 #-------------------------------------------------------------------------------------------------------------
 
+#----------
+        # New Attendance Status Button below "Eye Detection"
+        attendance_status_button = Button(main_frame, text="Attendance Status", command=lambda: self.attendance_status(username), bg="orange", fg="white", font=("League_Spartan"))
+        attendance_status_button.place(x=315, y=100, width=150, height=40)  # Positioned below "Eye Detection"
+
+#------------
 
     # Function Buttons
+    def attendance_status(self, username):
+        # Placeholder for the attendance status interface or functionality
+        print("Attendance Status Button Clicked!")
+        
     def open_image(self):
         os.startfile("data")
 
