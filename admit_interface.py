@@ -7,7 +7,13 @@ import student
 import face_recognition
 import curriculum
 import data_training
+import teacher
 import subprocess
+import timetable
+import emotion_status_interface
+import eye_detection
+import emotion_detection
+
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -15,14 +21,14 @@ class Admit_Interface:
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow")
 
-        # Background Image
-        background_img_main = Image.open(r"Image\Background.png")
+#------------------------------------- Background Image-------------------------------------------------------
+        background_img_main = Image.open(r"Image\Background.png")   
         background_img_main = background_img_main.resize((1024, 590), Image.Resampling.LANCZOS)
         self.photo_background_img_main = ImageTk.PhotoImage(background_img_main)
         background_img_main_position = Label(self.root, image=self.photo_background_img_main)
         background_img_main_position.place(x=0, y=0, width=1024, height=590)
-
-        # LogoTitle Image
+#-------------------------------------------------------------------------------------------------------------
+#------------------------------------- LogoTitle Image
         left_title = Image.open(r"Image\LogoTitle_Left Top.png")
         self.photoleft_title = ImageTk.PhotoImage(left_title)
         left_title_position = Label(self.root, image=self.photoleft_title)
@@ -58,22 +64,34 @@ class Admit_Interface:
         train_data.place(x=160, y=2, width=150, height=40)
 
         # Teacher Information Button below "Train Data"
-        teacher_info_button = Button(main_frame, text="Teacher Information", command=self.open_teacher_info, bg="orange", fg="white", font=("League_Spartan"))
+        teacher_info_button = Button(main_frame, text="Teacher Information", command=lambda: self.open_teacher_info(username), bg="orange", fg="white", font=("League_Spartan"))
         teacher_info_button.place(x=160, y=50, width=150, height=40)
 
         storage_image = Button(main_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
         storage_image.place(x=315, y=2, width=150, height=40)
 
         # New Eye Detection Button below "Storage"
-        eye_detection_button = Button(main_frame, text="Eye Detection", command=self.eye_detection, bg="orange", fg="white", font=("League_Spartan"))
+        eye_detection_button = Button(main_frame, text="Eye Detection", command=lambda: self.eye_detection(username), bg="orange", fg="white", font=("League_Spartan"))
         eye_detection_button.place(x=315, y=50, width=150, height=40)  # Positioned below "Storage"
 
         face_recon = Button(main_frame, text="Face Recognition", command=lambda: self.face_page(username), bg="orange", fg="white", font=("League_Spartan"))
         face_recon.place(x=470, y=2, width=150, height=40)
 
         # New Emotion Detection Button below "Face Recognition"
-        emotion_detection_button = Button(main_frame, text="Emotion Detection", command=self.emotion_detection, bg="orange", fg="white", font=("League_Spartan"))
+        emotion_detection_button = Button(main_frame, text="Emotion Detection", command=lambda: self.emotion_detection_button(username), bg="orange", fg="white", font=("League_Spartan"))
         emotion_detection_button.place(x=470, y=50, width=150, height=40)  # Positioned below "Face Recognition"
+
+#-------------------------------------Timetable Button-------------------------------------------------------
+        timetable_button = Button(main_frame, text="Timetable Information", command=lambda: self.timetable(username), bg="orange", fg="white", font=("League_Spartan"))
+        timetable_button.place(x=5, y=100, width=150, height=40)
+
+#-------------------------------------------------------------------------------------------------------------
+
+#------------------------------------- Add the Attendance Summary Button below Teacher Information
+        attendance_summary_button = Button(main_frame, text="Emotional Status", command=lambda: self.attendance_summary(username), bg="orange", fg="white", font=("League_Spartan"))
+        attendance_summary_button.place(x=160, y=100, width=150, height=40)  # Positioned below "Teacher Information"
+#-------------------------------------------------------------------------------------------------------------
+
 
     # Function Buttons
     def open_image(self):
@@ -86,18 +104,21 @@ class Admit_Interface:
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running data_training.py: {e}")
     
-    def eye_detection(self):
+    def eye_detection(self, username):
         self.root.destroy()  # Close the current interface window
-        os.system('python eye_detection.py')
+        new_window = Tk()
+        eye_detection.Eye_Detection(new_window, username)
 
-    def emotion_detection(self):
-        print("Emotion Detection button clicked")
-        # Add functionality for emotion detection here
+    def emotion_detection_button(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        emotion_detection.Emotion_Detection(new_window, username)
 
     # Add the new function for Teacher Information
-    def open_teacher_info(self):
-        print("Teacher Information button clicked")
-        # Add functionality for opening teacher information here
+    def open_teacher_info(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        teacher.Teacher_Interface(new_window, username)
 
     def student_detail(self, username):
         self.root.destroy()
@@ -109,10 +130,22 @@ class Admit_Interface:
         new_window = Tk()
         face_recognition.Face_Recognition(new_window, username)
 
+    def attendance_summary(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        emotion_status_interface.Emotion_Status_Interface(new_window, username)
+        
+
+
     def open_curriculum(self, username):
         self.root.destroy()
         new_window = Tk()
         curriculum.Curriculum_Interface(new_window, username)
+
+    def timetable(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        timetable.Timetable_Information(new_window, username)
 
     # Logout Function
     def logout(self):

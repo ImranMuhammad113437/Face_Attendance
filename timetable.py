@@ -12,9 +12,11 @@ class Timetable_Information:
         self.root.geometry("1024x590+0+0")
         self.root.title("AttendNow - Timetable Information")
 
+#-----------Variable-----------------
         self.var_department = StringVar()
+        self.var_course = StringVar()
         self.var_teacher_name = StringVar()
-
+        self.var_timing =StringVar()
         # Connect to the database
         self.conn = self.connect_to_db()
 
@@ -63,13 +65,31 @@ class Timetable_Information:
 
         # Dropdown Menu for Searching
         self.search_dropdown = ttk.Combobox(search_frame, state="readonly", width=12)
-        self.search_dropdown["values"] = ("Select Search", "Department", "Teacher Name")
+        self.search_dropdown["values"] = (
+                                        "Select Search", 
+                                        "Department",
+                                        "Course", 
+                                        "Teacher Name",
+                                        "Timing"
+                                        )
         self.search_dropdown.current(0)
         self.search_dropdown.grid(row=0, column=1, padx=3, pady=5, sticky=W)
 
-        # Search InputField
-        self.search_input = ttk.Entry(search_frame, width=30)
+        # Search Dropdown Sub-Menu
+        
+        search_options = [
+            "Option 1",
+            "Option 2",
+            "Option 3",
+            "Option 4"
+        ]
+
+        # Search input as a dropdown
+        self.search_input = ttk.Combobox(search_frame, values=search_options, width=27, state='readonly')
         self.search_input.grid(row=0, column=2, padx=3)
+
+        # Optionally set a default value for the dropdown
+        self.search_input.current(0)  # This sets the first option as default
 
         # Search Button
         search_button = Button(search_frame, text="Search", bg="orange", fg="white", width=20, command=self.show_search)
@@ -83,27 +103,76 @@ class Timetable_Information:
         timetable_editing_frame = LabelFrame(upper_frame, bd=2, relief=RIDGE, text="Timetable Editing", bg="white")
         timetable_editing_frame.place(x=5, y=60, width=676, height=120)  # Adjusted height to fit more rows
 
-        # Input fields for Department and Course in row 0
+#------------------------------Department-----------------------------------------        
+        # Department Label and Combobox
         department_label = Label(timetable_editing_frame, text="Department:", bg="white", fg="black", font=("Arial", 10))
         department_label.grid(row=0, column=0, padx=5, pady=2, sticky=W)  # Reduced padding
-        self.department_input = ttk.Entry(timetable_editing_frame, width=30)
-        self.department_input.grid(row=0, column=1, padx=5, pady=2)
 
+        # Department Combobox with textvariable
+        self.var_department = StringVar()  # Create the StringVar
+        self.department_input = ttk.Combobox(timetable_editing_frame, width=28, textvariable=self.var_department)
+
+        # Sample values for department dropdown (can be fetched from the database)
+        self.department_input['values'] = self.get_departments()
+        # Set the default value (optional)
+        self.department_input.current(0)  # This will set the first value in the list as default
+
+        self.department_input.grid(row=0, column=1, padx=5, pady=2)
+        self.department_input.bind("<<ComboboxSelected>>", self.update_courses)
+#------------------------------------------------------------------------------------
+
+#------------------------------Course-----------------------------------------        
+        # Course Label and Combobox
         course_label = Label(timetable_editing_frame, text="Course:", bg="white", fg="black", font=("Arial", 10))
         course_label.grid(row=0, column=2, padx=5, pady=2, sticky=W)
-        self.course_input = ttk.Entry(timetable_editing_frame, width=30)
+
+        # Create StringVar for course
+        self.var_course = StringVar()  # Create the StringVar
+        self.course_input = ttk.Combobox(timetable_editing_frame, width=28, textvariable=self.var_course)
+
+        # Sample values for course dropdown (can be fetched from the database)
+        self.course_input['values'] = ("Select Course",)
+
+        # Set the default value (optional)
+        self.course_input.current(0)  # This will set the first value in the list as default
+
         self.course_input.grid(row=0, column=3, padx=5, pady=2)
+#------------------------------------------------------------------------------------
+
 
         # Input fields for Teacher Name and Timing in row 1
         teacher_label = Label(timetable_editing_frame, text="Teacher Name:", bg="white", fg="black", font=("Arial", 10))
         teacher_label.grid(row=1, column=0, padx=5, pady=2, sticky=W)
-        self.teacher_input = ttk.Entry(timetable_editing_frame, width=30)
+        self.teacher_input = ttk.Combobox(timetable_editing_frame, width=28, textvariable=self.var_teacher_name)
+        self.teacher_input['values'] = self.fetch_teacher_names()  # Add teacher names here
         self.teacher_input.grid(row=1, column=1, padx=5, pady=2)
+        self.teacher_input.current(0)
 
+        # Timing Dropdown Menu
         timing_label = Label(timetable_editing_frame, text="Timing:", bg="white", fg="black", font=("Arial", 10))
         timing_label.grid(row=1, column=2, padx=5, pady=2, sticky=W)
-        self.timing_input = ttk.Entry(timetable_editing_frame, width=30)
+
+        # Dropdown options for timing
+        time_options = [
+            "Select Timing",
+            "08:00 - 09:00",
+            "09:00 - 10:00",
+            "10:00 - 11:00",
+            "11:00 - 12:00",
+            "12:00 - 01:00",
+            "01:00 - 02:00",
+            "02:00 - 03:00",
+            "03:00 - 04:00",
+            "04:00 - 05:00"
+        ]
+
+        # Timing input as a dropdown
+        self.timing_input = ttk.Combobox(timetable_editing_frame, values=time_options, width=27, textvariable=self.var_timing)
         self.timing_input.grid(row=1, column=3, padx=5, pady=2)
+
+        # Optionally set the default value (e.g., "8:00 - 9:00")
+        self.timing_input.current(0)  # This will set the default to the first option
+
 
         # Buttons for Add, Update, Delete, and Reset in row 2
         button_width = 10
@@ -133,7 +202,11 @@ class Timetable_Information:
 
         # Timetable Database Treeview with Department, Course, Teacher Name, and Timing
         self.timetable_database = ttk.Treeview(database_frame, 
-                                            columns=("Department", "Course", "Teacher Name", "Timing"),
+                                            columns=(
+                                                "Department", 
+                                                "Course", 
+                                                "Teacher Name", 
+                                                "Timing"),
                                             xscrollcommand=scroll_left_right.set, 
                                             yscrollcommand=scroll_up_down.set)
 
@@ -157,7 +230,8 @@ class Timetable_Information:
         self.timetable_database.column("Timing", width=150)
 
         self.timetable_database.pack(fill=BOTH, expand=1)
-
+        
+        self.timetable_database.bind("<ButtonRelease>",self.get_cursor)
         # Final step, fetch all data from the database to display
         self.fetch_data()
 
@@ -176,12 +250,49 @@ class Timetable_Information:
 
     def fetch_data(self):
         cursor = self.conn.cursor()
-        cursor.execute("SELECT * FROM curriculum")
+        cursor.execute("SELECT * FROM timetable")
         rows = cursor.fetchall()
         if rows:
             self.timetable_database.delete(*self.timetable_database.get_children())
             for row in rows:
                 self.timetable_database.insert("", END, values=row)
+
+    def fetch_teacher_names(self):
+        try:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            # Establish a connection to the database
+            conn = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+
+            my_cursor = conn.cursor()
+
+            # Fetch first and last names from the teacher_user table
+            sql = "SELECT first_name, last_name FROM teacher_user"
+            my_cursor.execute(sql)
+
+            # Combine names and populate the list
+            teacher_names = [f"{first} {last}" for first, last in my_cursor.fetchall()]
+
+            # Add the default "Select Teacher" at the beginning of the list
+            teacher_names.insert(0, "Select Teacher")
+
+            # Close the cursor and connection
+            my_cursor.close()
+            conn.close()
+
+            # Populate the Combobox with teacher names
+            self.teacher_input['values'] = teacher_names
+
+            # Select "Select Teacher" by default
+            self.teacher_input.current(0)
+
+        except mysql.connector.Error as e:
+            messagebox.showerror("Database Error", f"Error connecting to database: {str(e)}")
+
+
 
     def show_search(self):
         search_by = self.search_dropdown.get()
@@ -205,19 +316,95 @@ class Timetable_Information:
             for row in rows:
                 self.timetable_database.insert("", END, values=row)
 
+
+    def update_courses(self, event):
+        selected_department = self.var_department.get()  # Get the selected department
+        self.course_input["values"] = self.get_courses(selected_department)  # Fetch corresponding courses
+        self.course_input.current(0)  # Reset the course dropdown
+
+    def get_courses(self, department):
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",  # Your MySQL username
+            password="Nightcore_1134372019!",  # Your MySQL password
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+        cursor.execute("SELECT course FROM curriculum WHERE department = %s", (department,))  # Adjust column names as needed
+        courses = [row[0] for row in cursor.fetchall()]  # Fetch course names based on selected department
+
+        cursor.close()
+        connection.close()
+
+        return ["Select Course"] + courses  # Add default option
+
+    def get_departments(self):
+            # Connect to the MySQL database
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",  # Your MySQL username
+                password="Nightcore_1134372019!",  # Your MySQL password
+                database="attendnow"
+            )
+            
+            cursor = connection.cursor()
+            cursor.execute("SELECT DISTINCT department FROM curriculum")  # Adjust the column name as needed
+            departments = [row[0] for row in cursor.fetchall()]  # Fetch all unique department names
+
+            cursor.close()
+            connection.close()
+
+            return ["Select Department"] + departments  # Add default option
+
+    def get_cursor(self,event=""):
+        cursor_focus=self.timetable_database.focus()
+        content=self.timetable_database.item(cursor_focus)
+        data=content["values"]
+        self.var_department.set(data[0]),
+        self.var_course.set(data[1]),
+        self.var_teacher_name.set(data[2]),
+        self.var_timing.set(data[3])
+        
+
     def add_data(self):
+        # Check if the user has selected default values
+        if (self.department_input.get() == "Select Department" or
+            self.course_input.get() == "Select Course" or
+            self.teacher_input.get() == "Select Teacher" or
+            self.timing_input.get() == "Select Timing"):
+            
+            # Show a message box if any field has the default value
+            messagebox.showerror("Input Error", "Please make sure to select all options: Department, Course, Teacher, and Timing.")
+            return  # Exit the function to avoid inserting invalid data
+
+        # Proceed with inserting data into the database if all fields are properly selected
         cursor = self.conn.cursor()
-        query = "INSERT INTO curriculum (department, course, teacher_name, timing) VALUES (%s, %s, %s, %s)"
-        values = (self.department_input.get(), self.course_input.get(), self.teacher_input.get(), self.timing_input.get())
+        query = "INSERT INTO timetable (department, course, teacher_name, timing) VALUES (%s, %s, %s, %s)"
+        values = (  
+                    self.department_input.get(), 
+                    self.course_input.get(), 
+                    self.teacher_input.get(), 
+                    self.timing_input.get())
         cursor.execute(query, values)
         self.conn.commit()
+        
+        # Refresh the data display after adding the new entry
         self.fetch_data()
-        self.reset_fields()
+
+        
 
     def update_data(self):
         cursor = self.conn.cursor()
         query = "UPDATE curriculum SET department = %s, course = %s, teacher_name = %s, timing = %s WHERE department = %s"
-        values = (self.department_input.get(), self.course_input.get(), self.teacher_input.get(), self.timing_input.get(), self.department_input.get())
+        values = (
+                    self.var_department.get(), 
+                    self.var_course.get(), 
+                    self.var_teacher_name.get(), 
+                    self.var_timing.get(),
+                    self.var_department.get(),
+                )
         cursor.execute(query, values)
         self.conn.commit()
         self.fetch_data()
@@ -225,11 +412,31 @@ class Timetable_Information:
 
     def delete_data(self):
         cursor = self.conn.cursor()
-        query = "DELETE FROM curriculum WHERE department = %s"
-        cursor.execute(query, (self.department_input.get(),))
+
+        # Updated query to include multiple conditions
+        query = """
+            DELETE FROM timetable 
+            WHERE department = %s 
+            AND course = %s 
+            AND teacher_name = %s 
+            AND timing = %s
+        """
+        
+        # Execute the query with values for department, course, teacher_name, and timing
+        cursor.execute(query, (
+            self.department_input.get(),
+            self.course_input.get(),
+            self.teacher_input.get(),
+            self.timing_input.get()
+        ))
+
+        # Commit the transaction to the database
         self.conn.commit()
+
+        # Fetch the updated data
         self.fetch_data()
-        self.reset_fields()
+
+        
 
     def reset_fields(self):
         self.department_input.delete(0, END)

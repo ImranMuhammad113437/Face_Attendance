@@ -33,7 +33,7 @@ class Student:
         self.var_email=StringVar()
         self.var_phone_number=StringVar()
         self.var_address=StringVar()
-        self.var_teacher=StringVar()
+     
     #Background Image
         background_img_student=Image.open(r"Image\Background.png")
         background_img_student=background_img_student.resize((1024, 590),Image.Resampling.LANCZOS)
@@ -147,11 +147,7 @@ class Student:
         address_label.grid(row=3,column=0,padx=5,sticky=W)
         address_input=ttk.Entry(class_student_frame,textvariable=self.var_address)
         address_input.grid(row=3,column=1,pady=10,sticky=W)
-        #Teacher Name
-        teacher_label=Label(class_student_frame,text="Teacher")
-        teacher_label.grid(row=3,column=2,padx=5,sticky=W)
-        teacher_input=ttk.Entry(class_student_frame,textvariable=self.var_teacher)
-        teacher_input.grid(row=3,column=3,pady=10,sticky=W)
+        
         #Selection Button
         self.var_take_photo=StringVar()
         take_photo_label=Label(class_student_frame,text="Photo Sample")
@@ -207,8 +203,7 @@ class Student:
                                     "Date of Birth",
                                     "Email",
                                     "Phone Number",
-                                    "Address",
-                                    "Teacher"
+                                    "Address"                                    
                                         )
         self.search_dropdown.current(0)
         self.search_dropdown.grid(row=0,column=1,padx=3,pady=5,sticky=W)
@@ -239,7 +234,6 @@ class Student:
                                                                    "Email",
                                                                    "Phone Number",
                                                                    "Address",
-                                                                   "Teacher", 
                                                                    "Photo"),xscrollcommand=scroll_left_right.set,yscrollcommand=scroll_up_down.set)
         
         scroll_left_right.pack(side=BOTTOM,fill=X)
@@ -257,7 +251,6 @@ class Student:
         self.student_database.heading("Email",text="Email")
         self.student_database.heading("Phone Number",text="Phone Number")
         self.student_database.heading("Address",text="Address")
-        self.student_database.heading("Teacher",text="Teacher")
         self.student_database.heading("Photo",text="Photo")
         self.student_database["show"]="headings"
         self.student_database.column("Department",width=100)
@@ -271,10 +264,10 @@ class Student:
         self.student_database.column("Email",width=100)
         self.student_database.column("Phone Number",width=100)
         self.student_database.column("Address",width=100)
-        self.student_database.column("Teacher",width=100)
         self.student_database.column("Photo",width=100)     
         self.student_database.pack(fill=BOTH,expand=1)
         self.student_database.bind("<ButtonRelease>",self.get_cursor)
+        self.fetch_data()
         
     #Function
     #This is to ADD the information to the database.
@@ -354,8 +347,7 @@ class Student:
                     "Date of Birth": "dob",
                     "Email": "email",
                     "Phone Number": "phone_number",
-                    "Address": "address",
-                    "Teacher": "teacher"
+                    "Address": "address"
                 }
                 search_column = search_column_map.get(selected_option)
                 query = f"SELECT * FROM students WHERE {search_column} LIKE %s"
@@ -389,7 +381,7 @@ class Student:
             database=connection_details["database"]
             )
             my_cursor=conn.cursor()
-            my_cursor.execute("INSERT INTO students VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            my_cursor.execute("INSERT INTO students VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (
                 self.var_department.get(),
                 self.var_course.get(),
@@ -402,7 +394,6 @@ class Student:
                 self.var_email.get(),
                 self.var_phone_number.get(),
                 self.var_address.get(),
-                self.var_teacher.get(),
                 self.var_take_photo.get()
             ))
             conn.commit()
@@ -465,8 +456,7 @@ class Student:
         self.var_email.set(data[8]),
         self.var_phone_number.set(data[9]),
         self.var_address.set(data[10]),
-        self.var_teacher.set(data[11]),
-        self.var_take_photo.set(data[12])
+        self.var_take_photo.set(data[11])
     #Update the information
     def update_data(self):
         if self.var_department.get()=="Select Department" or self.var_course.get()=="Select Course":
@@ -481,7 +471,7 @@ class Student:
             database=connection_details["database"]
             )
             my_cursor=conn.cursor()
-            my_cursor.execute("UPDATE students SET department=%s,course=%s,year=%s,semester=%s,student_name=%s,gender=%s,date_of_birth=%s,email=%s,phone_number=%s,address=%s,teacher=%s,photo_sample=%s WHERE student_id=%s",
+            my_cursor.execute("UPDATE students SET department=%s,course=%s,year=%s,semester=%s,student_name=%s,gender=%s,date_of_birth=%s,email=%s,phone_number=%s,address=%s,photo_sample=%s WHERE student_id=%s",
             (
                 self.var_department.get(),
                 self.var_course.get(),
@@ -493,7 +483,6 @@ class Student:
                 self.var_email.get(),
                 self.var_phone_number.get(),
                 self.var_address.get(),
-                self.var_teacher.get(),
                 self.var_take_photo.get(),
                 self.var_student_id.get()
             ))

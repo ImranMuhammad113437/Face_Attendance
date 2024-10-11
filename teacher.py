@@ -14,11 +14,13 @@ class Teacher_Interface:
         self.root.geometry("1024x590")  # Adjusted window size for side-by-side layout
         self.root.title("AttendNow - Curriculum")
 
-        self.var_department = StringVar()
-        self.var_course = StringVar()
+        self.var_first_name = StringVar()
+        self.var_last_name = StringVar()
+        self.var_email = StringVar()
+        self.var_password = StringVar()
+        self.var_phone_number = StringVar()
 
-        # Connect to the database
-        self.conn = self.connect_to_db()
+       
 
         # Background Image
         background_img_main = Image.open(r"Image\Background.png")
@@ -51,65 +53,80 @@ class Teacher_Interface:
         main_frame = Frame(self.root, bd=2, bg="orange")
         main_frame.place(x=20,y=70,width=984,height=500)
 
-        # Left Frame for Curriculum Editing
-        left_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Editing", bg="white")
-        left_frame.place(x=10,y=10,width=477,height=470)  # Left side (form) with height 600
+        # Left Frame for Teacher Registration Form
+       # Main frame for teacher registration
+        # Left side frame for the form
+        left_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Teacher Registration Form", bg="white")
+        left_frame.place(x=10, y=10, width=477, height=530)  # Adjust height to accommodate the middle frame
 
-        # Input fields for Teacher Registration inside the Curriculum Editing section
-        # Input fields for Teacher Registration inside the Curriculum Editing section
-        first_name_label = Label(left_frame, text="First Name:", bg="white", fg="black", font=("Arial", 10))
+        # Upper frame for input fields
+        upper_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Teacher Information")
+        upper_frame.place(x=5, y=0, width=465, height=220)
+
+        # Middle frame for search dropdowns and buttons
+        middle_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Search & Filter")
+        middle_frame.place(x=5, y=230, width=465, height=70)
+
+        # Lower frame for buttons
+        lower_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Actions")
+        lower_frame.place(x=5, y=310, width=465, height=120)
+
+        # Input fields in the upper frame
+        first_name_label = Label(upper_frame, text="First Name:", bg="white", fg="black" )
         first_name_label.grid(row=0, column=0, padx=10, pady=10, sticky=W)
-        self.first_name_input = ttk.Entry(left_frame, width=40)
+        self.first_name_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_first_name)
         self.first_name_input.grid(row=0, column=1, padx=10, pady=10)
 
-        last_name_label = Label(left_frame, text="Last Name:", bg="white", fg="black", font=("Arial", 10))
+        last_name_label = Label(upper_frame, text="Last Name:", bg="white", fg="black" )
         last_name_label.grid(row=1, column=0, padx=10, pady=10, sticky=W)
-        self.last_name_input = ttk.Entry(left_frame, width=40)
+        self.last_name_input = ttk.Entry(upper_frame, width=40,textvariable=self.var_last_name)
         self.last_name_input.grid(row=1, column=1, padx=10, pady=10)
 
-        email_label = Label(left_frame, text="Email Address:", bg="white", fg="black", font=("Arial", 10))
+        email_label = Label(upper_frame, text="Email Address:", bg="white", fg="black" )
         email_label.grid(row=2, column=0, padx=10, pady=10, sticky=W)
-        self.email_input = ttk.Entry(left_frame, width=40)
+        self.email_input = ttk.Entry(upper_frame, width=40,textvariable=self.var_email)
         self.email_input.grid(row=2, column=1, padx=10, pady=10)
 
-        password_label = Label(left_frame, text="Password:", bg="white", fg="black", font=("Arial", 10))
+        password_label = Label(upper_frame, text="Password:", bg="white", fg="black" )
         password_label.grid(row=3, column=0, padx=10, pady=10, sticky=W)
-        self.password_input = ttk.Entry(left_frame, show="*", width=40)  # Hides the password input
+        self.password_input = ttk.Entry(upper_frame, show="*", width=40,textvariable=self.var_password)  # Hides the password input
         self.password_input.grid(row=3, column=1, padx=10, pady=10)
 
-        # Dropdown menu for Department
-        department_label = Label(left_frame, text="Department:", bg="white", fg="black", font=("Arial", 10))
-        department_label.grid(row=4, column=0, padx=10, pady=10, sticky=W)
+        phone_number_label = Label(upper_frame, text="Phone Number:", bg="white", fg="black", )
+        phone_number_label.grid(row=4, column=0, padx=10, pady=10, sticky=W)
+        self.phone_number_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_phone_number)
+        self.phone_number_input.grid(row=4, column=1, padx=10, pady=10)
 
+        # Search dropdowns and buttons in the middle frame
+        search_label_1 = Label(middle_frame, text="Search By:", bg="white", fg="black")
+        search_label_1.grid(row=0, column=0, padx=3, pady=5, sticky=W)
+        
+        self.search_dropdown_1 = ttk.Combobox(middle_frame, width=12, state="readonly")
+        self.search_dropdown_1.grid(row=0, column=1, padx=3,pady=5)
 
-        # Creating a Combobox for the Department
-        self.department_input = ttk.Combobox(left_frame, values=self.fetch_departments(), width=38)
-        self.department_input.grid(row=4, column=1, padx=10, pady=10)
+        self.search_dropdown_2 = ttk.Combobox(middle_frame, width=15, state="readonly")
+        self.search_dropdown_2.grid(row=0, column=2, padx=3, pady=5)
 
-        # Set a default value (optional)
-        if departments:  # Check if the list is not empty
-            self.department_input.current(0)  # Sets the default to the first department
+        search_button = Button(middle_frame, text="Search", bg="orange", fg="white", width=10)
+        search_button.grid(row=0, column=4, padx=3, pady=5)
 
-        course_label = Label(left_frame, text="Course:", bg="white", fg="black", font=("Arial", 10))
-        course_label.grid(row=5, column=0, padx=10, pady=10, sticky=W)
-        self.course_input = ttk.Entry(left_frame, width=40)
-        self.course_input.grid(row=5, column=1, padx=10, pady=10)
+        show_all_button = Button(middle_frame, text="Show All", bg="orange", fg="white", width=10)
+        show_all_button.grid(row=0, column=5, padx=3, pady=5)
 
-        # Buttons for Add, Update, Delete, and Reset inside the Curriculum Editing section
-        button_width = 22
+        # Buttons in the lower frame
+        button_width = 28
+        add_button = Button(lower_frame, text="Add", bg="orange", command=self.add_data,fg="white", width=button_width)
+        add_button.grid(row=0, column=0, padx=3, pady=5)
 
-        # Adjusted row numbers for button placement below input fields
-        add_button = Button(left_frame, text="Add", bg="orange", fg="white", width=button_width, command=self.add_data)
-        add_button.grid(row=6, column=0, padx=10, pady=10)
+        delete_button = Button(lower_frame, text="Delete", bg="orange",command=self.delete_data, fg="white", width=button_width)
+        delete_button.grid(row=0, column=1, padx=3, pady=5)
 
-        delete_button = Button(left_frame, text="Delete", bg="orange", fg="white", width=button_width, command=self.delete_data)
-        delete_button.grid(row=6, column=1, padx=10, pady=10)
+        update_button = Button(lower_frame, text="Update", bg="orange", fg="white", width=button_width)
+        update_button.grid(row=1, column=0, padx=3, pady=5)
 
-        update_button = Button(left_frame, text="Update", bg="orange", fg="white", width=button_width, command=self.update_data)
-        update_button.grid(row=7, column=0, padx=10, pady=10)
+        reset_button = Button(lower_frame, text="Reset", bg="orange", command=self.reset_fields ,fg="white", width=button_width)
+        reset_button.grid(row=1, column=1, padx=3, pady=5)
 
-        reset_button = Button(left_frame, text="Reset", bg="orange", fg="white", width=button_width, command=self.reset_fields)
-        reset_button.grid(row=7, column=1, padx=10, pady=10)
 
         # Right Frame for Curriculum Table
         right_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Table Management", bg="white")
@@ -117,14 +134,14 @@ class Teacher_Interface:
 
         # Database Frame inside the Right Section
         database_frame = LabelFrame(right_frame, bd=2, relief=RIDGE)
-        database_frame.place(x=5, y=5, width=590, height=400)
+        database_frame.place(x=5, y=5, width=460, height=400)
 
         # Scrollbars
         scroll_left_right = ttk.Scrollbar(database_frame, orient=HORIZONTAL)
         scroll_up_down = ttk.Scrollbar(database_frame, orient=VERTICAL)
 
         # Teacher Database Treeview with only relevant information
-        self.teacher_database = ttk.Treeview(database_frame, columns=("First Name", "Last Name", "Email", "Password", "Course", "Phone Number"),
+        self.teacher_database = ttk.Treeview(database_frame, columns=("First Name", "Last Name", "Email", "Password", "Phone Number"),
                                             xscrollcommand=scroll_left_right.set,
                                             yscrollcommand=scroll_up_down.set)
 
@@ -140,7 +157,6 @@ class Teacher_Interface:
         self.teacher_database.heading("Last Name", text="Last Name")
         self.teacher_database.heading("Email", text="Email Address")
         self.teacher_database.heading("Password", text="Password")
-        self.teacher_database.heading("Course", text="Course")
         self.teacher_database.heading("Phone Number", text="Phone Number")
 
         # Show headings only
@@ -151,83 +167,152 @@ class Teacher_Interface:
         self.teacher_database.column("Last Name", width=100)
         self.teacher_database.column("Email", width=100)
         self.teacher_database.column("Password", width=100)  # Consider hiding this in practice
-        self.teacher_database.column("Course", width=100)
         self.teacher_database.column("Phone Number", width=100)
 
         # Packing the Treeview
         self.teacher_database.pack(fill=BOTH, expand=1)
         self.teacher_database.bind("<ButtonRelease>", self.get_cursor)
-
         self.fetch_data()  # Fetch data on initialization
 
 
-    # Database connection parameters
-    db_config = {
-        'host': 'localhost',  # Adjust this as needed
-        'user': 'root',
-        'password': 'Nightcore_1134372019!',
-        'database': 'attendnow'
-    }
-
-    def fetch_departments(self):
-        try:
-            # Establish the connection
-            connection = mysql.connector.connect(**db_config)
-            cursor = connection.cursor()
-
-            # Query to fetch unique departments
-            query = "SELECT DISTINCT department FROM curriculum"
-            cursor.execute(query)
-
-            # Fetch all unique departments
-            departments = [row[0] for row in cursor.fetchall()]
-
-            # Close the cursor and connection
-            cursor.close()
-            connection.close()
-
-            return departments
-
-        except mysql.connector.Error as err:
-            messagebox.showerror("Database Error", f"Error: {err}")
-            return []
-
-    def connect_to_db(self):
-        try:
-            conn = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="Nightcore_1134372019!",
-                database="attendnow"
-            )
-            return conn
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-            return None
+    
 
     def go_back(self):
         self.root.destroy()  # Close the curriculum interface
         self.open_admit_interface()  # Reopen admit interface
+
 
     def open_admit_interface(self):
         new_window = Tk()  # Create a new Tk window
         admit_interface.Admit_Interface(new_window, self.username)  # Open the admit interface with the stored username
 
     def fetch_data(self):
-        pass
+        try:
+            # Connect to the database
+            conn = mysql.connector.connect(
+                host="localhost",  # Assuming localhost as the host
+                user="root",
+                password="Nightcore_1134372019!",  # Your MySQL password
+                database="attendnow"
+            )
+            my_cursor = conn.cursor()
+
+            # Execute the SQL query to fetch all the data from teacher_user table
+            my_cursor.execute("SELECT * FROM teacher_user")
+            rows = my_cursor.fetchall()  # Fetch all the rows from the table
+
+            # Clear any existing data in the table (Treeview widget)
+            if len(rows) != 0:
+                self.teacher_database.delete(*self.teacher_database.get_children())  # Delete old data in Treeview
+                for row in rows:
+                    self.teacher_database.insert("", END, values=row)  # Insert each row into Treeview
+
+            conn.close()  # Close the connection to the database
+
+        except Exception as e:
+            # Display an error message if something goes wrong
+            messagebox.showerror("Error", f"Error due to: {str(e)}", parent=self.root)
+
 
     def add_data(self):
-        pass
+    # Retrieve the input data from the form
+        first_name = self.var_first_name.get()
+        last_name = self.var_last_name.get()
+        email = self.var_email.get()
+        password = self.var_password.get()
+        phone_number = self.var_phone_number.get()
+
+        # Check if all fields are filled
+        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "":
+            messagebox.showerror("Error", "All fields are required")
+        else:
+            try:
+                # Establish the connection to the MySQL database
+                connection = mysql.connector.connect(
+                    host="localhost",
+                    user="root",
+                    password="Nightcore_1134372019!",
+                    database="attendnow"
+                )
+
+                cursor = connection.cursor()
+
+                # Insert data into the teacher_user table
+                insert_query = """
+                INSERT INTO teacher_user (first_name, last_name, email, password, phone_number)
+                VALUES (%s, %s, %s, %s, %s)
+                """
+                values = (first_name, last_name, email, password, phone_number)
+
+                cursor.execute(insert_query, values)
+                connection.commit()  # Commit the transaction
+
+                # Show a success message
+                messagebox.showinfo("Success", "Teacher added successfully")
+
+                # Reset the fields after successful insertion
+                self.reset_fields()
+
+            except mysql.connector.Error as err:
+                # Handle any errors that occur
+                messagebox.showerror("Database Error", f"Error: {str(err)}")
+            finally:
+                # Close the connection
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        self.fetch_data()
 
     def delete_data(self):
-        pass
+        if self.var_email.get() == "":
+            messagebox.showerror("Error", "Email is required to delete the record")
+        else:
+            try:
+                # Establish connection to the database
+                conn = mysql.connector.connect(
+                    host="localhost",
+                    user="root",
+                    password="Nightcore_1134372019!",
+                    database="attendnow"
+                )
+                my_cursor = conn.cursor()
+
+                # SQL delete query to delete record based on email
+                sql = "DELETE FROM teacher_user WHERE email=%s"
+                val = (self.var_email.get(),)
+                my_cursor.execute(sql, val)
+
+                conn.commit()
+                self.fetch_data()
+                conn.close()
+
+                # Call fetch_data to refresh the view after deletion
+                self.fetch_data()
+                messagebox.showinfo("Deletion", "Successfully Deleted")
+
+            except Exception as e:
+                messagebox.showerror("Error", f"Error due to: {str(e)}")
+        
     def update_data(self):
         pass
     def reset_fields(self):
-        pass
+        self.var_first_name.set("")
+        self.var_last_name.set("")
+        self.var_email.set("")
+        self.var_password.set("")
+        self.var_phone_number.set("")
+        
 
-    def get_cursor(self, event=None):
-        pass
+    def get_cursor(self, event=""):
+        cursor_focus=self.teacher_database.focus()
+        content=self.teacher_database.item(cursor_focus)
+        data=content["values"]
+        self.var_first_name.set(data[0]),
+        self.var_last_name.set(data[1]),
+        self.var_email.set(data[2]),
+        self.var_password.set(data[3]),
+        self.var_phone_number.set(data[4])
+        
 
 
 if __name__ == "__main__":

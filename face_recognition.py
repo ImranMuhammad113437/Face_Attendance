@@ -3,6 +3,7 @@ from tkinter import ttk  # For Treeview
 from PIL import Image, ImageTk
 import mysql.connector
 from datetime import datetime
+from tkinter import messagebox
 import cv2
 import csv
 import json
@@ -38,32 +39,48 @@ class Face_Recognition:
         # Add the text label in the center of the main_frame
         Label(main_frame, text="Face Recognition", bg="orange", fg="white", font=("New Time Roman", 20, "bold")).place(relx=0.5, rely=0.5, anchor=CENTER)
 
+        # Assuming this code is inside a class and you call the method to populate the dropdown
+        self.teacher_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
+        self.teacher_input.place(x=80, y=100, width=310)  
+
+        # Course dropdown (new dropdown to select the teacher's course)
+        self.teacher_course_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
+        self.teacher_course_input['values'] = ("Select Course",)
+        self.teacher_course_input.current(0)
+        self.teacher_course_input.place(x=80, y=130, width=310)  # Position below teacher dropdown and above buttons
+
+
         # Start Face Recognition Button
         face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
-        face_recognition_button.place(x=80, y=100, width=150, height=40)  # Moved left by 120
+        face_recognition_button.place(x=80, y=190, width=150, height=40)  # Position below the dropdown
 
         # Stop Face Recognition Button (next to the Start button)
         stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Face Recognition", bg="red", fg="white")
-        stop_button.place(x=240, y=100, width=150, height=40)  # Moved left by 120
+        stop_button.place(x=240, y=190, width=150, height=40)  # Next to the Start button
 
         # Video display area on the right of the buttons
         self.video_label = Label(background_img_face_recognition_position)
-        self.video_label.place(x=400, y=100, width=600, height=400)  # Moved left by 120
+        self.video_label.place(x=400, y=100, width=600, height=400)  # Position for video display
 
         # Create a frame for the Treeview and scrollbar
         tree_frame = Frame(self.root)
-        tree_frame.place(x=80, y=160, width=310, height=250)
+        tree_frame.place(x=80, y=250, width=310, height=250)
 
-        # Create a table for displaying the student name and ID
-        self.tree = ttk.Treeview(tree_frame, columns=("ID", "Name", "Start Time", "End Time"), show='headings', height=8)
+
+         # Create a table for displaying the student name and ID
+        self.tree = ttk.Treeview(tree_frame, columns=("ID", "Name", "Start Time", "Break Taking Time", "End Time", "Attendance"), show='headings', height=8)
         self.tree.heading("ID", text="Student ID")
         self.tree.heading("Name", text="Student Name")
         self.tree.heading("Start Time", text="Start Time")
+        self.tree.heading("Break Taking Time", text="Break Taking Time")  # New column heading
         self.tree.heading("End Time", text="End Time")
+        self.tree.heading("Attendance", text="Attendance")  # New column heading
         self.tree.column("ID", anchor=CENTER, width=100)
         self.tree.column("Name", anchor=CENTER, width=200)
         self.tree.column("Start Time", anchor=CENTER, width=100)
+        self.tree.column("Break Taking Time", anchor=CENTER, width=100)  # Set column width
         self.tree.column("End Time", anchor=CENTER, width=100)
+        self.tree.column("Attendance", anchor=CENTER, width=100)  # Set column width
 
         # Create a horizontal scrollbar
         scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.tree.xview)
@@ -81,6 +98,103 @@ class Face_Recognition:
         
         return_button = Button(self.root, text="Back", command=self.return_to_admit_interface, bg="blue", fg="white", font=("Arial", 12, "bold"))
         return_button.place(x=170, y=15, width=80, height=30)
+
+        self.populate_teacher_dropdown()
+        self.teacher_input.bind("<<ComboboxSelected>>", self.populate_course_dropdown)
+        self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_student_list)
+
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def populate_student_list(self, event):
+        selected_course = self.teacher_course_input.get()
+
+        if selected_course == "Select Course":
+            return
+
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+        
+        # Query to fetch student names and IDs based on the selected course
+        query = "SELECT student_id, student_name FROM students WHERE course = %s"
+        cursor.execute(query, (selected_course,))
+        students = cursor.fetchall()
+
+        # Clear the Treeview before inserting new data
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Insert new student records into the Treeview
+        for student in students:
+            student_id, student_name = student
+            self.tree.insert('', 'end', values=(student_id, student_name, "", ""))
+
+        # Close the database connection
+        connection.close()
+    
+    def populate_course_dropdown(self, event):
+        # Get the selected teacher name
+        selected_teacher = self.teacher_input.get()
+        
+        if selected_teacher == "Select Teacher":
+            return
+        
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+        query = "SELECT DISTINCT course FROM timetable WHERE teacher_name = %s"
+        cursor.execute(query, (selected_teacher,))
+        courses = cursor.fetchall()
+
+        # Set the courses in the dropdown, including the default "Select Course"
+        course_list = ["Select Course"] + [course[0] for course in courses]
+        self.teacher_course_input['values'] = course_list
+        
+        # Automatically select the default option ("Select Course")
+        self.teacher_course_input.current(0)
+        
+        # Close the database connection
+        connection.close()
+
+    
+    def populate_teacher_dropdown(self):
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",  # Replace with your host if different
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+
+        # SQL query to fetch distinct teacher names
+        query = "SELECT DISTINCT teacher_name FROM timetable"
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        # Close the database connection
+        connection.close()
+
+        # Extract the teacher names from the results
+        teacher_names = [row[0] for row in results]
+
+        # Populate the dropdown (Combobox) with unique teacher names
+        self.teacher_input['values'] = teacher_names
+
+        self.teacher_input.set("Select Teacher:")
+
 
     def return_to_admit_interface(self):
         self.root.destroy()  # Close the student interface
@@ -105,6 +219,12 @@ class Face_Recognition:
                 self.tree.insert('', 'end', values=(id, student_name, dtString, ""))
 
     def face_recog(self):
+        selected_course = self.teacher_course_input.get()
+        if selected_course == "Select Course":
+            # Display message to select a teacher and their course
+            messagebox.showwarning("Selection Required", "Please select a teacher and their course.")
+            return
+
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
         clf = cv2.face.LBPHFaceRecognizer_create()
@@ -113,11 +233,14 @@ class Face_Recognition:
         self.video_cap = cv2.VideoCapture(0)
         self.recognize(faceCascade, clf)
 
+    
+    
     def recognize(self, faceCascade, clf):
         ret, img = self.video_cap.read()
         if not ret:
             self.video_cap.release()
             return
+
 
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         features = faceCascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=10)
@@ -142,7 +265,7 @@ class Face_Recognition:
 
             conn.close()
 
-            if confidence > 77:
+            if confidence > 70:
                 cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                 cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
                 if id not in self.student_present:
