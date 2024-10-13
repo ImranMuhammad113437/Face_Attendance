@@ -49,6 +49,12 @@ class Face_Recognition:
         self.teacher_course_input.current(0)
         self.teacher_course_input.place(x=80, y=130, width=310)  # Position below teacher dropdown and above buttons
 
+        # Timing dropdown (new dropdown to select the timing)
+        self.timing_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
+        self.timing_input['values'] = ("Select Timing",)
+        self.timing_input.current(0)
+        self.timing_input.place(x=80, y=160, width=310)  
+
 
         # Start Face Recognition Button
         face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
@@ -101,41 +107,51 @@ class Face_Recognition:
 
         self.populate_teacher_dropdown()
         self.teacher_input.bind("<<ComboboxSelected>>", self.populate_course_dropdown)
-        self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_student_list)
+        self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def populate_student_list(self, event):
+    def populate_timing_dropdown(self, event):
         selected_course = self.teacher_course_input.get()
 
         if selected_course == "Select Course":
+            messagebox.showwarning("Selection Error", "Please select a valid course.")
             return
 
-        # Connect to the MySQL database
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="Nightcore_1134372019!",
-            database="attendnow"
-        )
-        
-        cursor = connection.cursor()
-        
-        # Query to fetch student names and IDs based on the selected course
-        query = "SELECT student_id, student_name FROM students WHERE course = %s"
-        cursor.execute(query, (selected_course,))
-        students = cursor.fetchall()
+        try:
+            # Connect to the MySQL database 'attendnow'
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",  # Replace with your actual password
+                database="attendnow"
+            )
 
-        # Clear the Treeview before inserting new data
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+            cursor = connection.cursor()
 
-        # Insert new student records into the Treeview
-        for student in students:
-            student_id, student_name = student
-            self.tree.insert('', 'end', values=(student_id, student_name, "", ""))
+            # SQL query to get the timing based on the selected course
+            query = "SELECT timing FROM timetable WHERE course = %s"
+            cursor.execute(query, (selected_course,))
 
-        # Close the database connection
-        connection.close()
+            # Fetch all the timings for the selected course
+            timings = [timing[0] for timing in cursor.fetchall()]
+
+            # Always show "Select Timing" as the default option
+            if timings:
+                self.timing_input['values'] = ["Select Timing"] + timings
+            else:
+                messagebox.showinfo("No Timings Found", "No timings available for the selected course.")
+                self.timing_input['values'] = ("Select Timing",)
+
+            # Set the default selection to "Select Timing"
+            self.timing_input.current(0)
+
+        except mysql.connector.Error as error:
+            messagebox.showerror("Database Error", f"Error: {error}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
     
     def populate_course_dropdown(self, event):
         # Get the selected teacher name
@@ -201,78 +217,156 @@ class Face_Recognition:
         new_window = Tk()  # Create a new Tk window for the admit interface
         admit_interface.Admit_Interface(new_window, self.username)
     
-    def mark_attendance(self, id, student_name, is_end=False):
+    def mark_attendance(self, id, student_name):
         now = datetime.now()
-        dtString = now.strftime("%H:%M:%S")
+        dtString = now.strftime("%H:%M:%S")  # Start time for when the student first arrives
 
-        if is_end:
-            # Record end time
-            if id in self.attendance_records:
-                start_time = self.attendance_records[id]
-                self.tree.item(id, values=(id, student_name, start_time, dtString))
-                del self.attendance_records[id]  # Remove from the record
-        else:
-            # Record start time
-            if id not in self.attendance_records:
-                self.attendance_records[id] = dtString
-                # Add student info to the table
-                self.tree.insert('', 'end', values=(id, student_name, dtString, ""))
+        # Store start time for student if not already present
+        if id not in self.attendance_records:
+            self.attendance_records[id] = {"student_name": student_name, "start_time": dtString, "end_time": ""}
+
+        try:
+            # Connect to the MySQL database 'attendnow'
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+
+            # Insert attendance record without duplicating start time
+            if id not in self.student_present:
+                self.student_present.add(id)
+                self.attendance_records[id]["start_time"] = dtString  # Add the start time when student first seen
+
+            connection.commit()
+
+        except mysql.connector.Error as error:
+            print(f"Database Error: {error}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+
+       
 
     def face_recog(self):
         selected_course = self.teacher_course_input.get()
-        if selected_course == "Select Course":
-            # Display message to select a teacher and their course
-            messagebox.showwarning("Selection Required", "Please select a teacher and their course.")
+        selected_time = self.timing_input.get()  # Get the selected timing
+        selected_teacher = self.teacher_input.get()
+
+        # Validate that all required fields are selected
+        if selected_course == "Select Course" or selected_time == "Select Timing" or selected_teacher == "Select Teacher":
+            messagebox.showwarning("Selection Required", "Please select a valid course, timing, and teacher.")
             return
 
+        try:
+            # Connect to the MySQL database 'attendnow'
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",  # Replace with your actual password
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+
+            # SQL query to retrieve student names and IDs where course matches the selected course
+            query = "SELECT student_name, student_id FROM students WHERE course = %s"
+            cursor.execute(query, (selected_course,))
+
+            # Fetch all the students for the selected course
+            students = cursor.fetchall()
+
+            # Clear the Treeview before inserting new data
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+
+            if students:
+                # Populate Treeview with student name and ID
+                for student_name, student_id in students:
+                    self.tree.insert("", "end", values=(student_id, student_name, "", ""))  # Empty columns for Start Time and End Time
+
+            # Commit the transaction
+            connection.commit()
+
+        except mysql.connector.Error as error:
+            messagebox.showerror("Database Error", f"Error: {error}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+        # Load the face detection classifier
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
+        # Load the face recognition model
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.read("classifier.xml")
 
+        # Start video capture for face recognition
         self.video_cap = cv2.VideoCapture(0)
-        self.recognize(faceCascade, clf)
+        self.recognize(faceCascade, clf, selected_course)
 
     
-    
-    def recognize(self, faceCascade, clf):
+    def recognize(self, faceCascade, clf, selected_course):
         ret, img = self.video_cap.read()
         if not ret:
             self.video_cap.release()
             return
 
-
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         features = faceCascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=10)
 
         for (x, y, w, h) in features:
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)  # Draw rectangle around face
             id, predict = clf.predict(gray_image[y:y + h, x:x + w])
             confidence = int((100 * (1 - predict / 300)))
 
             conn = mysql.connector.connect(
-                host=connection_details["server"],
-                port=connection_details["port"],
-                user=connection_details["username"],
-                password=connection_details["password"],
-                database=connection_details["database"]
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
             )
             my_cursor = conn.cursor()
 
-            my_cursor.execute("SELECT student_name FROM students WHERE student_id=%s", (id,))
+            # Modify the SQL query to include both course and student_id
+            my_cursor.execute("SELECT student_name, student_id FROM students WHERE course=%s AND student_id=%s", (selected_course, id))
             result = my_cursor.fetchone()
             student_name = result[0] if result else "Unknown"
+            student_id = result[1] if result else "Unknown"
 
             conn.close()
 
+            # Add text overlay on video frame
             if confidence > 70:
-                cv2.putText(img, f"Name: {student_name}", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
-                cv2.putText(img, f"SAPID: {id}", (x, y - 30), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+                cv2.putText(img, f"Name: {student_name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                cv2.putText(img, f"ID: {student_id}", (x, y + h + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+                now = datetime.now().strftime("%H:%M:%S")  # Get current time as the live "end time"
+
+                # If student is recognized for the first time, mark their attendance
                 if id not in self.student_present:
                     self.student_present.add(id)
                     self.mark_attendance(id, student_name)  # Record start time
+
+                    # Update Treeview with Start Time for the recognized student
+                    for row in self.tree.get_children():
+                        row_data = self.tree.item(row, "values")
+                        if str(student_id) == row_data[0]:  # Match student ID in Treeview
+                            self.tree.item(row, values=(student_id, student_name, now, ""))  # Add Start Time
+
+                # Update the live clock as the End Time in Treeview
+                for row in self.tree.get_children():
+                    row_data = self.tree.item(row, "values")
+                    if str(student_id) == row_data[0]:
+                        print(f"Start Time for Student ID {student_id}: {now}")
+                        self.tree.item(row, values=(student_id, student_name, row_data[2], "", now))  # Update End Time
+
             else:
-                cv2.putText(img, "Unknown Student", (x, y - 55), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 3)
+                pass
 
         # Convert OpenCV image to ImageTk format for Tkinter display
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -284,7 +378,7 @@ class Face_Recognition:
         self.video_label.configure(image=imgtk)
 
         # Continuously update the video feed
-        self.video_label.after(10, lambda: self.recognize(faceCascade, clf))
+        self.video_label.after(10, lambda: self.recognize(faceCascade, clf, selected_course))
 
     def stop_recog(self):
         if self.video_cap:
