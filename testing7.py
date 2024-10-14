@@ -372,10 +372,30 @@ class Face_Recognition:
                 for row in self.tree.get_children():
                     row_data = self.tree.item(row, "values")
                     if str(student_id) == row_data[0]:
-                        # Display the timer in the terminal
-                        print(f"Student ID: {student_id}, Timer: {timer}, Start Time: {row_data[2]}, End Time: {now}")
+                        # Calculate the total time and percentage of recognition
+                        start_time_str = row_data[2]
+                        start_time = datetime.strptime(start_time_str, "%H:%M:%S")
 
-                        self.tree.item(row, values=(student_id, student_name, row_data[2], timer, now))  # Update Timer and End Time
+                        current_time = datetime.now()
+                        total_time = current_time - start_time
+                        total_time_seconds = total_time.total_seconds()
+                        timer_seconds = elapsed_time.total_seconds()
+
+                        percentage = (timer_seconds / total_time_seconds) * 100 if total_time_seconds > 0 else 0
+
+                        # Determine the attendance status based on the percentage
+                        if percentage >= 75:
+                            attendance_status = "Present"
+                        elif 50 <= percentage < 75:
+                            attendance_status = "Half-Absent"
+                        else:
+                            attendance_status = "Absent"
+
+                        # Display the timer and percentage in the terminal
+                        print(f"Student ID: {student_id}, Timer: {timer}, Total Time: {total_time}, Percentage: {percentage:.2f}%")
+
+                        # Update the Treeview with Timer, End Time, and Attendance Status
+                        self.tree.item(row, values=(student_id, student_name, start_time_str, timer, now, attendance_status))  # Update Timer, End Time, and Status
 
             else:
                 pass
@@ -391,6 +411,7 @@ class Face_Recognition:
 
         # Continuously update the video feed
         self.video_label.after(10, lambda: self.recognize(faceCascade, clf, selected_course))
+
 
     def stop_recog(self):
         if self.video_cap:

@@ -5,6 +5,7 @@ import mysql.connector
 from datetime import datetime
 from tkinter import messagebox
 import cv2
+from datetime import datetime, timedelta
 import csv
 import json
 import admit_interface 
@@ -19,6 +20,8 @@ class Face_Recognition:
         self.username = username 
         self.root.geometry("1024x590")
         self.root.title("AttendNow")
+
+        
 
         # Background Image
         background_img_face_recognition = Image.open(r"Image\Background.png")
@@ -74,17 +77,17 @@ class Face_Recognition:
 
 
          # Create a table for displaying the student name and ID
-        self.tree = ttk.Treeview(tree_frame, columns=("ID", "Name", "Start Time", "Break Taking Time", "End Time", "Attendance"), show='headings', height=8)
+        self.tree = ttk.Treeview(tree_frame, columns=("ID", "Name", "Start Time", "Recording Timer", "End Time", "Attendance"), show='headings', height=8)
         self.tree.heading("ID", text="Student ID")
         self.tree.heading("Name", text="Student Name")
         self.tree.heading("Start Time", text="Start Time")
-        self.tree.heading("Break Taking Time", text="Break Taking Time")  # New column heading
+        self.tree.heading("Recording Timer", text="Recording Timer")  # New column heading
         self.tree.heading("End Time", text="End Time")
         self.tree.heading("Attendance", text="Attendance")  # New column heading
         self.tree.column("ID", anchor=CENTER, width=100)
         self.tree.column("Name", anchor=CENTER, width=200)
         self.tree.column("Start Time", anchor=CENTER, width=100)
-        self.tree.column("Break Taking Time", anchor=CENTER, width=100)  # Set column width
+        self.tree.column("Recording Timer", anchor=CENTER, width=100)  # Set column width
         self.tree.column("End Time", anchor=CENTER, width=100)
         self.tree.column("Attendance", anchor=CENTER, width=100)  # Set column width
 
@@ -97,6 +100,7 @@ class Face_Recognition:
 
         self.attendance_records = {}  # To track start times
         self.student_present = set()  # Track recognized students
+        self.student_start_times = {}  # To store start time for each student
         self.video_cap = None  # Video capture object
         
         self.username_label = Label(self.root, text=f"Logged in as: {self.username}", bg="orange", fg="white", font=("Arial", 12))
@@ -347,23 +351,31 @@ class Face_Recognition:
 
                 now = datetime.now().strftime("%H:%M:%S")  # Get current time as the live "end time"
 
-                # If student is recognized for the first time, mark their attendance
+                # If student is recognized for the first time, mark their attendance and store the start time
                 if id not in self.student_present:
                     self.student_present.add(id)
                     self.mark_attendance(id, student_name)  # Record start time
+                    self.student_start_times[id] = datetime.now()  # Store the entry time for this student
 
                     # Update Treeview with Start Time for the recognized student
                     for row in self.tree.get_children():
                         row_data = self.tree.item(row, "values")
                         if str(student_id) == row_data[0]:  # Match student ID in Treeview
-                            self.tree.item(row, values=(student_id, student_name, now, ""))  # Add Start Time
+                            self.tree.item(row, values=(student_id, student_name, now, "", ""))  # Add Start Time
 
-                # Update the live clock as the End Time in Treeview
+                # Calculate the elapsed time the student is in the frame
+                start_time = self.student_start_times.get(id)
+                elapsed_time = datetime.now() - start_time
+                timer = str(elapsed_time).split(".")[0]  # Format the elapsed time (remove microseconds)
+
+                # Update the live clock as the End Time in Treeview and display the timer
                 for row in self.tree.get_children():
                     row_data = self.tree.item(row, "values")
                     if str(student_id) == row_data[0]:
-                        print(f"Start Time for Student ID {student_id}: {now}")
-                        self.tree.item(row, values=(student_id, student_name, row_data[2], "", now))  # Update End Time
+                        # Display the timer in the terminal
+                        print(f"Student ID: {student_id}, Timer: {timer}, Start Time: {row_data[2]}, End Time: {now}")
+
+                        self.tree.item(row, values=(student_id, student_name, row_data[2], timer, now))  # Update Timer and End Time
 
             else:
                 pass
