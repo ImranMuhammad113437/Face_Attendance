@@ -75,6 +75,10 @@ class Face_Recognition:
         tree_frame = Frame(self.root)
         tree_frame.place(x=80, y=250, width=310, height=250)
 
+         # Create a button under the Treeview
+        save_attendance_button = Button(self.root, text="Save Attendance", bg= "green", fg="white",command=self.save_attendance)
+        save_attendance_button.place(x=80, y=510, width=310, height=30)  # Adjust y-coordinate as needed
+
 
          # Create a table for displaying the student name and ID
         self.tree = ttk.Treeview(tree_frame, columns=("ID", "Name", "Start Time", "Recording Timer", "End Time", "Attendance"), show='headings', height=8)
@@ -114,6 +118,12 @@ class Face_Recognition:
         self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def save_attendance(self):
+        # Print the attendance records, present students, and start times
+        print("Attendance Records:", self.attendance_records)
+        print("Students Present:", self.student_present)
+        print("Student Start Times:", self.student_start_times)
+    
     def populate_timing_dropdown(self, event):
         selected_course = self.teacher_course_input.get()
 
@@ -371,11 +381,109 @@ class Face_Recognition:
                 # Update the live clock as the End Time in Treeview and display the timer
                 for row in self.tree.get_children():
                     row_data = self.tree.item(row, "values")
+                    
+                    # Check if the student ID matches
                     if str(student_id) == row_data[0]:
-                        # Display the timer in the terminal
-                        print(f"Student ID: {student_id}, Timer: {timer}, Start Time: {row_data[2]}, End Time: {now}")
+                        # Get the start time from the Treeview row data
+                        start_time_str = row_data[2]
+                        start_time = datetime.strptime(start_time_str, "%H:%M:%S")
 
-                        self.tree.item(row, values=(student_id, student_name, row_data[2], timer, now))  # Update Timer and End Time
+                        # Calculate the total time elapsed
+                        current_time = datetime.now()
+                        total_time = current_time - start_time
+                        total_time_seconds = total_time.total_seconds()
+                        timer_seconds = elapsed_time.total_seconds()
+
+                        # Determine the attendance status based on the elapsed time
+                        if timer_seconds > 45:
+                            attendance_status = "Present"
+                        elif 30 < timer_seconds <= 45:
+                            attendance_status = "Half-Absent"
+                        else:
+                            attendance_status = "Absent"
+
+
+                        # Update the Treeview with Timer, End Time, and Attendance Status
+                        now = current_time.strftime("%H:%M:%S")
+                        values_to_update = (student_id, student_name, start_time_str, timer, now, attendance_status)
+                        self.tree.item(row, values=values_to_update)  # Update Timer, End Time, and Status
+                        
+                        selected_course = self.teacher_course_input.get()
+                        selected_time = self.timing_input.get()  
+                        selected_teacher = self.teacher_input.get()
+
+
+                        current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
+
+                        # Database connection
+                        conn = mysql.connector.connect(
+                            host="localhost",
+                            user="root",
+                            password="Nightcore_1134372019!",
+                            database="attendnow"
+                        )
+                        my_cursor = conn.cursor()
+
+                        # Get the current date
+                        current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
+
+                        # Check if the record already exists
+                        check_query = """
+                        SELECT * FROM attendance_status 
+                        WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                        """
+
+                        # Execute the check query
+                        my_cursor.execute(check_query, (student_id, selected_course, selected_time, current_date))
+                        record = my_cursor.fetchone()  # Fetch one record
+
+                        if record:
+                            # If the record exists, update it
+                            update_query = """
+                            UPDATE attendance_status
+                            SET attendance_status = %s,
+                                start_time = %s,
+                                recorder_timer = %s,
+                                end_time = %s
+                            WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                            """
+
+                            # Execute the update query
+                            my_cursor.execute(update_query, (
+                                attendance_status,
+                                start_time_str,
+                                timer,
+                                now,
+                                student_id,
+                                selected_course,
+                                selected_time,
+                                current_date
+                            ))
+
+                        else:
+                            # If the record does not exist, insert a new record
+                            insert_query = """
+                            INSERT INTO attendance_status (student_name, student_id, attendance_status, start_time, recorder_timer, end_time, date, course, teacher, course_hour)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                            """
+
+                            # Execute the insert query
+                            my_cursor.execute(insert_query, (
+                                student_name,
+                                student_id,
+                                attendance_status,
+                                start_time_str,
+                                timer,
+                                now,
+                                current_date,
+                                selected_course,
+                                selected_teacher,
+                                selected_time
+                            ))
+
+                        conn.commit()  # Commit the changes to the database
+                        conn.close()  # Close the database connection
+
 
             else:
                 pass
@@ -392,10 +500,13 @@ class Face_Recognition:
         # Continuously update the video feed
         self.video_label.after(10, lambda: self.recognize(faceCascade, clf, selected_course))
 
+
     def stop_recog(self):
+        # Step 1: Stop the video capture
         if self.video_cap:
             self.video_cap.release()
-        self.video_label.config(image="")  # Clear the video feed from the label
+        self.video_label.config(image="")
+
 
 if __name__ == "__main__":
     root = Tk()
