@@ -13,7 +13,7 @@ import timetable
 import emotion_status_interface
 import eye_detection
 import emotion_detection
-
+import attendance_status_interface
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -101,8 +101,9 @@ class Admit_Interface:
 
     # Function Buttons
     def attendance_status(self, username):
-        # Placeholder for the attendance status interface or functionality
-        print("Attendance Status Button Clicked!")
+        self.root.destroy()  # Close the current interface window
+        new_window = Tk()
+        attendance_status_interface.Attendance_Status_Interface(new_window, username)
         
     def open_image(self):
         os.startfile("data")
