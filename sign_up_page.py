@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import mysql.connector
+import login_page
 
 class Sign_Up_Page:
     def __init__(self, root):
@@ -67,6 +68,15 @@ class Sign_Up_Page:
         self.signup_button = Button(self.signup_frame, text="Register", command=self.signup, font=("Arial", 14), bg="orange", fg="white")
         self.signup_button.place(x=150, y=270, width=100)
 
+        # Back Button to the right of the Register button
+        self.back_button = Button(self.signup_frame, text="Back", command=self.back_to_login, font=("Arial", 14), bg="orange", fg="white")
+        self.back_button.place(x=260, y=270, width=100)
+
+    def back_to_login(self):
+        self.root.destroy()  # Close the admit_interface window
+        new_window = Tk()  # Create a new Tk window
+        login_page.Login_Page(new_window)  # Open the login page again
+    
     def signup(self):
         first_name = self.first_name_entry.get()
         last_name = self.last_name_entry.get()

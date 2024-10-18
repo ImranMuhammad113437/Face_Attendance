@@ -175,11 +175,11 @@ class Student:
         button_lower_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
         button_lower_frame.place(x=5,y=239,width=450)
     #Take Photo Sample
-        take_photo_button=Button(button_lower_frame,text="Take Photo Sample",command=self.generate_dataset,bg="orange",fg="white",width=31)
+        take_photo_button=Button(button_lower_frame,text="Take Photo Sample / Update Photo Sample",command=self.generate_dataset,bg="orange",fg="white",width=62)
         take_photo_button.grid(row=1,column=0)
-    #Update Photo Sample
-        update_photo_button=Button(button_lower_frame,text="Update Photo Sample",bg="orange",fg="white",width=30)
-        update_photo_button.grid(row=1,column=1)
+    
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
     #Right Label Frame(Search System, Table Information)     
         right_frame=LabelFrame(main_frame,bd=2,relief=RIDGE,text="Student Information")
         right_frame.place(x=497,y=10,width=475,height=470)

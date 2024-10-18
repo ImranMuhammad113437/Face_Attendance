@@ -49,53 +49,59 @@ class Admit_Interface:
         self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
         self.username_label.place(x=800, y=15)
 
-        # Navigation Bar
-        main_frame = Frame(background_img_main_position, bd=2, bg="white")
-        main_frame.place(x=200, y=100, width=650, height=180)  # Adjusted height for additional buttons
+        # Navigation Bar - Organizing into LabelFrames
+        main_frame = Frame(background_img_main_position, bd=2, bg="orange")
+        main_frame.place(x=190, y=100, width=670, height=400)  # Adjusted height for three LabelFrames
 
-        student_information = Button(main_frame, text="Student Information", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
-        student_information.place(x=5, y=2, width=150, height=40)
+       # Facial System LabelFrame
+        facial_system_frame = LabelFrame(main_frame, text="Facial System", bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
+        facial_system_frame.place(x=10, y=10, width=650, height=100)
 
-        # Curriculum Button below Student Information
-        curriculum_button = Button(main_frame, text="Curriculum", command=lambda: self.open_curriculum(username), bg="orange", fg="white", font=("League_Spartan"))
-        curriculum_button.place(x=5, y=50, width=150, height=40)
+        # Buttons inside Facial System
+        face_recon = Button(facial_system_frame, text="Face Recognition", command=lambda: self.face_page(username), bg="orange", fg="white", font=("League_Spartan"))
+        face_recon.place(x=5, y=10, width=150, height=40)
 
-        train_data = Button(main_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
-        train_data.place(x=160, y=2, width=150, height=40)
+        eye_detection_button = Button(facial_system_frame, text="Eye Detection", command=lambda: self.eye_detection(username), bg="orange", fg="white", font=("League_Spartan"))
+        eye_detection_button.place(x=160, y=10, width=150, height=40)
 
-        # Teacher Information Button below "Train Data"
-        teacher_info_button = Button(main_frame, text="Teacher Information", command=lambda: self.open_teacher_info(username), bg="orange", fg="white", font=("League_Spartan"))
-        teacher_info_button.place(x=160, y=50, width=150, height=40)
+        emotion_detection_button = Button(facial_system_frame, text="Emotion Detection", command=lambda: self.emotion_detection_button(username), bg="orange", fg="white", font=("League_Spartan"))
+        emotion_detection_button.place(x=315, y=10, width=150, height=40)
 
-        storage_image = Button(main_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
-        storage_image.place(x=315, y=2, width=150, height=40)
+         
+        train_data = Button(facial_system_frame, text="Train Data", command=self.training_data, bg="orange", fg="white", font=("League_Spartan"))
+        train_data.place(x=470, y=10, width=150, height=40)
 
-        # New Eye Detection Button below "Storage"
-        eye_detection_button = Button(main_frame, text="Eye Detection", command=lambda: self.eye_detection(username), bg="orange", fg="white", font=("League_Spartan"))
-        eye_detection_button.place(x=315, y=50, width=150, height=40)  # Positioned below "Storage"
+        # Information Management LabelFrame
+        information_management_frame = LabelFrame(main_frame, text="Information Management",  bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
+        information_management_frame.place(x=10, y=120, width=650, height=100)
 
-        face_recon = Button(main_frame, text="Face Recognition", command=lambda: self.face_page(username), bg="orange", fg="white", font=("League_Spartan"))
-        face_recon.place(x=470, y=2, width=150, height=40)
+        # Buttons inside Information Management
+        student_information = Button(information_management_frame, text="Student Details", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
+        student_information.place(x=5, y=10, width=150, height=40)
 
-        # New Emotion Detection Button below "Face Recognition"
-        emotion_detection_button = Button(main_frame, text="Emotion Detection", command=lambda: self.emotion_detection_button(username), bg="orange", fg="white", font=("League_Spartan"))
-        emotion_detection_button.place(x=470, y=50, width=150, height=40)  # Positioned below "Face Recognition"
+        teacher_info_button = Button(information_management_frame, text="Faculty Info", command=lambda: self.open_teacher_info(username), bg="orange", fg="white", font=("League_Spartan"))
+        teacher_info_button.place(x=160, y=10, width=150, height=40)
 
-#-------------------------------------Timetable Button-------------------------------------------------------
-        timetable_button = Button(main_frame, text="Timetable Information", command=lambda: self.timetable(username), bg="orange", fg="white", font=("League_Spartan"))
-        timetable_button.place(x=5, y=100, width=150, height=40)
+        curriculum_button = Button(information_management_frame, text="Curriculum Overview", command=lambda: self.open_curriculum(username), bg="orange", fg="white", font=("League_Spartan"))
+        curriculum_button.place(x=315, y=10, width=150, height=40)
 
-#-------------------------------------------------------------------------------------------------------------
+        timetable_button = Button(information_management_frame, text="Schedule Details", command=lambda: self.timetable(username), bg="orange", fg="white", font=("League_Spartan"))
+        timetable_button.place(x=470, y=10, width=150, height=40)
 
-#------------------------------------- Add the Attendance Summary Button below Teacher Information
-        attendance_summary_button = Button(main_frame, text="Emotional Status", command=lambda: self.attendance_summary(username), bg="orange", fg="white", font=("League_Spartan"))
-        attendance_summary_button.place(x=160, y=100, width=150, height=40)  # Positioned below "Teacher Information"
-#-------------------------------------------------------------------------------------------------------------
+        # Information Status LabelFrame
+        information_status_frame = LabelFrame(main_frame, text="Information Status",  bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
+        information_status_frame.place(x=10, y=230, width=650, height=100)
 
-#----------
-        # New Attendance Status Button below "Eye Detection"
-        attendance_status_button = Button(main_frame, text="Attendance Status", command=lambda: self.attendance_status(username), bg="orange", fg="white", font=("League_Spartan"))
-        attendance_status_button.place(x=315, y=100, width=150, height=40)  # Positioned below "Eye Detection"
+        # Buttons inside Information Status
+        storage_image = Button(information_status_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
+        storage_image.place(x=160, y=10, width=150, height=40)
+
+        attendance_summary_button = Button(information_status_frame, text="Emotional Status", command=lambda: self.attendance_summary(username), bg="orange", fg="white", font=("League_Spartan"))
+        attendance_summary_button.place(x=315, y=10, width=150, height=40)
+
+        attendance_status_button = Button(information_status_frame, text="Attendance Status", command=lambda: self.attendance_status(username), bg="orange", fg="white", font=("League_Spartan"))
+        attendance_status_button.place(x=470, y=10, width=150, height=40)
+
 
 #------------
 

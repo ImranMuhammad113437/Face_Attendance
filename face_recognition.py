@@ -60,11 +60,11 @@ class Face_Recognition:
 
 
         # Start Face Recognition Button
-        face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
+        face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Class")
         face_recognition_button.place(x=80, y=190, width=150, height=40)  # Position below the dropdown
 
         # Stop Face Recognition Button (next to the Start button)
-        stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Face Recognition", bg="red", fg="white")
+        stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Class", bg="red", fg="white")
         stop_button.place(x=240, y=190, width=150, height=40)  # Next to the Start button
 
         # Video display area on the right of the buttons
@@ -75,9 +75,7 @@ class Face_Recognition:
         tree_frame = Frame(self.root)
         tree_frame.place(x=80, y=250, width=310, height=250)
 
-         # Create a button under the Treeview
-        save_attendance_button = Button(self.root, text="Save Attendance", bg= "green", fg="white",command=self.save_attendance)
-        save_attendance_button.place(x=80, y=510, width=310, height=30)  # Adjust y-coordinate as needed
+    
 
 
          # Create a table for displaying the student name and ID
@@ -118,11 +116,7 @@ class Face_Recognition:
         self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def save_attendance(self):
-        # Print the attendance records, present students, and start times
-        print("Attendance Records:", self.attendance_records)
-        print("Students Present:", self.student_present)
-        print("Student Start Times:", self.student_start_times)
+    
     
     def populate_timing_dropdown(self, event):
         selected_course = self.teacher_course_input.get()

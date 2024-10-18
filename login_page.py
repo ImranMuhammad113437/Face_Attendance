@@ -3,6 +3,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import mysql.connector
 import admit_interface  # Import the admit_interface module
+import sign_up_page
 
 class Login_Page:
     def __init__(self, root):
@@ -119,9 +120,9 @@ class Login_Page:
 
     def open_signup_interface(self):
         # Create a new window for the sign-up interface
-        new_window = Toplevel(self.root)
-        from sign_up_page import Sign_Up_Page  # Assuming you have a separate module for the sign-up page
-        Sign_Up_Page(new_window)
+        self.root.destroy()
+        new_window = Tk()
+        sign_up_page.Sign_Up_Page(new_window)
 
 if __name__ == "__main__":
     root = Tk()
