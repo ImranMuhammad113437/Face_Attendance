@@ -54,10 +54,6 @@ class Emotion_Status_Interface:
         self.main_frame = Frame(self.root, bd=2, bg="orange")
         self.main_frame.place(x=490, y=70, width=500, height=400)
 
-        # Clear chart button
-        self.clear_chart_button = Button(self.root, text="Clear Chart", command=self.clear_chart_function)
-        self.clear_chart_button.place(x=490, y=480, width=100, height=30)
-
 
        # Teacher Label
         teacher_label = Label(background_img_main_position, text="Teacher:", bg="white")
@@ -157,8 +153,29 @@ class Emotion_Status_Interface:
         self.fetch_years()
 
         # Create a button labeled "Get Emotion Status" below the "Student ID" input field
-        get_emotion_status_button = Button(background_img_main_position, text="Get Emotion Status", command=self.get_emotion_status)
-        get_emotion_status_button.place(x=160, y=530, width=290, height=30)
+        self.get_emotion_status_button = Button(background_img_main_position, text="Get Emotion Status", command=self.get_emotion_status)
+        self.get_emotion_status_button.place(x=160, y=530, width=290, height=30)
+
+
+        # Clear chart button
+        self.clear_chart_button = Button(self.root, text="Clear Chart", command=self.clear_chart_function)
+        self.clear_chart_button.place(x=490, y=480, width=100, height=30)
+
+        # Create a LabelFrame named "Type" below the clear chart button
+        self.type_labelframe = LabelFrame(self.root, text="Type", bg="orange", fg="white", bd=0, highlightthickness=0)
+        self.type_labelframe.place(x=490, y=520, width=500, height=60)  # Adjust size and position
+
+        # Inside the LabelFrame, add the three buttons in horizontal order with an x-gap of 3 pixels
+        self.emotion_status_detail_button = Button(self.type_labelframe, text="Emotion Status (Detail)", state="disabled",command=self.get_emotion_status)
+        self.emotion_status_detail_button.place(x=10, y=5, width=150, height=30)
+
+        self.emotion_status_overall_button = Button(self.type_labelframe, text="Emotion Status (Overall)", state="disabled", command=self.emotion_status_overall)
+        self.emotion_status_overall_button.place(x=163, y=5, width=150, height=30)  # 10 + 150 + 3
+
+        self.emotion_status_table_button = Button(self.type_labelframe, text="Emotion Status (Table Value)", state="disabled", command=self.emotion_status_table)
+        self.emotion_status_table_button.place(x=316, y=5, width=170, height=30)  # 163 + 150 + 3
+
+
 
        
 
@@ -171,6 +188,223 @@ class Emotion_Status_Interface:
 
 
 #------------------------------------------------------------------------------------------------
+    def emotion_status_table(self): 
+        # Clear the existing chart from the main_frame
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+        student_name = self.selected_student_input.get()
+        student_id = self.student_id_input.get()
+        month_value = self.display_selected_month()
+        month_name = calendar.month_name[int(month_value)]
+        selected_year = self.year_input.get()  # Get the selected year from the year dropdown
+
+        if not student_name or not student_id:
+            messagebox.showwarning("Warning", "Please select a student.")
+            return
+
+        if selected_year == "Select Year":  # Check if a valid year is selected
+            messagebox.showwarning("Warning", "Please select a year.")
+            return
+
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",  # Replace with your host if different
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+
+        cursor = connection.cursor()
+
+        # SQL query to extract emotion data by student name, ID, month, and year
+        query = """
+            SELECT date, neutral, happy, sad, fear, surprise, angry
+            FROM student_emotion
+            WHERE student_name = %s 
+            AND student_id = %s 
+            AND MONTH(date) = %s
+            AND YEAR(date) = %s
+            ORDER BY date;
+        """
+
+        cursor.execute(query, (student_name, student_id, month_value, selected_year))
+        results = cursor.fetchall()
+
+        # Close the database connection 
+        connection.close()
+
+        if not results:
+            messagebox.showinfo("Info", f"No emotion data found for the selected student in {month_name}, {selected_year}.")
+            return
+
+        # Create a frame for the Treeview and scrollbars
+        self.tree_frame = ttk.Frame(self.main_frame)
+        self.tree_frame.pack(fill="both", expand=True)
+
+        # Create a Treeview widget to display the table
+        columns = ["Date", "Neutral", "Happy", "Sad", "Fear", "Surprise", "Angry", "Overall Emotion"]
+        
+        # Set the Treeview's width to fit the main_frame
+        self.attendance_table = ttk.Treeview(self.tree_frame, columns=columns, show='headings')
+
+        # Define the column widths
+        column_widths = [80, 50, 50, 50, 50, 50, 50, 120]  # Fixed widths
+
+        for column, width in zip(columns, column_widths):
+            self.attendance_table.heading(column, text=column)
+            # Set the column width and prevent resizing by setting stretch=False
+            self.attendance_table.column(column, anchor='center', width=width, stretch=False)
+
+        # Scrollbar for the Treeview (Only Vertical)
+        scroll_y = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.attendance_table.yview)
+
+        # Configure the Treeview to only use the vertical scrollbar
+        self.attendance_table.configure(yscrollcommand=scroll_y.set)
+
+        # Inserting data into the Treeview
+        for row in results:
+            date_str = str(row[0])  # Assuming the date is in a datetime format
+            overall_emotion = max(('Neutral', row[1]), ('Happy', row[2]), ('Sad', row[3]), 
+                                ('Fear', row[4]), ('Surprise', row[5]), ('Angry', row[6]), 
+                                key=lambda x: x[1])[0]  # Get the emotion with the highest value
+
+            # Insert the row into the Treeview
+            self.attendance_table.insert('', 'end', values=(date_str, row[1], row[2], row[3], row[4], row[5], row[6], overall_emotion))
+
+        # Pack the Treeview and the vertical scrollbar
+        self.attendance_table.pack(side="left", fill="both", expand=True)
+        scroll_y.pack(side="right", fill="y")
+
+        # Enable the buttons after the "Get Emotion Status" is pressed
+        self.emotion_status_detail_button.config(state="normal")
+        self.emotion_status_overall_button.config(state="normal")
+        self.emotion_status_table_button.config(state="normal")
+        self.get_emotion_status_button.config(state="disabled")
+
+    
+    def emotion_status_overall(self):
+        # Clear the existing chart from the main_frame
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+        student_name = self.selected_student_input.get()
+        student_id = self.student_id_input.get()
+        month_value = self.display_selected_month()
+        month_name = calendar.month_name[int(month_value)]
+        selected_year = self.year_input.get()  # Get the selected year from the year dropdown
+
+        if not student_name or not student_id:
+            messagebox.showwarning("Warning", "Please select a student.")
+            return
+
+        if selected_year == "Select Year":  # Check if a valid year is selected
+            messagebox.showwarning("Warning", "Please select a year.")
+            return
+
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",  # Replace with your host if different
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+
+        # SQL query to extract emotion data by student name, ID, month, and year
+        query = """
+            SELECT date, neutral, happy, sad, fear, surprise, angry
+            FROM student_emotion
+            WHERE student_name = %s 
+            AND student_id = %s 
+            AND MONTH(date) = %s
+            AND YEAR(date) = %s
+            ORDER BY date;
+        """
+        
+        cursor.execute(query, (student_name, student_id, month_value, selected_year))
+        results = cursor.fetchall()
+        
+        # Close the database connection 
+        connection.close()
+
+        if not results:
+            messagebox.showinfo("Info", f"No emotion data found for the selected student in {month_name}, {selected_year}.")
+            return
+
+        # Extracting data for the chart
+        days = []  
+        max_emotion_values = []
+        max_emotion_labels = []
+
+        # Define emotion color mapping
+        emotion_colors = {
+            'Neutral': 'green',
+            'Happy': 'yellow',
+            'Sad': 'blue',
+            'Fear': 'purple',
+            'Surprise': 'orange',
+            'Angry': 'red'
+        }
+
+        for row in results:
+            # Extract the day from the date
+            date_str = str(row[0])  # Assuming the date is in a datetime format
+            day = date_str.split('-')[2]  # Get the day (DD) from YYYY-MM-DD
+            
+            days.append(day)  # Append the day instead of the full date
+            
+            # Find the maximum emotion value and its corresponding label
+            emotion_values = [row[1], row[2], row[3], row[4], row[5], row[6]]
+            max_value = max(emotion_values)
+            max_index = emotion_values.index(max_value)
+
+            max_emotion_values.append(max_value)
+            
+            # Map emotion index to labels
+            emotions = ['Neutral', 'Happy', 'Sad', 'Fear', 'Surprise', 'Angry']
+            max_emotion_labels.append(emotions[max_index])
+
+        # Plotting the bar chart with only the max emotions
+        figure, ax = plt.subplots(figsize=(5, 4))  # Set the figure size to fit your needs
+
+        # Assign the color based on the max emotion
+        colors = [emotion_colors[label] for label in max_emotion_labels]
+
+        bars = ax.bar(days, max_emotion_values, color=colors)  # Use the corresponding color for each max emotion
+
+        # Setting the labels
+        ax.set_xlabel('Day (DD)')
+        ax.set_ylabel('Emotion Value')
+        ax.set_title(f'Max Emotion Status for {student_name} ({month_name}, {selected_year})')
+
+        # Updated x-ticks and labels
+        ax.set_xticks(range(len(days)))
+        ax.set_xticklabels(days, rotation=90)  # Rotate labels for better visibility
+
+        # Create a legend for the emotion colors
+        handles = [plt.Rectangle((0, 0), 1, 1, color=color) for color in emotion_colors.values()]
+        ax.legend(handles, emotion_colors.keys(), title="Emotions")
+
+        # Displaying the chart in the Tkinter Frame (main_frame)
+        canvas = FigureCanvasTkAgg(figure, master=self.main_frame)
+        canvas.draw()
+
+        # Set the canvas size explicitly
+        canvas.get_tk_widget().config(width=500, height=300)  # Set the canvas size
+
+        # Pack the canvas to fill the main_frame
+        canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Enable the buttons after the "Get Emotion Status" is pressed
+        self.emotion_status_detail_button.config(state="normal")
+        self.emotion_status_overall_button.config(state="normal")
+        self.emotion_status_table_button.config(state="normal")
+        self.get_emotion_status_button.config(state="disabled")
+
+
+    
     def fetch_years(self):
         try:
             # Establish a connection to the database (MySQL in this case)
@@ -205,6 +439,12 @@ class Emotion_Status_Interface:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
         
+        self.emotion_status_detail_button.config(state="disabled")
+        self.emotion_status_overall_button.config(state="disabled")
+        self.emotion_status_table_button.config(state="disabled")
+        self.get_emotion_status_button.config(state="normal")
+
+
         
     # Function to display selected month in terminal
     def display_selected_month(self):
@@ -227,15 +467,19 @@ class Emotion_Status_Interface:
         
         if selected_month in month_mapping:  # Ensure a valid month is selected
             numerical_value = month_mapping[selected_month]
-            print(f"Selected Month: {selected_month}, Numerical Value: {numerical_value}")
+            
             return numerical_value
         else:
-            print("No month selected.")
+        
             return None
 
     
     
     def get_emotion_status(self):
+        # Clear the existing chart from the main_frame
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
         student_name = self.selected_student_input.get()
         student_id = self.student_id_input.get()
         month_value = self.display_selected_month()
@@ -307,12 +551,16 @@ class Emotion_Status_Interface:
         figure, ax = plt.subplots(figsize=(6, 4))
 
         # Stacking the bars correctly
-        ax.bar(days, neutral, label='Neutral', color='gray')
+        ax.bar(days, neutral, label='Neutral', color='green')
         ax.bar(days, happy, bottom=neutral, label='Happy', color='yellow')
         ax.bar(days, sad, bottom=[i + j for i, j in zip(neutral, happy)], label='Sad', color='blue')
         ax.bar(days, fear, bottom=[i + j + k for i, j, k in zip(neutral, happy, sad)], label='Fear', color='purple')
         ax.bar(days, surprise, bottom=[i + j + k + l for i, j, k, l in zip(neutral, happy, sad, fear)], label='Surprise', color='orange')
         ax.bar(days, angry, bottom=[i + j + k + l + m for i, j, k, l, m in zip(neutral, happy, sad, fear, surprise)], label='Angry', color='red')
+
+        # Set x-axis ticks and rotate labels to prevent overlap
+        ax.set_xticks(range(len(days)))
+        ax.set_xticklabels(days, rotation=90)
 
         # Setting the labels
         ax.set_xlabel('Day (DD)')
@@ -324,6 +572,12 @@ class Emotion_Status_Interface:
         canvas = FigureCanvasTkAgg(figure, master=self.main_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Enable the buttons after the "Get Emotion Status" is pressed
+        self.emotion_status_detail_button.config(state="normal")
+        self.emotion_status_overall_button.config(state="normal")
+        self.emotion_status_table_button.config(state="normal")
+        self.get_emotion_status_button.config(state="disabled")
 
        
 
