@@ -94,13 +94,13 @@ class Admit_Interface:
 
         # Buttons inside Information Status
         storage_image = Button(information_status_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
-        storage_image.place(x=160, y=10, width=150, height=40)
+        storage_image.place(x=5, y=10, width=150, height=40)
 
         attendance_summary_button = Button(information_status_frame, text="Emotional Status", command=lambda: self.attendance_summary(username), bg="orange", fg="white", font=("League_Spartan"))
-        attendance_summary_button.place(x=315, y=10, width=150, height=40)
+        attendance_summary_button.place(x=160, y=10, width=150, height=40)
 
         attendance_status_button = Button(information_status_frame, text="Attendance Status", command=lambda: self.attendance_status(username), bg="orange", fg="white", font=("League_Spartan"))
-        attendance_status_button.place(x=470, y=10, width=150, height=40)
+        attendance_status_button.place(x=315, y=10, width=150, height=40)
 
 
 #------------
