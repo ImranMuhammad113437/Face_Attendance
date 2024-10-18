@@ -51,7 +51,9 @@ class Attendance_Status_Interface:
         # Course (Dropdown)
         course_label = Label(search_teacher_frame, text="Course:", bg="white")
         course_label.grid(row=0, column=2, padx=3, pady=3, sticky=W)
-        self.course_combobox = ttk.Combobox(search_teacher_frame, values=["Math", "Science", "History"])
+        self.course_combobox = ttk.Combobox(search_teacher_frame)
+        self.course_combobox['values'] = ("Select Course",)
+        self.course_combobox.current(0)
         self.course_combobox.grid(row=0, column=3, padx=3, pady=3, sticky=W)
 
         # Date (Calendar)
@@ -64,6 +66,8 @@ class Attendance_Status_Interface:
         course_hour_label = Label(search_teacher_frame, text="Course Hour:", bg="white")
         course_hour_label.grid(row=1, column=0, padx=3, pady=3, sticky=W)
         self.course_hour_combobox = ttk.Combobox(search_teacher_frame, values=["8:00 AM - 9:00 AM", "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM"])
+        self.course_hour_combobox['values'] = ("Select Course Hour",)
+        self.course_hour_combobox.current(0)
         self.course_hour_combobox.grid(row=1, column=1, padx=3, pady=3, sticky=W)
 
         
@@ -169,7 +173,9 @@ class Attendance_Status_Interface:
 
 
         self.search_attendance()
-        self.populate_teacher_combobox() 
+        self.populate_teacher_combobox()
+        self.teacher_combobox.bind("<<ComboboxSelected>>", self.populate_course_combobox) 
+        self.course_combobox.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
 
         
@@ -179,7 +185,80 @@ class Attendance_Status_Interface:
 
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------
-    
+    def populate_timing_dropdown(self, event):
+        selected_course = self.course_combobox.get()
+
+        if selected_course == "Select Course":
+            messagebox.showwarning("Selection Error", "Please select a valid course.")
+            return
+
+        try:
+            # Connect to the MySQL database 'attendnow'
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",  # Replace with your actual password
+                database="attendnow"
+            )
+
+            cursor = connection.cursor()
+
+            # SQL query to get the timing based on the selected course
+            query = "SELECT timing FROM timetable WHERE course = %s"
+            cursor.execute(query, (selected_course,))
+
+            # Fetch all the timings for the selected course
+            timings = [timing[0] for timing in cursor.fetchall()]
+
+            # Always show "Select Timing" as the default option
+            if timings:
+                self.course_hour_combobox['values'] = ["Select Timing"] + timings
+            else:
+                messagebox.showinfo("No Timings Found", "No timings available for the selected course.")
+                self.course_hour_combobox['values'] = ("Select Timing",)
+
+            # Set the default selection to "Select Timing"
+            self.course_hour_combobox.current(0)
+
+        except mysql.connector.Error as error:
+            messagebox.showerror("Database Error", f"Error: {error}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
+
+    #
+    def populate_course_combobox(self, event):
+        # Get the selected teacher name
+        selected_teacher = self.teacher_combobox.get()
+        
+        if selected_teacher == "Select Teacher":
+            return
+        
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+        query = "SELECT DISTINCT course FROM timetable WHERE teacher_name = %s"
+        cursor.execute(query, (selected_teacher,))
+        courses = cursor.fetchall()
+
+        # Set the courses in the dropdown, including the default "Select Course"
+        course_list = ["Select Course"] + [course[0] for course in courses]
+        self.course_combobox['values'] = course_list
+        
+        # Automatically select the default option ("Select Course")
+        self.course_combobox.current(0)
+        
+        # Close the database connection
+        connection.close()
+
     # Teacher Dropdown Menu
     def populate_teacher_combobox(self):
         try:

@@ -395,9 +395,9 @@ class Face_Recognition:
                         timer_seconds = elapsed_time.total_seconds()
 
                         # Determine the attendance status based on the elapsed time
-                        if timer_seconds > 45:
+                        if timer_seconds > 8:
                             attendance_status = "Present"
-                        elif 30 < timer_seconds <= 45:
+                        elif 5 < timer_seconds <= 8:
                             attendance_status = "Half-Absent"
                         else:
                             attendance_status = "Absent"
