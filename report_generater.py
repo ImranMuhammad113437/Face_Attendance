@@ -1,15 +1,19 @@
 import tkinter as tk
 from tkinter import ttk, Listbox
+from tkinter import Frame, Canvas, Scrollbar, Label, messagebox, StringVar, BooleanVar, Entry, Listbox
 from tkinter import LabelFrame, Label, Entry, Button, StringVar
 from tkinter import *
 from PIL import Image, ImageTk
 import admit_interface
+import mysql.connector  # Import your database library
+from tkinter import Label, Frame, messagebox  # Ensure required Tkinter classes are imported
 import mysql.connector
 from tkinter import messagebox  # For showing messages in case of errors
-from tkinter import *
 from fpdf import FPDF
 from pdf2image import convert_from_path
-from PIL import Image, ImageTk
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from datetime import datetime  # Make sure this module is in the same directory or in your PYTHONPATH
 
 
 class Report_Generater:
@@ -50,14 +54,14 @@ class Report_Generater:
         self.username_label.place(x=800, y=15)
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        report_frame = Frame(self.root, bd=2, bg="orange")
-        report_frame.place(x=20, y=70, width=980, height=500)
+        self.report_frame = Frame(self.root, bd=2, bg="orange")
+        self.report_frame.place(x=490, y=70, width=500, height=500)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # Left Frame for "Make Report"
-        make_report_frame = LabelFrame(report_frame, text="Report Form", bg="white", fg="black")
-        make_report_frame.place(x=5, y=5, width=460, height=485)
+        make_report_frame = LabelFrame(self.root, text="Report Form", bg="white", fg="black")
+        make_report_frame.place(x=25, y=75, width=460, height=485)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,7 +121,29 @@ class Report_Generater:
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        # LabelFrame for "Emotion Status" below the course_frame
         emotion_status_frame = LabelFrame(make_report_frame, text="Emotion Status", bg="white", fg="black")
-        emotion_status_frame.place(x=5, y=305, width=450, height=80)  # Positioned below course_frame
+        emotion_status_frame.place(x=5, y=305, width=450, height=100)  # Adjusted height to fit in a single row
+
+        # Label for Month
+        month_label = Label(emotion_status_frame, text="Select Month:", bg="white", fg="black")
+        month_label.place(x=10, y=10)  # Positioning for Month label
+
+        # Dropdown menu for Month using Combobox
+        self.month_var = StringVar()
+        self.month_var.set("Select Month")  # Default option
+        months = [str(i) for i in range(1, 13)]  # List of months (1 to 12)
+        month_dropdown = ttk.Combobox(emotion_status_frame, textvariable=self.month_var, values=months, width=13)
+        month_dropdown.place(x=100, y=10)  # Positioning for Month dropdown
+
+        # Label for Year
+        year_label = Label(emotion_status_frame, text="Select Year:", bg="white", fg="black")
+        year_label.place(x=220, y=10)  # Positioning for Year label
+
+        # Dropdown menu for Year using Combobox
+        self.year_var = StringVar()
+        self.year_var.set("Select Year")  # Default option
+        years = [str(i) for i in range(2020, 2031)]  # Example range of years (2020 to 2030)
+        year_dropdown = ttk.Combobox(emotion_status_frame, textvariable=self.year_var, values=years,width=13)
+        year_dropdown.place(x=300, y=10)  # Positioning for Year dropdown
 
         # Variables to hold the state of the checkboxes
         self.detail_var = BooleanVar()
@@ -126,70 +152,203 @@ class Report_Generater:
 
         # Checkbuttons for "Detail", "Overall", and "Table" in a horizontal order
         self.detail_checkbox = Checkbutton(emotion_status_frame, text="Chart (Detailed)", variable=self.detail_var, bg="white")
-        self.detail_checkbox.place(x=20, y=10)
+        self.detail_checkbox.place(x=20, y=40)
 
         self.overall_checkbox = Checkbutton(emotion_status_frame, text="Chart (Overall)", variable=self.overall_var, bg="white")
-        self.overall_checkbox.place(x=150, y=10)
+        self.overall_checkbox.place(x=150, y=40)
 
         self.table_checkbox = Checkbutton(emotion_status_frame, text="Status in Table", variable=self.table_var, bg="white")
-        self.table_checkbox.place(x=280, y=10)
+        self.table_checkbox.place(x=280, y=40)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # LabelFrame for "Report Generate" below the emotion_status_frame
         report_generate_frame = LabelFrame(make_report_frame, text="Report Generate", bg="white", fg="black")
         report_generate_frame.place(x=5, y=390, width=450, height=60)  # Positioned below emotion_status_frame
 
-        # Placeholder for PDF preview in the right frame
-        display_label = Button(report_generate_frame, text="Report Preview", bg="orange", fg="white", command=self.display_title)
+        display_label = Button(report_generate_frame, bg="orange", fg="white", text="Display Info", command=self.display_student_info)
         display_label.place(x=50, y=10, width=150)
+
         
         # Button for "Preview Report"
-        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_pdf)
+        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_report)
         generate_report_button.place(x=250, y=10, width=150)
 
         
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        # Right Frame for PDF report preview
-        preview_frame = Frame(report_frame, bg="white", bd=2)
-        preview_frame.place(x=500, y=10, width=460, height=490)
+       # Right Frame for PDF report preview
+        self.preview_frame = Frame(self.report_frame, bg="white", bd=2)
+        self.preview_frame.place(x=5, y=5, width=460, height=490)
 
-        # Label for the title
-        self.title_label = Label(preview_frame, text="", bg="white", fg="black")
-        self.title_label.place(x=150, y=5)
-        # Label for the title
-        self.name_label = Label(preview_frame, text="", bg="white", fg="black" )
-        self.name_label.place(x=10, y=20)
+        # Create a Canvas for the scrollable area
+        self.canvas = Canvas(self.preview_frame, bg="white")
+        self.canvas.pack(side="left", fill="both", expand=True)
+
+        # Create a Scrollbar and link it to the Canvas
+        self.scrollbar = Scrollbar(self.preview_frame, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side="right", fill="y")
+
+        # Configure the canvas to use the scrollbar
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        # Create a frame to hold the content inside the Canvas
+        self.content_frame = Frame(self.canvas, bg="white")
+        self.canvas.create_window((0, 0), window=self.content_frame, anchor="nw")
+
+        self.content_frame.bind("<Configure>", self.update_scroll_region)
+
+
+       
 
        
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    # Function to display "Hello World" as a header
-    def display_title(self):
-        self.title_label.config(text="Report Form")  # Update the title label to "Hello World"
-        self.name_label.config(text=f"Name: {self.student_name_display.cget('text')}")  # Fix the syntax issue here
-    
-
-    def generate_pdf(self):
-        # Create the PDF with 'Hello World'
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt="Hello World", ln=True, align='C')
-        pdf_output_path = "hello_world.pdf"
-        pdf.output(pdf_output_path)
-
-        # Convert the first page of the PDF to an image
-        images = convert_from_path(pdf_output_path, first_page=0, last_page=1)
-        image = images[0]
+    def fetch_attendance_data(self, student_id, course):
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='Nightcore_1134372019!',
+            database='attendnow'
+        )
         
-        # Resize image to fit the preview frame
-        image = image.resize((460, 430), Image.ANTIALIAS)
-        image_tk = ImageTk.PhotoImage(image)
+        cursor = connection.cursor()
+        query = """
+            SELECT date, attendance_status, course_hour 
+            FROM attendance_status 
+            WHERE student_id = %s AND course = %s 
+            ORDER BY date
+        """
+        cursor.execute(query, (student_id, course))
         
-        # Display the image in the label
-        pdf_preview_label.config(image=image_tk)
-        pdf_preview_label.image = image_tk  # Keep a reference to avoid garbage collection
+        # Fetch all rows of the result
+        attendance_data = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        
+        return attendance_data
+
+
+    def generate_report(self):
+        # Fetch student ID and name from the entry and label
+        student_id = self.student_id_entry.get()
+        student_name = self.student_name_display.cget("text")  # Get text from the label
+
+        # Check if student ID is empty
+        if not student_id:
+            messagebox.showwarning("Input Error", "Please enter a Student ID.")
+            return  # Exit the function if ID is empty
+
+        # Fetch the list of selected courses from the listbox
+        selected_courses = self.selected_courses_listbox.get(0, 'end')  # Get all selected courses as a tuple
+
+        # Print the values to the terminal
+        print("Student ID:", student_id)
+        print("Student Name:", student_name)
+        print("Selected Courses:")
+        for course in selected_courses:
+            print("-", course)
+
+        # Check which checkboxes are ticked and print their statuses
+        print("\nSelected Options:")
+        if self.detail_var.get():
+            print("- Chart (Detailed) is ticked.")
+        else:
+            print("- Chart (Detailed) is not ticked.")
+        
+        if self.overall_var.get():
+            print("- Chart (Overall) is ticked.")
+        else:
+            print("- Chart (Overall) is not ticked.")
+        
+        if self.table_var.get():
+            print("- Status in Table is ticked.")
+        else:
+            print("- Status in Table is not ticked.")
+
+
+    def display_student_info(self):
+        # Clear previous content in the content_frame
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+
+        # Fetch student ID and name from the entry and label
+        student_id = self.student_id_entry.get()
+        student_name = self.student_name_display.cget("text")
+
+        # Check if student ID is empty
+        if not student_id:
+            messagebox.showwarning("Input Error", "Please enter a Student ID.")
+            return  # Exit the function if ID is empty
+
+        # Add the title label for the report and center it
+        Label(self.content_frame, text="Report Form", bg="white", fg="black", font=("Arial", 16, "bold")).pack(padx=10, pady=(10, 5), anchor="center", fill="x")
+
+        # Create a single label to display the name and ID on one line
+        Label(self.content_frame, text="Name: " + student_name + " | ID: " + student_id, bg="white", fg="black").pack(anchor="w", padx=10, pady=5)
+
+        # Display selected courses
+        Label(self.content_frame, text="Courses Attendance:", bg="white", fg="black").pack(anchor="w", padx=10, pady=5)
+        selected_courses = self.selected_courses_listbox.get(0, 'end')
+
+        for course in selected_courses:
+            Label(self.content_frame, text="- " + course, bg="white", fg="black").pack(anchor="w", padx=20)
+
+            # Fetch attendance data for the specific course
+            attendance_data = self.fetch_attendance_data(student_id, course)
+
+            # Create a frame for the table
+            table_frame = Frame(self.content_frame, bg="white")
+            table_frame.pack(padx=10, pady=(5, 10), fill="x")  # Add some padding and fill horizontally
+
+            # Create table header
+            Label(table_frame, text="Date" + "                 " + "Hour" + "                 "+ "Status", bg="white", fg="black").pack(anchor="w",padx=5)
+           
+            # Populate the table with attendance data
+            for date, attendance_status, course_hour in attendance_data:
+                status_mark = ''
+                if attendance_status == "Present":
+                    status_mark = "P"
+                elif attendance_status == "Absent":
+                    status_mark = "A"
+                elif attendance_status == "Half-Absent":
+                    status_mark = "P/A"
+
+                # Create a new frame for each row of data
+                row_frame = Frame(table_frame, bg="white")
+                row_frame.pack(side="top", fill="x")  # Stack rows vertically
+                
+                Label(row_frame, text=date, bg="white", fg="black").pack(side="left", padx=5)
+                Label(row_frame, text=course_hour, bg="white", fg="black").pack(side="left", padx=5)  # Display course_hour
+                Label(row_frame, text=status_mark, bg="white", fg="black").pack(side="left", padx=5)
+
+        # Check which checkboxes are ticked and display their statuses
+        Label(self.content_frame, text="Emotion Status:", bg="white", fg="black").pack(anchor="w", padx=10, pady=5)
+        
+        if self.detail_var.get():
+            Label(self.content_frame, text="- Chart (Detailed) is ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+        else:
+            Label(self.content_frame, text="- Chart (Detailed) is not ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+
+        if self.overall_var.get():
+            Label(self.content_frame, text="- Chart (Overall) is ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+        else:
+            Label(self.content_frame, text="- Chart (Overall) is not ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+
+        if self.table_var.get():
+            Label(self.content_frame, text="- Status in Table is ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+        else:
+            Label(self.content_frame, text="- Status in Table is not ticked.", bg="white", fg="black").pack(anchor="w", padx=10)
+
+        # Update scroll region to encompass all items
+        self.update_scroll_region()
+
+
+
+    def update_scroll_region(self, event=None):
+        # Update the scroll region of the canvas
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+        
     
     
     def search_student_info(self):
@@ -280,5 +439,5 @@ class Report_Generater:
 # Example usage
 if __name__ == "__main__":
     root = tk.Tk()
-    app = Report_Generater(root, "AdminUser")
+    report_generator = Report_Generater(root, "AdminUser")
     root.mainloop()
