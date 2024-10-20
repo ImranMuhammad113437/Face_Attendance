@@ -55,7 +55,7 @@ class Report_Generater:
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         self.report_frame = Frame(self.root, bd=2, bg="orange")
-        self.report_frame.place(x=490, y=70, width=500, height=500)
+        self.report_frame.place(x=490, y=70, width=500, height=510)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -87,10 +87,38 @@ class Report_Generater:
         self.student_name_display.place(x=150, y=40)  # Position for the name display
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+         # Create a LabelFrame for "Student Information" inside the make_report_frame
+        date_info_frame = LabelFrame(make_report_frame, text="Month / Year", bg="white", fg="black")
+        date_info_frame.place(x=5, y=110, width=450, height=50)
+
+        # Label for Month
+        month_label = Label(date_info_frame, text="Select Month:", bg="white", fg="black")
+        month_label.place(x=10, y=5)  # Positioning for Month label
+
+        # Dropdown menu for Month using Combobox
+        self.month_var = StringVar()
+        self.month_var.set("Select Month")  # Default option
+        months = [str(i) for i in range(1, 13)]  # List of months (1 to 12)
+        month_dropdown = ttk.Combobox(date_info_frame, textvariable=self.month_var, values=months, width=13)
+        month_dropdown.place(x=100, y=5)  # Positioning for Month dropdown
+
+        # Label for Year
+        year_label = Label(date_info_frame, text="Select Year:", bg="white", fg="black")
+        year_label.place(x=220, y=5)  # Positioning for Year label
+
+        # Dropdown menu for Year using Combobox
+        self.year_var = StringVar()
+        self.year_var.set("Select Year")  # Default option
+        years = [str(i) for i in range(2020, 2031)]  # Example range of years (2020 to 2030)
+        year_dropdown = ttk.Combobox(date_info_frame, textvariable=self.year_var, values=years,width=13)
+        year_dropdown.place(x=300, y=5)  # Positioning for Year dropdown
+
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # LabelFrame for "Course" inside the make_report_frame, below the student_info_frame
         course_frame = LabelFrame(make_report_frame, text="Course", bg="white", fg="black")
-        course_frame.place(x=5, y=110, width=450, height=190)  # Positioned below student_info_frame
+        course_frame.place(x=5, y=160, width=450, height=190)  # Positioned below student_info_frame
 
         # Label and Combobox for Course Name
         course_name_label = Label(course_frame, text="Course Name:", bg="white", fg="black")
@@ -104,11 +132,11 @@ class Report_Generater:
 
         # Label for "Course Selected:"
         selected_courses_label = Label(course_frame, text="Course Selected:", bg="white", fg="black")
-        selected_courses_label.place(x=10, y=50)  # Position the label to the left of the Listbox
+        selected_courses_label.place(x=10, y=45)  # Position the label to the left of the Listbox
 
         # Listbox to display selected courses
         self.selected_courses_listbox = Listbox(course_frame, height=5, width=40)
-        self.selected_courses_listbox.place(x=150, y=50)  # Positioning the Listbox
+        self.selected_courses_listbox.place(x=150, y=45)  # Positioning the Listbox
 
         # Button to delete selected course from the Listbox
         self.delete_course_button = Button(course_frame, text="Delete Selected Course", command=self.delete_selected_course)
@@ -121,29 +149,7 @@ class Report_Generater:
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        # LabelFrame for "Emotion Status" below the course_frame
         emotion_status_frame = LabelFrame(make_report_frame, text="Emotion Status", bg="white", fg="black")
-        emotion_status_frame.place(x=5, y=305, width=450, height=100)  # Adjusted height to fit in a single row
-
-        # Label for Month
-        month_label = Label(emotion_status_frame, text="Select Month:", bg="white", fg="black")
-        month_label.place(x=10, y=10)  # Positioning for Month label
-
-        # Dropdown menu for Month using Combobox
-        self.month_var = StringVar()
-        self.month_var.set("Select Month")  # Default option
-        months = [str(i) for i in range(1, 13)]  # List of months (1 to 12)
-        month_dropdown = ttk.Combobox(emotion_status_frame, textvariable=self.month_var, values=months, width=13)
-        month_dropdown.place(x=100, y=10)  # Positioning for Month dropdown
-
-        # Label for Year
-        year_label = Label(emotion_status_frame, text="Select Year:", bg="white", fg="black")
-        year_label.place(x=220, y=10)  # Positioning for Year label
-
-        # Dropdown menu for Year using Combobox
-        self.year_var = StringVar()
-        self.year_var.set("Select Year")  # Default option
-        years = [str(i) for i in range(2020, 2031)]  # Example range of years (2020 to 2030)
-        year_dropdown = ttk.Combobox(emotion_status_frame, textvariable=self.year_var, values=years,width=13)
-        year_dropdown.place(x=300, y=10)  # Positioning for Year dropdown
+        emotion_status_frame.place(x=5, y=350, width=450, height=50)  # Adjusted height to fit in a single row
 
         # Variables to hold the state of the checkboxes
         self.detail_var = BooleanVar()
@@ -152,18 +158,18 @@ class Report_Generater:
 
         # Checkbuttons for "Detail", "Overall", and "Table" in a horizontal order
         self.detail_checkbox = Checkbutton(emotion_status_frame, text="Chart (Detailed)", variable=self.detail_var, bg="white")
-        self.detail_checkbox.place(x=20, y=40)
+        self.detail_checkbox.place(x=20, y=3)
 
         self.overall_checkbox = Checkbutton(emotion_status_frame, text="Chart (Overall)", variable=self.overall_var, bg="white")
-        self.overall_checkbox.place(x=150, y=40)
+        self.overall_checkbox.place(x=150, y=3)
 
         self.table_checkbox = Checkbutton(emotion_status_frame, text="Status in Table", variable=self.table_var, bg="white")
-        self.table_checkbox.place(x=280, y=40)
+        self.table_checkbox.place(x=280, y=3)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # LabelFrame for "Report Generate" below the emotion_status_frame
         report_generate_frame = LabelFrame(make_report_frame, text="Report Generate", bg="white", fg="black")
-        report_generate_frame.place(x=5, y=390, width=450, height=60)  # Positioned below emotion_status_frame
+        report_generate_frame.place(x=5, y=400, width=450, height=60)  # Positioned below emotion_status_frame
 
         display_label = Button(report_generate_frame, bg="orange", fg="white", text="Display Info", command=self.display_student_info)
         display_label.place(x=50, y=10, width=150)
