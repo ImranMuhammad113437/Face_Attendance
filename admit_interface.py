@@ -14,6 +14,7 @@ import emotion_status_interface
 import eye_detection
 import emotion_detection
 import attendance_status_interface
+import report_generater
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -102,10 +103,18 @@ class Admit_Interface:
         attendance_status_button = Button(information_status_frame, text="Attendance Status", command=lambda: self.attendance_status(username), bg="orange", fg="white", font=("League_Spartan"))
         attendance_status_button.place(x=315, y=10, width=150, height=40)
 
+        # Add the "Generate Report" button on the right side
+        generate_report_button = Button(information_status_frame, text="Generate Report", command=lambda: self.generate_report(username),bg="orange", fg="white", font=("League_Spartan"))
+        generate_report_button.place(x=475, y=10, width=150, height=40)
 
-#------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # Function Buttons
+    def generate_report(self, username):
+        self.root.destroy()  # Close the current interface window
+        new_window = Tk()
+        report_generater.Report_Generater(new_window, username)
+
     def attendance_status(self, username):
         self.root.destroy()  # Close the current interface window
         new_window = Tk()

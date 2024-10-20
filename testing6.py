@@ -1,159 +1,253 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import ttk, Listbox
+from tkinter import LabelFrame, Label, Entry, Button, StringVar
+from tkinter import *
+from PIL import Image, ImageTk
 import mysql.connector
-import calendar
+from tkinter import messagebox  # For showing messages in case of errors
+from fpdf import FPDF
+from pdf2image import convert_from_path
 
-class EmotionStatusApp:
-    def __init__(self, root):
+
+class Report_Generater:
+    def __init__(self, root, username):
         self.root = root
-        self.root.title("Emotion Status Table")
-        self.root.geometry("1000x600")  # Adjust window size as needed
+        self.username = username  # Assign username to the class instance
+        self.root.geometry("1024x590+0+0")
+        self.root.title("AttendNow")
 
-        # Main Frame (Split into left and right)
-        self.main_frame = tk.Frame(self.root, bd=2, bg="orange")
-        self.main_frame.place(x=490, y=70, width=500, height=400)
+        # ------------------------------------- Background Image ------------------------------------------------------
+        background_img_main = Image.open(r"Image\Background.png")
+        background_img_main = background_img_main.resize((1024, 590), Image.Resampling.LANCZOS)
+        self.photo_background_img_main = ImageTk.PhotoImage(background_img_main)
+        background_img_main_position = Label(self.root, image=self.photo_background_img_main)
+        background_img_main_position.place(x=0, y=0, width=1024, height=590)
 
-        # Input fields and buttons
-        self.selected_student_input = tk.StringVar()
-        self.student_id_input = tk.StringVar()
-        self.year_input = tk.StringVar()
+        # ------------------------------------- LogoTitle Image -------------------------------------------------------
+        left_title = Image.open(r"Image\LogoTitle_Left Top.png")
+        self.photoleft_title = ImageTk.PhotoImage(left_title)
+        left_title_position = Label(self.root, image=self.photoleft_title)
+        left_title_position.place(x=0, y=0, width=163, height=60)
 
-        # Drop-down for student selection
-        tk.Label(self.root, text="Student Name").place(x=50, y=50)
-        tk.Entry(self.root, textvariable=self.selected_student_input).place(x=150, y=50)
+        # Back Button
+        back_button = Button(self.root, text="Back", command=self.back_to_main, bg="red", fg="white", font=("Arial", 12, "bold"))
+        back_button.place(x=175, y=15, width=80, height=30)
 
-        tk.Label(self.root, text="Student ID").place(x=50, y=100)
-        tk.Entry(self.root, textvariable=self.student_id_input).place(x=150, y=100)
+        # Main Frame for Admin Interface
+        main_frame2 = Frame(background_img_main_position, bd=2, bg="orange")
+        main_frame2.place(x=300, y=5, width=400, height=50)
 
-        tk.Label(self.root, text="Year").place(x=50, y=150)
-        tk.Entry(self.root, textvariable=self.year_input).place(x=150, y=150)
+        # Main Title Label
+        main_title = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        main_title.place(x=5, y=2, width=400, height=40)
 
-        # Month dropdown
-        self.month_var = tk.StringVar()
-        self.month_dropdown = ttk.Combobox(self.root, textvariable=self.month_var, state='readonly')
-        self.month_dropdown['values'] = [calendar.month_name[i] for i in range(1, 13)]
-        self.month_dropdown.place(x=150, y=200)
-        tk.Label(self.root, text="Month").place(x=50, y=200)
+        # Display username on the top right corner
+        self.username_label = Label(self.root, text=f"Logged in as: {username}", bg="orange", fg="white", font=("Arial", 12))
+        self.username_label.place(x=800, y=15)
 
-        # Button to trigger table display
-        self.get_emotion_status_button = tk.Button(self.root, text="Get Emotion Status", command=self.emotion_status_table)
-        self.get_emotion_status_button.place(x=150, y=250)
+        # Report Frame
+        report_frame = Frame(self.root, bd=2, bg="orange")
+        report_frame.place(x=20, y=70, width=980, height=500)
 
-        # Additional buttons (disabled until emotion status is fetched)
-        self.emotion_status_detail_button = tk.Button(self.root, text="Emotion Details", state="disabled")
-        self.emotion_status_detail_button.place(x=50, y=300)
+        # Left Frame for "Make Report"
+        make_report_frame = LabelFrame(report_frame, text="Report Form", bg="white", fg="black")
+        make_report_frame.place(x=5, y=5, width=460, height=485)
 
-        self.emotion_status_overall_button = tk.Button(self.root, text="Overall Emotion", state="disabled")
-        self.emotion_status_overall_button.place(x=150, y=300)
+        # Student Information Frame
+        student_info_frame = LabelFrame(make_report_frame, text="Student Information", bg="white", fg="black")
+        student_info_frame.place(x=5, y=5, width=450, height=100)
 
-        self.emotion_status_table_button = tk.Button(self.root, text="Table", state="disabled")
-        self.emotion_status_table_button.place(x=250, y=300)
+        # Student ID Entry
+        student_id_label = Label(student_info_frame, text="Student ID:", bg="white", fg="black")
+        student_id_label.place(x=10, y=10)
 
-    def display_selected_month(self):
-        # Get the selected month as a number (1 to 12)
-        return self.month_dropdown.current() + 1
+        self.student_id_entry = Entry(student_info_frame, width=15)
+        self.student_id_entry.place(x=100, y=10)
 
-    def emotion_status_table(self):
-        # Clear the existing chart from the main_frame
-        for widget in self.main_frame.winfo_children():
-            widget.destroy()
+        # Search Button
+        search_button = Button(student_info_frame, text="Search ID", bg="orange", fg="white", width=10, command=self.search_student_info)
+        search_button.place(x=270, y=10)
 
-        student_name = self.selected_student_input.get()
-        student_id = self.student_id_input.get()
-        month_value = self.display_selected_month()
-        month_name = calendar.month_name[int(month_value)]
-        selected_year = self.year_input.get()  # Get the selected year from the year dropdown
+        # Display Student Name
+        student_name_label = Label(student_info_frame, text="Student Found:", bg="white", fg="black")
+        student_name_label.place(x=10, y=40)
+        self.student_name_display = Label(student_info_frame, text="", bg="white", fg="black")
+        self.student_name_display.place(x=150, y=40)
 
-        if not student_name or not student_id:
-            messagebox.showwarning("Warning", "Please select a student.")
-            return
+        # Course Frame
+        course_frame = LabelFrame(make_report_frame, text="Course", bg="white", fg="black")
+        course_frame.place(x=5, y=110, width=450, height=190)
 
-        if selected_year == "Select Year":  # Check if a valid year is selected
-            messagebox.showwarning("Warning", "Please select a year.")
-            return
+        # Course Name Combobox
+        course_name_label = Label(course_frame, text="Course Name:", bg="white", fg="black")
+        course_name_label.place(x=10, y=10)
 
-        # Connect to the MySQL database
-        connection = mysql.connector.connect(
-            host="localhost",  # Replace with your host if different
-            user="root",
-            password="Nightcore_1134372019!",
-            database="attendnow"
-        )
+        self.course_name_combobox = ttk.Combobox(course_frame, values=[], width=37, state="readonly")
+        self.course_name_combobox.place(x=150, y=10)
+        self.course_name_combobox.set("Select Course")
 
-        cursor = connection.cursor()
+        # Listbox for Selected Courses
+        selected_courses_label = Label(course_frame, text="Course Selected:", bg="white", fg="black")
+        selected_courses_label.place(x=10, y=50)
+        self.selected_courses_listbox = Listbox(course_frame, height=5, width=40)
+        self.selected_courses_listbox.place(x=150, y=50)
 
-        # SQL query to extract emotion data by student name, ID, month, and year
-        query = """
-            SELECT date, neutral, happy, sad, fear, surprise, angry
-            FROM student_emotion
-            WHERE student_name = %s 
-            AND student_id = %s 
-            AND MONTH(date) = %s
-            AND YEAR(date) = %s
-            ORDER BY date;
-        """
+        # Delete Selected Course Button
+        self.delete_course_button = Button(course_frame, text="Delete Selected Course", command=self.delete_selected_course)
+        self.delete_course_button.place(x=150, y=135)
 
-        cursor.execute(query, (student_name, student_id, month_value, selected_year))
-        results = cursor.fetchall()
+        # Bind Combobox Selection
+        self.course_name_combobox.bind("<<ComboboxSelected>>", lambda event: self.add_course())
 
-        # Close the database connection 
-        connection.close()
+        # Emotion Status Frame
+        emotion_status_frame = LabelFrame(make_report_frame, text="Emotion Status", bg="white", fg="black")
+        emotion_status_frame.place(x=5, y=305, width=450, height=80)
 
-        if not results:
-            messagebox.showinfo("Info", f"No emotion data found for the selected student in {month_name}, {selected_year}.")
-            return
+        # Emotion Checkbuttons
+        self.detail_var = BooleanVar()
+        self.overall_var = BooleanVar()
+        self.table_var = BooleanVar()
 
-        # Create a frame for the Treeview and scrollbars
-        self.tree_frame = ttk.Frame(self.main_frame)
-        self.tree_frame.pack(fill="both", expand=True)
+        self.detail_checkbox = Checkbutton(emotion_status_frame, text="Chart (Detailed)", variable=self.detail_var, bg="white")
+        self.detail_checkbox.place(x=20, y=10)
 
-        # Create a Treeview widget to display the table
-        columns = ["Date", "Neutral", "Happy", "Sad", "Fear", "Surprise", "Angry", "Overall Emotion"]
-        
-        # Set the Treeview's width to fit the main_frame
-        self.attendance_table = ttk.Treeview(self.tree_frame, columns=columns, show='headings')
+        self.overall_checkbox = Checkbutton(emotion_status_frame, text="Chart (Overall)", variable=self.overall_var, bg="white")
+        self.overall_checkbox.place(x=150, y=10)
 
-        # Define the column headings and their widths (adjust to fit within main_frame width)
-        column_widths = [80, 50, 50, 50, 50, 50, 50, 120]  # Adjust the widths as necessary
-        total_width = sum(column_widths)  # Get total width of all columns
+        self.table_checkbox = Checkbutton(emotion_status_frame, text="Status in Table", variable=self.table_var, bg="white")
+        self.table_checkbox.place(x=280, y=10)
 
-        if total_width > 500:  # Ensure it fits in the 500px width of main_frame
-            scale_factor = 500 / total_width
-            column_widths = [int(w * scale_factor) for w in column_widths]  # Scale down
+        # Report Generate Frame
+        report_generate_frame = LabelFrame(make_report_frame, text="Report Generate", bg="white", fg="black")
+        report_generate_frame.place(x=5, y=390, width=450, height=60)
 
-        for column, width in zip(columns, column_widths):
-            self.attendance_table.heading(column, text=column)
-            self.attendance_table.column(column, anchor='center', width=width)
+        # Report Preview Button
+        display_label = Button(report_generate_frame, text="Report Preview", bg="orange", fg="white", command=self.display_title)
+        display_label.place(x=50, y=10, width=150)
 
-        # Scrollbar for the Treeview (Only Vertical)
-        scroll_y = ttk.Scrollbar(self.tree_frame, orient='vertical', command=self.attendance_table.yview)
+        # Generate Report Button
+        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_pdf)
+        generate_report_button.place(x=250, y=10, width=150)
 
-        # Configure the Treeview to only use the vertical scrollbar
-        self.attendance_table.configure(yscrollcommand=scroll_y.set)
+        # Right Frame for PDF Preview
+        preview_frame = Frame(report_frame, bg="white", bd=2)
+        preview_frame.place(x=500, y=10, width=460, height=430)
 
-        # Inserting data into the Treeview
-        for row in results:
-            date_str = str(row[0])  # Assuming the date is in a datetime format
-            overall_emotion = max(('Neutral', row[1]), ('Happy', row[2]), ('Sad', row[3]), 
-                                ('Fear', row[4]), ('Surprise', row[5]), ('Angry', row[6]), 
-                                key=lambda x: x[1])[0]  # Get the emotion with the highest value
+        # Title Label for PDF Preview
+        self.title_label = Label(preview_frame, text="", bg="white", fg="black", font=("Arial", 16, "bold"))
+        self.title_label.place(x=150, y=10)
 
-            # Insert the row into the Treeview
-            self.attendance_table.insert('', 'end', values=(date_str, row[1], row[2], row[3], row[4], row[5], row[6], overall_emotion))
+        # Name Label for PDF Preview
+        self.name_label = Label(preview_frame, text="", bg="white", fg="black", font=("Arial", 16, "bold"))
+        self.name_label.place(x=150, y=50)  # Adjusted to avoid overlap with title_label
 
-        # Pack the Treeview and the vertical scrollbar
-        self.attendance_table.pack(side="left", fill="both", expand=True)
-        scroll_y.pack(side="right", fill="y")
+    def display_title(self):
+        self.title_label.config(text="Hello World")  # Update the title label to "Hello World"
+        self.name_label.config(text=f"Name: {self.student_name_display.cget('text')}")  # Fix the syntax issue here
 
-        # Enable the buttons after the "Get Emotion Status" is pressed
-        self.emotion_status_detail_button.config(state="normal")
-        self.emotion_status_overall_button.config(state="normal")
-        self.emotion_status_table_button.config(state="normal")
-        self.get_emotion_status_button.config(state="disabled")
+    def generate_pdf(self):
+        # Create the PDF with 'Hello World'
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="Hello World", ln=True, align='C')
+        pdf_output_path = "hello_world.pdf"
+        pdf.output(pdf_output_path)
+
+        # Convert the first page of the PDF to an image
+        images = convert_from_path(pdf_output_path, first_page=0, last_page=1)
+        image = images[0]
+
+        # Resize image to fit the preview frame
+        image = image.resize((460, 430), Image.ANTIALIAS)
+        image_tk = ImageTk.PhotoImage(image)
+
+        # Display the image in the label
+        pdf_preview_label = Label(self.root)  # Create a new label for preview
+        pdf_preview_label.config(image=image_tk)
+        pdf_preview_label.image = image_tk  # Keep a reference to avoid garbage collection
+        pdf_preview_label.place(x=500, y=10)  # Adjust position as necessary
+
+    def search_student_info(self):
+        student_id = self.student_id_entry.get()  # Get the Student ID from the entry
+
+        # Clear previous selections in the Combobox
+        self.course_name_combobox.set("Select Course")
+        self.selected_courses_listbox.delete(0, tk.END)  # Clear previous selections in Listbox
+        self.student_name_display.config(text="")  # Clear previous name display
+
+        # Connect to the database to retrieve student info
+        try:
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+            query = "SELECT student_name FROM students WHERE student_id = %s"
+            cursor.execute(query, (student_id,))
+            result = cursor.fetchone()
+
+            if result:
+                self.student_name_display.config(text=result[0])  # Display student name
+                self.load_courses(student_id)  # Load courses for this student
+            else:
+                messagebox.showerror("Error", "Student ID not found.")
+
+            cursor.close()
+            connection.close()
+
+        except mysql.connector.Error as e:
+            messagebox.showerror("Database Error", str(e))
+
+    def load_courses(self, student_id):
+        # Load courses for the student
+        try:
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+            query = "SELECT course FROM students WHERE student_id = %s"  # Adjust according to your table structure
+            cursor.execute(query, (student_id,))
+            courses = cursor.fetchall()
+
+            # Clear previous course entries
+            self.course_name_combobox['values'] = []
+            self.selected_courses_listbox.delete(0, tk.END)
+
+            # Add fetched courses to the Combobox and Listbox
+            for course in courses:
+                self.course_name_combobox['values'] += course  # Add to Combobox
+                self.selected_courses_listbox.insert(tk.END, course[0])  # Add to Listbox
+
+            cursor.close()
+            connection.close()
+
+        except mysql.connector.Error as e:
+            messagebox.showerror("Database Error", str(e))
+
+    def add_course(self):
+        # Add selected course to the Listbox
+        selected_course = self.course_name_combobox.get()
+        if selected_course and selected_course not in self.selected_courses_listbox.get(0, tk.END):
+            self.selected_courses_listbox.insert(tk.END, selected_course)
+
+    def delete_selected_course(self):
+        # Delete the selected course from the Listbox
+        selected_index = self.selected_courses_listbox.curselection()
+        if selected_index:
+            self.selected_courses_listbox.delete(selected_index)
+
+    def back_to_main(self):
+        self.root.destroy()  # Close the current window
 
 
-# Main application
 if __name__ == "__main__":
     root = tk.Tk()
-    app = EmotionStatusApp(root)
+    username = "Admin"  # Example username
+    app = Report_Generater(root, username)
     root.mainloop()
