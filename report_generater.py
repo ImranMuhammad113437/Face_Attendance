@@ -28,6 +28,10 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
+from reportlab.lib.colors import gray
+from reportlab.pdfgen import canvas
 
 
 class Report_Generater:
@@ -237,6 +241,38 @@ class Report_Generater:
     def update_scroll_region(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))  # Update the scroll region to encompass the content_frame
 
+    def fetch_attendance_data_report(self, student_id, course, month, year):
+            connection = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='Nightcore_1134372019!',
+                database='attendnow'
+            )
+            
+            cursor = connection.cursor()
+            
+            # Modified SQL query to filter by student_id, course, month, and year
+            query = """
+                SELECT date, course_hour , attendance_status
+                FROM attendance_status 
+                WHERE student_id = %s 
+                AND course = %s 
+                AND YEAR(date) = %s 
+                AND MONTH(date) = %s
+                ORDER BY date
+            """
+            
+            # Execute query with student_id, course, year, and month as parameters
+            cursor.execute(query, (student_id, course, year, month))
+            
+            # Fetch all rows of the result
+            attendance_data = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            return attendance_data
+
+
     def fetch_attendance_data(self, student_id, course, month, year):
         connection = mysql.connector.connect(
             host='localhost',
@@ -380,7 +416,7 @@ class Report_Generater:
         # Center the title below the table
         text_width = c.stringWidth(title_below, font_name, title_below_font_size)
         c.drawString((width - text_width) / 2, title_below_y, title_below)
-        
+
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # Fetch the list of selected courses from the listbox
@@ -392,12 +428,65 @@ class Report_Generater:
         # Set font size for the courses
         course_font_size = 12
         c.setFont(font_name, course_font_size)
+    
+        # Define table headers for each course
+        # Set page dimensions and margins
+        page_width, page_height = A4
+        left_margin = 0.5 * inch
+        right_margin = 0.5 * inch
+        available_width = page_width - left_margin - right_margin
+        course_start_y = page_height - 1 * inch  # Starting Y position at the top of the page
 
-        # Iterate through each selected course and print it on the PDF
+        # Define table headers for each course
+        headers = ["Date", "Hour", "Status"]
+        num_columns = 3  # Date, Hour, Status columns
+        column_width = available_width / num_columns  # Calculate column width
+
+        # Font settings for title and table text
+        font_name = "Helvetica"
+        title_below_font_size = 14
+        table_header_font_size = 10
+        table_data_font_size = 10
+
+        # Title text
+        title_below = "Attendance Status"
+
+        # Iterate through each selected course
         for index, course in enumerate(selected_courses):
-            # Decrease Y position for each course
-            course_y = course_start_y - (index * 0.4 * inch)  # Adjust spacing between courses
-            c.drawString(padding, course_y, course)  # Print course with padding on the left
+            # Decrease Y position for each course (adjust for spacing between tables)
+            course_y = course_start_y - (index * 2 * inch)  # Adjust spacing between courses
+
+            # Print course name as a title
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(left_margin, course_y, f"Course: {course}")
+
+            # Fetch the attendance data for the current course
+            attendance_data = self.fetch_attendance_data_report(student_id, course, selected_month, selected_year)
+
+            # Table Headers
+            headers = ["Date", "Hour", "Status"]
+            left_margin = 0.5 * inch
+            column_width = 2 * inch
+            table_start_y = height - 150
+
+            c.setFont("Helvetica-Bold", 12)
+            for col_index, header in enumerate(headers):
+                header_x = left_margin + col_index * column_width
+                c.drawString(header_x, table_start_y, header)
+
+            # Table Rows
+            row_height = 0.4 * inch
+            c.setFont("Helvetica", 10)
+            for data_index, data in enumerate(attendance_data):
+                data_y = table_start_y - ((data_index + 1) * row_height)
+                for col_index, value in enumerate(data):
+                    data_x = left_margin + col_index * column_width
+                    c.drawString(data_x, data_y, str(value))
+
+            c.save()
+
+
+        # Iterate through each selected course and print it on the PDF    
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # Finalize the PDF
