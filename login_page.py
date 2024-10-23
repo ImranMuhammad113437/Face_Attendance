@@ -4,6 +4,8 @@ from PIL import Image, ImageTk
 import mysql.connector
 import admit_interface  # Import the admit_interface module
 import sign_up_page
+import teacher_interface
+
 
 class Login_Page:
     def __init__(self, root):
@@ -94,19 +96,27 @@ class Login_Page:
                 )
                 
                 cursor = connection.cursor()
+
+                # Check admin_user table
                 cursor.execute("SELECT * FROM admin_user WHERE user_name = %s AND user_password = %s", (username, password))
                 result = cursor.fetchone()
-                
+
                 if result:
-                    # Close the current window and open the admit interface
+                    # Close the current window and open the admit interface for admin
                     self.root.destroy()  # Close the login page
                     self.open_admit_interface(username)  # Pass username
-                
-                    
                 else:
-                    messagebox.showerror("Login Error", "Invalid Username or Password")
+                    # Check teacher_user table
+                    cursor.execute("SELECT * FROM teacher_user WHERE user_name = %s AND password = %s", (username, password))
+                    result = cursor.fetchone()
 
+                    if result:
+                        # Close the current window and open the admit interface for teacher
+                        self.root.destroy()  # Close the login page
+                        self.open_teacher_interface(username)  # You might want to define this method
 
+                    else:
+                        messagebox.showerror("Login Error", "Invalid Username or Password")
 
             except mysql.connector.Error as err:
                 messagebox.showerror("Database Error", f"Error: {err}")
@@ -121,6 +131,11 @@ class Login_Page:
         # Create a new window for the admit interface and pass the username
         new_window = Tk()  # Create a new Tkinter instance
         admit_interface.Admit_Interface(new_window, username)  # Pass the username
+
+    def open_teacher_interface(self, username):
+        # Create a new window for the admit interface and pass the username
+        new_window = Tk()  # Create a new Tkinter instance
+        teacher_interface.Teacher_Interface(new_window, username)  # Pass the username
 
     def open_signup_interface(self):
         # Create a new window for the sign-up interface
