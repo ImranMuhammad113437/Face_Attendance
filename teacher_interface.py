@@ -8,6 +8,7 @@ import eye_detection
 import emotion_detection_teacher
 import attendance_status_interface_teacher
 import report_generater_interface_teacher
+import start_class_interface_teacher
 
 class Teacher_Interface:  # Changed class name to Teacher_Interface
     def __init__(self, root, username):
@@ -63,6 +64,10 @@ class Teacher_Interface:  # Changed class name to Teacher_Interface
         emotion_detection_button = Button(facial_system_frame, text="Emotion Detection", command=lambda: self.emotion_detection_button(username), bg="orange", fg="white", font=("League_Spartan"))
         emotion_detection_button.place(x=315, y=10, width=150, height=40)
 
+        # New button on the right of Emotion Detection
+        new_feature_button = Button(facial_system_frame, text="Start Class", command=lambda: self.new_feature(username), bg="orange", fg="white", font=("League_Spartan"))
+        new_feature_button.place(x=470, y=10, width=150, height=40)  # Adjust x position accordingly
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         # Information Status LabelFrame
@@ -80,8 +85,12 @@ class Teacher_Interface:  # Changed class name to Teacher_Interface
         generate_report_button.place(x=315, y=10, width=150, height=40)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    def new_feature(self, username):
+        self.root.destroy()
+        new_window = Tk()
+        start_class_interface_teacher.Start_Class_Interface_Teacher(new_window, username)
 
-    # Function Buttons
+
     def generate_report(self, username):
         self.root.destroy()  # Close the current interface window
         new_window = Tk()

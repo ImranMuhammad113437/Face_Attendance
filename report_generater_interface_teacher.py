@@ -64,7 +64,7 @@ class Report_Generater_Interface_Teacher:
         main_frame2.place(x=300, y=5, width=400, height=50)
 
         # Main Title Label
-        main_title = Label(main_frame2, text="Admin Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        main_title = Label(main_frame2, text="Teacher Interface", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
         main_title.place(x=5, y=2, width=400, height=40)
 
         # Display username on the top right corner
@@ -925,6 +925,7 @@ class Report_Generater_Interface_Teacher:
 
             # Update the Combobox with the list of courses
             self.course_name_combobox['values'] = course_names  # Set the new list of courses
+            
             if course_names:  # If there are courses, set the first one as default
                 self.course_name_combobox.current(0)
 

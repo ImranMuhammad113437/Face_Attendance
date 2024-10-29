@@ -193,6 +193,7 @@ class Emotion_Status_Interface:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+        selected_course = self.course_combobox.get()
         student_name = self.selected_student_input.get()
         student_id = self.student_id_input.get()
         month_value = self.display_selected_month()
@@ -223,12 +224,13 @@ class Emotion_Status_Interface:
             FROM student_emotion
             WHERE student_name = %s 
             AND student_id = %s 
+            AND course = %s
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
 
-        cursor.execute(query, (student_name, student_id, month_value, selected_year))
+        cursor.execute(query, (student_name, student_id, selected_course, month_value, selected_year))
         results = cursor.fetchall()
 
         # Close the database connection 
@@ -288,6 +290,7 @@ class Emotion_Status_Interface:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+        selected_course = self.course_combobox.get()
         student_name = self.selected_student_input.get()
         student_id = self.student_id_input.get()
         month_value = self.display_selected_month()
@@ -317,13 +320,14 @@ class Emotion_Status_Interface:
             SELECT date, neutral, happy, sad, fear, surprise, angry
             FROM student_emotion
             WHERE student_name = %s 
-            AND student_id = %s 
+            AND student_id = %s
+            AND course = %s 
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
         
-        cursor.execute(query, (student_name, student_id, month_value, selected_year))
+        cursor.execute(query, (student_name, student_id, selected_course, month_value, selected_year))
         results = cursor.fetchall()
         
         # Close the database connection 
@@ -480,6 +484,7 @@ class Emotion_Status_Interface:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+        selected_course = self.course_combobox.get()
         student_name = self.selected_student_input.get()
         student_id = self.student_id_input.get()
         month_value = self.display_selected_month()
@@ -509,13 +514,14 @@ class Emotion_Status_Interface:
             SELECT date, neutral, happy, sad, fear, surprise, angry
             FROM student_emotion
             WHERE student_name = %s 
-            AND student_id = %s 
+            AND student_id = %s
+            AND course = %s 
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
         
-        cursor.execute(query, (student_name, student_id, month_value, selected_year))
+        cursor.execute(query, (student_name, student_id, selected_course, month_value, selected_year))
         results = cursor.fetchall()
         
         # Close the database connection 

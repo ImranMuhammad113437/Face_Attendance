@@ -4,7 +4,7 @@ from tkinter import Frame, Canvas, Scrollbar, Label, messagebox, StringVar, Bool
 from tkinter import LabelFrame, Label, Entry, Button, StringVar
 from tkinter import *
 from PIL import Image, ImageTk
-import admit_interface
+import teacher_interface
 import mysql.connector  # Import your database library
 from tkinter import Label, Frame, messagebox  # Ensure required Tkinter classes are imported
 import mysql.connector
@@ -32,9 +32,14 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.colors import gray
 from reportlab.pdfgen import canvas
+import matplotlib.pyplot as plt
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from io import BytesIO
 
 
-class Report_Generater:
+class Report_Generater_Interface_Teacher:
     def __init__(self, root, username):
         self.root = root
         self.username = username  # Assign username to the class instance
@@ -194,7 +199,7 @@ class Report_Generater:
 
         
         # Button for "Preview Report"
-        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_report)
+        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.export_to_pdf)
         generate_report_button.place(x=250, y=10, width=150)
 
         
@@ -221,7 +226,7 @@ class Report_Generater:
 
         # Bind the content frame size to update the scroll region
         self.content_frame.bind("<Configure>", self.update_scroll_region)
-
+        
 
 
 
@@ -304,195 +309,169 @@ class Report_Generater:
         
         return attendance_data
 
-    def generate_report(self):
-        # Fetch student ID and name from the entry and label
+    def generate_emotion_chart(self, student_id, student_name, selected_month, selected_year):
+        # Connect to the MySQL database
+        connection = mysql.connector.connect(
+            host="localhost",  # Replace with your host if different
+            user="root",
+            password="Nightcore_1134372019!",
+            database="attendnow"
+        )
+        
+        cursor = connection.cursor()
+
+        # SQL query to extract emotion data by student name, ID, month, and year
+        query = """
+            SELECT date, neutral, happy, sad, fear, surprise, angry
+            FROM student_emotion
+            WHERE student_name = %s 
+            AND student_id = %s 
+            AND MONTH(date) = %s
+            AND YEAR(date) = %s
+            ORDER BY date;
+        """
+        
+        cursor.execute(query, (student_name, student_id, selected_month, selected_year))
+        results = cursor.fetchall()
+        
+        # Close the database connection 
+        connection.close()
+
+        if not results:
+            messagebox.showinfo("Info", f"No emotion data found for the selected student in {selected_month}, {selected_year}.")
+            return
+
+        # Extracting data for the chart
+        days = []  # Change this to hold days instead of full dates
+        neutral = []
+        happy = []
+        sad = []
+        fear = []
+        surprise = []
+        angry = []
+        
+        for row in results:
+            # Extract the day from the date
+            date_str = str(row[0])  # Assuming the date is in a datetime format
+            day = date_str.split('-')[2]  # Get the day (DD) from YYYY-MM-DD
+            
+            days.append(day)  # Append the day instead of the full date
+            neutral.append(row[1])
+            happy.append(row[2])
+            sad.append(row[3])
+            fear.append(row[4])
+            surprise.append(row[5])
+            angry.append(row[6])
+
+        # Plotting the vertical stacked bar chart with a fixed width
+        figure, ax = plt.subplots(figsize=(5, 4))  # Set width to 5 inches (approximately 500 pixels)
+
+        # Stacking the bars correctly
+        ax.bar(days, neutral, label='Neutral', color='green')
+        ax.bar(days, happy, bottom=neutral, label='Happy', color='yellow')
+        ax.bar(days, sad, bottom=[i + j for i, j in zip(neutral, happy)], label='Sad', color='blue')
+        ax.bar(days, fear, bottom=[i + j + k for i, j, k in zip(neutral, happy, sad)], label='Fear', color='purple')
+        ax.bar(days, surprise, bottom=[i + j + k + l for i, j, k, l in zip(neutral, happy, sad, fear)], label='Surprise', color='orange')
+        ax.bar(days, angry, bottom=[i + j + k + l + m for i, j, k, l, m in zip(neutral, happy, sad, fear, surprise)], label='Angry', color='red')
+
+        # Set x-axis ticks and rotate labels to prevent overlap
+        ax.set_xticks(range(len(days)))
+        ax.set_xticklabels(days, rotation=90)
+
+        # Setting the labels
+        ax.set_xlabel('Day (DD)')
+        ax.set_ylabel('Emotion')
+        ax.set_title(f'Emotion Status for {student_name} ({selected_month}, {selected_year})')
+        ax.legend()
+
+        # Save the chart image in the specified folder
+        chart_folder = "chart_image"  # Folder where the chart will be saved
+        chart_filename = f"{student_name}_{student_id}_{selected_month}_{selected_year}_detailed_chart.png"  # Updated filename format
+        chart_path = f"{chart_folder}/{chart_filename}"
+
+        # Ensure the folder exists
+        if not os.path.exists(chart_folder):
+            os.makedirs(chart_folder)
+
+        # Save the figure
+        figure.savefig(chart_path)
+
+
+    def export_to_pdf(self, pdf_filename="student_report.pdf"):
+        # Create a PDF document
+        pdf = canvas.Canvas(pdf_filename, pagesize=A4)
+
+        # Set the initial position
+        width, height = A4
+        y_position = height - 50  # Start from the top of the page with some margin
+
+        # Title for the report
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawString(100, y_position, "Student Report Form")
+        y_position -= 40  # Move down
+
+        # Set font for the rest of the content
+        pdf.setFont("Helvetica", 12)
+
+        # Fetch student data from the frame
         student_id = self.student_id_entry.get()
-        student_name = self.student_name_display.cget("text")  # Get text from the label
-        selected_month = self.month_var.get()  # Fetch selected month
+        student_name = self.student_name_display.cget("text")
+        selected_month = self.month_var.get()
         selected_year = self.year_var.get()
-        # Initialize the variable to hold the month text
-        selected_month_text = ""
 
-        # Check the value of selected_month and set the corresponding month name
-        if selected_month == "1":
-            selected_month_text = " January"
-        elif selected_month == "2":
-            selected_month_text = " February"
-        elif selected_month == "3":
-            selected_month_text = " March"
-        elif selected_month == "4":
-            selected_month_text = " April"
-        elif selected_month == "5":
-            selected_month_text = " May"
-        elif selected_month == "6":
-            selected_month_text = " June"
-        elif selected_month == "7":
-            selected_month_text = " July"
-        elif selected_month == "8":
-            selected_month_text = " August"
-        elif selected_month == "9":
-            selected_month_text = " September"
-        elif selected_month == "10":
-            selected_month_text = " October"
-        elif selected_month == "11":
-            selected_month_text = " November"
-        elif selected_month == "12":
-            selected_month_text = " December"
-        else:
-            selected_month_text = "Invalid month"  # Handle invalid month if necessary
+        # Write student info to the PDF
+        pdf.drawString(40, y_position, f"Student Name: {student_name}")
+        y_position -= 20
+        pdf.drawString(40, y_position, f"Student ID: {student_id}")
+        y_position -= 20
+        pdf.drawString(40, y_position, f"Month: {selected_month}")
+        y_position -= 20
+        pdf.drawString(40, y_position, f"Year: {selected_year}")
+        y_position -= 40  # Move down
 
-        # Now selected_month_text holds the corresponding month name
+        # Check for space before adding courses attendance title
+        if y_position < 50:  # Adjust space threshold as needed
+            pdf.showPage()  # Start a new page
+            y_position = height - 50  # Reset y_position for new page
 
-        # Check if student ID is empty
-        if not student_id:
-            messagebox.showwarning("Input Error", "Please enter a Student ID.")
-            return  # Exit the function if ID is empty
+        # Add Courses Attendance Title
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(40, y_position, "Courses Attendance")
+        y_position -= 30
+        pdf.setFont("Helvetica", 12)
 
-        # Register the Arial font
-        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))  # Ensure you have Arial.ttf in the same directory
+        # Get the selected courses and write attendance info
+        selected_courses = self.selected_courses_listbox.get(0, 'end')
+        for course in selected_courses:
+            pdf.drawString(40, y_position, f"- Course: {course}")
+            y_position -= 20
 
-        # Create a PDF canvas
-        c = canvas.Canvas(student_name + ".pdf", pagesize=letter)
+            # Fetch attendance data for each course
+            attendance_data = self.fetch_attendance_data(student_id, course, selected_month, selected_year)
 
-        # Set title properties
-        title = "Report Form"
-        font_name = "Arial"  # Use registered Arial font
-        font_size = 16
+            # Add table headers for attendance
+            pdf.drawString(60, y_position, "Date          Hour         Status")
+            y_position -= 20
 
-        # Set font and color for the title
-        c.setFont(font_name, font_size)
-        c.setFillColor(colors.black)
+            # Write attendance data for each course
+            for date, attendance_status, course_hour in attendance_data:
+                status_mark = 'P' if attendance_status == "Present" else ('A' if attendance_status == "Absent" else "P/A")
+                pdf.drawString(60, y_position, f"{date}     {course_hour}         {status_mark}")
+                y_position -= 20
 
-        # Calculate width and height for centering the title
-        width = c._pagesize[0]
-        text_width = c.stringWidth(title, font_name, font_size)
+                # Check for space before adding more data
+                if y_position < 50:  # Adjust space threshold as needed
+                    pdf.showPage()  # Start a new page
+                    y_position = height - 50  # Reset y_position for new page
 
-        # Draw the title at the center of the page
-        c.drawString((width - text_width) / 2, 10 * inch, title)  # Adjust the Y-coordinate as needed
+            y_position -= 10  # Add extra space between courses
 
-        # Set font and color for table
-        table_font_size = 12
-        c.setFont(font_name, table_font_size)
+    # Finalize and save the PDF
+        pdf.save()
+        print(f"PDF saved as {pdf_filename}")
 
-        # Define table data
-        table_data = [
-            ["Name: " + student_name, "ID: " + student_id],
-            ["Month: " + selected_month_text, "Year: " + selected_year]
-        ]
-
-        # Define padding for the table
-        padding = 0.5 * inch  # Add a padding of 0.5 inches from both sides
-
-        # Calculate cell dimensions
-        available_width = width - (2 * padding)  # Reduce total width by padding on both sides
-        cell_width = available_width / 2  # Divide the available width for 2 columns
-        cell_height = (0.5 * inch) - 10  # Height for each row with vertical padding
-
-        # Position for the table, just below the title
-        table_start_y = (10 * inch) - (cell_height + 0.1 * inch)  # Positioning it below the title
-
-        # Draw the table without borders
-        for row_index, row in enumerate(table_data):
-            for col_index, text in enumerate(row):
-                x = padding + col_index * cell_width  # Calculate X position with padding
-                y = table_start_y - (row_index * cell_height)  # Calculate Y position for the table
-
-                # Draw the text in each cell with X-padding of 0.2 inches and adjust for vertical padding
-                c.drawString(x + 0.2 * inch, y + 0.1 * inch, text)  # Slight offset for vertical padding
-
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # Now add the title below the table
-        # Set font size for the title below the table
-        title_below_font_size = 14
-        c.setFont(font_name, title_below_font_size)
-
-        # Set the text for the title below the table
-        title_below = "Attendance Status"
-
-        # Calculate Y position for the title (add some padding after the table)
-        title_below_y = y - cell_height - 0.3 * inch  # 0.3 inch padding after the table
-
-        # Center the title below the table
-        text_width = c.stringWidth(title_below, font_name, title_below_font_size)
-        c.drawString((width - text_width) / 2, title_below_y, title_below)
-
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # Fetch the list of selected courses from the listbox
-        selected_courses = self.selected_courses_listbox.get(0, 'end')  # Get all selected courses as a tuple
-
-        # Set the starting Y position for printing courses, just below the title
-        course_start_y = title_below_y - 0.5 * inch  # Add some space after the title
-
-        # Set font size for the courses
-        course_font_size = 12
-        c.setFont(font_name, course_font_size)
     
-        # Define table headers for each course
-        # Set page dimensions and margins
-        page_width, page_height = A4
-        left_margin = 0.5 * inch
-        right_margin = 0.5 * inch
-        available_width = page_width - left_margin - right_margin
-        course_start_y = page_height - 1 * inch  # Starting Y position at the top of the page
 
-        # Define table headers for each course
-        headers = ["Date", "Hour", "Status"]
-        num_columns = 3  # Date, Hour, Status columns
-        column_width = available_width / num_columns  # Calculate column width
-
-        # Font settings for title and table text
-        font_name = "Helvetica"
-        title_below_font_size = 14
-        table_header_font_size = 10
-        table_data_font_size = 10
-
-        # Title text
-        title_below = "Attendance Status"
-
-        # Iterate through each selected course
-        for index, course in enumerate(selected_courses):
-            # Decrease Y position for each course (adjust for spacing between tables)
-            course_y = course_start_y - (index * 2 * inch)  # Adjust spacing between courses
-
-            # Print course name as a title
-            c.setFont("Helvetica-Bold", 12)
-            c.drawString(left_margin, course_y, f"Course: {course}")
-
-            # Fetch the attendance data for the current course
-            attendance_data = self.fetch_attendance_data_report(student_id, course, selected_month, selected_year)
-
-            # Table Headers
-            headers = ["Date", "Hour", "Status"]
-            left_margin = 0.5 * inch
-            column_width = 2 * inch
-            table_start_y = height - 150
-
-            c.setFont("Helvetica-Bold", 12)
-            for col_index, header in enumerate(headers):
-                header_x = left_margin + col_index * column_width
-                c.drawString(header_x, table_start_y, header)
-
-            # Table Rows
-            row_height = 0.4 * inch
-            c.setFont("Helvetica", 10)
-            for data_index, data in enumerate(attendance_data):
-                data_y = table_start_y - ((data_index + 1) * row_height)
-                for col_index, value in enumerate(data):
-                    data_x = left_margin + col_index * column_width
-                    c.drawString(data_x, data_y, str(value))
-
-            c.save()
-
-
-        # Iterate through each selected course and print it on the PDF    
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # Finalize the PDF
-        c.save()
-
-        print(f"PDF saved as {student_name}.pdf")
 
 
     def create_rotated_image(self,text, angle, font):
@@ -622,13 +601,8 @@ class Report_Generater:
         Label(self.content_frame, text="Emotion Status", bg="white", fg="black", font=("Arial", 14)).pack(anchor="center", padx=10, pady=5)
         
         if self.detail_var.get():
-            # Get the list of selected courses from the listbox
-            selected_courses = self.selected_courses_listbox.get(0, 'end')
-
-            # Loop through each course and call the function to display the emotion status chart
-            for course in selected_courses:
-                self.get_emotion_status(student_id, student_name, selected_month, selected_year, course)
-
+            # Call the function to display the emotion status chart
+            self.get_emotion_status(student_id, student_name, selected_month, selected_year)
 
         if self.overall_var.get():
             self.emotion_status_overall(student_id, student_name, selected_month, selected_year)
@@ -769,7 +743,7 @@ class Report_Generater:
         # Setting the labels
         ax.set_xlabel('Day (DD)')
         ax.set_ylabel('Emotion Value')
-        ax.set_title(f'Max Emotion Status for {student_name} ({calendar.month_name[int(selected_month)]}, {selected_year}) ')
+        ax.set_title(f'Max Emotion Status for {student_name} ({calendar.month_name[int(selected_month)]}, {selected_year})')
 
         # Updated x-ticks and labels
         ax.set_xticks(range(len(days)))
@@ -790,7 +764,7 @@ class Report_Generater:
         canvas.get_tk_widget().pack(fill="both", expand=True)
 
 
-    def get_emotion_status(self, student_id, student_name, selected_month, selected_year, course):
+    def get_emotion_status(self, student_id, student_name, selected_month, selected_year):
         # Connect to the MySQL database
         connection = mysql.connector.connect(
             host="localhost",  # Replace with your host if different
@@ -806,14 +780,13 @@ class Report_Generater:
             SELECT date, neutral, happy, sad, fear, surprise, angry
             FROM student_emotion
             WHERE student_name = %s 
-            AND student_id = %s
-            AND course = %s 
+            AND student_id = %s 
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
         
-        cursor.execute(query, (student_name, student_id, course,selected_month, selected_year))
+        cursor.execute(query, (student_name, student_id, selected_month, selected_year))
         results = cursor.fetchall()
         
         # Close the database connection 
@@ -863,13 +836,28 @@ class Report_Generater:
         # Setting the labels
         ax.set_xlabel('Day (DD)')
         ax.set_ylabel('Emotion')
-        ax.set_title(f'Emotion Status ({selected_month}, {selected_year}) {course}')
+        ax.set_title(f'Emotion Status for {student_name} ({selected_month}, {selected_year})')
         ax.legend()
 
         # Displaying the chart in the Tkinter Frame (content_frame inside preview_frame)
         canvas = FigureCanvasTkAgg(figure, master=self.content_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
+
+        # Save the chart image in the specified folder
+        chart_folder = "chart_image"  # Folder where the chart will be saved
+        chart_filename = f"{student_name}_{student_id}_{selected_month}_{selected_year}_detailed_chart.png"  # Updated filename format
+        chart_path = f"{chart_folder}/{chart_filename}"
+
+        # Ensure the folder exists
+        if not os.path.exists(chart_folder):
+            os.makedirs(chart_folder)
+
+        # Save the figure
+        figure.savefig(chart_path)
+        messagebox.showinfo("Info", f"Chart saved as {chart_path}.")
+
+
 
 
 
@@ -912,6 +900,8 @@ class Report_Generater:
             else:
                 self.student_name_display.config(text="Not Found")  # Update label if no student found
 
+
+
             # SQL query to fetch the courses based on the student ID
             query_courses = "SELECT course FROM students WHERE student_id = %s"  # Get all courses for the student
             cursor.execute(query_courses, (student_id,))
@@ -929,6 +919,7 @@ class Report_Generater:
 
             # Update the Combobox with the list of courses
             self.course_name_combobox['values'] = course_names  # Set the new list of courses
+            
             if course_names:  # If there are courses, set the first one as default
                 self.course_name_combobox.current(0)
 
@@ -963,11 +954,11 @@ class Report_Generater:
     def back_to_main(self):
         self.root.destroy()  # Close the current window
         new_window = Tk()  # Create a new Tk window for the admit interface
-        admit_interface.Admit_Interface(new_window, self.username)
+        teacher_interface.Teacher_Interface(new_window, self.username)
 
 
 # Example usage
 if __name__ == "__main__":
     root = tk.Tk()
-    report_generator = Report_Generater(root, "AdminUser")
+    report_generator_interface_teacher = Report_Generater_Interface_Teacher(root, "AdminUser")
     root.mainloop()
