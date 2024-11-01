@@ -7,6 +7,7 @@ import cv2
 from collections import defaultdict
 import teacher_interface
 from fer import FER  # Import FER for emotion detection
+from tkinter.ttk import Combobox  
 
 class Emotion_Detection_Teacher:
     def __init__(self, root,username):
@@ -16,7 +17,6 @@ class Emotion_Detection_Teacher:
 
 
         self.username = username
-
         
 
         # Background Image
@@ -32,19 +32,28 @@ class Emotion_Detection_Teacher:
         left_title_position = Label(self.root, image=self.photoleft_title)
         left_title_position.place(x=0, y=0, width=163, height=60)
 
-        main_frame = Frame(background_img_face_recognition_position, bd=2, bg="orange")
-        main_frame.place(x=300, y=5, width=400, height=50)
+        save_button = Label(background_img_face_recognition_position, text="Emotion Detection (Teacher)", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        save_button.place(x=300, y=5, width=400, height=50)
 
-        save_button = Label(main_frame, text="Emotion Detection", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
-        save_button.place(x=45, y=2, width=300, height=40)
 
-        # Start Face Recognition Button
-        face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition")
-        face_recognition_button.place(x=80, y=140, width=150, height=40)
+        # Create and place the label
+        label = Label(root, text="Course:")
+        label.place(x=80, y=100, width=150, height=30)
 
-        # Stop Face Recognition Button (below the Start button)
-        stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Face Recognition", bg="red", fg="white")
-        stop_button.place(x=240, y=140, width=150, height=40)
+        # Course Dropdown Menu (Combobox)
+        self.course_var = StringVar()
+        self.course_combobox = Combobox(root, textvariable=self.course_var)
+        self.course_combobox.place(x=240, y=100, width=150, height=30)
+        self.course_combobox.set("Select Course")  # Default text
+        self.course_combobox.bind("<<ComboboxSelected>>", self.enable_face_recognition_button)
+
+        # Start Face Recognition Button (Initially Disabled)
+        self.face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start", state="disabled")
+        self.face_recognition_button.place(x=80, y=140, width=150, height=40)
+
+        # Stop Face Recognition Button (Initially Disabled)
+        self.stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop", bg="red", fg="white", state="disabled")
+        self.stop_button.place(x=240, y=140, width=150, height=40)
 
         # Video display area on the right of the buttons
         self.video_label = Label(background_img_face_recognition_position)
@@ -115,6 +124,49 @@ class Emotion_Detection_Teacher:
         # Back Button
         back_button = Button(self.root, text="Back", command=self.go_back, bg="red", fg="white", font=("Arial", 12, "bold"))
         back_button.place(x=175, y=15, width=80, height=30)
+
+        self.update_course_list()
+
+#------------------------------------------------------------------------------------------------------------------------------------
+
+    def enable_face_recognition_button(self, event):
+        # Enable the "Start Face Recognition" button if a course is selected
+        if self.course_var.get() != "Select Course":
+            self.face_recognition_button.config(state="normal")
+            self.stop_button.config(state="normal")
+    
+    def update_course_list(self):
+            # Get the selected teacher name
+            selected_teacher = self.username
+
+            # Connect to the database and fetch courses based on the selected teacher
+            try:
+                connection = mysql.connector.connect(
+                    host="localhost",
+                    user="root",
+                    password="Nightcore_1134372019!",  # replace with your actual password
+                    database="attendnow"
+                )
+
+                cursor = connection.cursor()
+                # Fetch courses associated with the selected teacher
+                query = "SELECT DISTINCT course FROM timetable WHERE teacher_name = %s"
+                cursor.execute(query, (selected_teacher,))
+                courses = [row[0] for row in cursor.fetchall()]  # Extract courses into a list
+
+                # Update the course_combobox with the fetched courses
+                self.course_combobox['values'] = courses
+                self.course_combobox.set("Select Course")  # Reset the default text
+
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+                self.course_combobox['values'] = []  # Empty list if there's an error
+
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+
 
     def face_recog(self):
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -321,5 +373,5 @@ class Emotion_Detection_Teacher:
 
 if __name__ == "__main__":
     root = Tk()
-    app = Emotion_Detection_Teacher(root, username="Guest")
+    app = Emotion_Detection_Teacher(root, username="Jackie Chan")
     root.mainloop()

@@ -33,11 +33,10 @@ class Emotion_Detection:
         left_title_position = Label(self.root, image=self.photoleft_title)
         left_title_position.place(x=0, y=0, width=163, height=60)
 
-        main_frame = Frame(background_img_face_recognition_position, bd=2, bg="orange")
-        main_frame.place(x=200, y=5, width=700, height=50)
+        
 
-        save_button = Label(main_frame, text="Face Recognition with Emotion Detection", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
-        save_button.place(x=5, y=2, width=600, height=40)
+        save_button = Label(background_img_face_recognition_position, text="Emotion Detection (Admin)", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        save_button.place(x=300, y=5, width=400, height=50)
 
 
         # Teacher Dropdown Menu (Combobox on the left side)
@@ -57,11 +56,11 @@ class Emotion_Detection:
         
 
         # Start Face Recognition Button (Initially Disabled)
-        self.face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Face Recognition", state="disabled")
+        self.face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start", state="disabled")
         self.face_recognition_button.place(x=80, y=140, width=150, height=40)
 
         # Stop Face Recognition Button (Initially Disabled)
-        self.stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Face Recognition", bg="red", fg="white", state="disabled")
+        self.stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop", bg="red", fg="white", state="disabled")
         self.stop_button.place(x=240, y=140, width=150, height=40)
 
         # Video display area on the right of the buttons

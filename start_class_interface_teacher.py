@@ -370,6 +370,10 @@ class Start_Class_Interface_Teacher:
                 face_img = img[y:y + h, x:x + w]
                 detected_emotions = self.detect_emotion(face_img)  # Get detected emotion values
 
+                # Get the live emotion with the highest value
+                live_emotion = max(detected_emotions, key=detected_emotions.get)
+                live_emotion_value = detected_emotions[live_emotion]
+
                 # Initialize or update cumulative emotion values
                 if student_id not in self.cumulative_emotions:
                     self.cumulative_emotions[student_id] = {
@@ -381,17 +385,27 @@ class Start_Class_Interface_Teacher:
                 for emotion, value in detected_emotions.items():
                     cumulative_emotions[emotion] += value
 
-                # Round cumulative emotions to 2 decimal places and cap them at 99.99
-                for emotion in cumulative_emotions:
-                    cumulative_emotions[emotion] = min(round(cumulative_emotions[emotion], 2), 99.99)
+                # Track total frames for each student
+                if student_id not in self.total_frames:
+                    self.total_frames[student_id] = 0
+                self.total_frames[student_id] += 1
 
-                highest_emotion = max(cumulative_emotions, key=cumulative_emotions.get)
-                highest_emotion_value = cumulative_emotions[highest_emotion]
+                # Calculate the percentage for each emotion
+                total_frames = self.total_frames[student_id]
+                if total_frames > 0:
+                    neutral_percent = (cumulative_emotions["neutral"] / total_frames) * 100
+                    happy_percent = (cumulative_emotions["happy"] / total_frames) * 100
+                    sad_percent = (cumulative_emotions["sad"] / total_frames) * 100
+                    angry_percent = (cumulative_emotions["angry"] / total_frames) * 100
+                    fear_percent = (cumulative_emotions["fear"] / total_frames) * 100
+                    surprise_percent = (cumulative_emotions["surprise"] / total_frames) * 100
+                else:
+                    neutral_percent = happy_percent = sad_percent = angry_percent = fear_percent = surprise_percent = 0.0
 
-                # Display the highest emotion on the video frame
+                # Display the live emotion on the video frame
                 cv2.putText(img, f"Name: {student_name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                 cv2.putText(img, f"ID: {student_id}", (x, y + h + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-                cv2.putText(img, f"Emotion: {highest_emotion.capitalize()}", (x, y - 35), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
+                cv2.putText(img, f"Emotion: {live_emotion.capitalize()}", (x, y - 35), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
 
                 now = datetime.now().strftime("%H:%M:%S")
 
@@ -404,7 +418,8 @@ class Start_Class_Interface_Teacher:
                         row_data = self.tree.item(row, "values")
                         if str(student_id) == row_data[0]:
                             self.tree.item(row, values=(student_id, student_name, now, "", "", "", 
-                                                        cumulative_emotions["neutral"], cumulative_emotions["happy"], cumulative_emotions["sad"], cumulative_emotions["fear"], cumulative_emotions["surprise"], cumulative_emotions["angry"]))
+                                                        f"{neutral_percent:.2f}%", f"{happy_percent:.2f}%", f"{sad_percent:.2f}%", 
+                                                        f"{angry_percent:.2f}%", f"{fear_percent:.2f}%", f"{surprise_percent:.2f}%"))
 
                 start_time = self.student_start_times.get(id)
                 elapsed_time = datetime.now() - start_time
@@ -430,8 +445,8 @@ class Start_Class_Interface_Teacher:
 
                         now = current_time.strftime("%H:%M:%S")
                         values_to_update = (student_id, student_name, start_time_str, timer, now, attendance_status, 
-                                            cumulative_emotions["neutral"], cumulative_emotions["happy"], cumulative_emotions["sad"], cumulative_emotions["fear"], 
-                                            cumulative_emotions["surprise"], cumulative_emotions["angry"])
+                                            f"{neutral_percent:.2f}%", f"{happy_percent:.2f}%", f"{sad_percent:.2f}%", f"{angry_percent:.2f}%", 
+                                            f"{fear_percent:.2f}%", f"{surprise_percent:.2f}%")
                         self.tree.item(row, values=values_to_update)
 
                         selected_course = self.teacher_course_input.get()
@@ -518,8 +533,8 @@ class Start_Class_Interface_Teacher:
                             WHERE student_id = %s AND date = %s AND course = %s;
                             """
                             my_cursor.execute(update_emotion_query, (
-                                cumulative_emotions["neutral"], cumulative_emotions["happy"], cumulative_emotions["sad"], cumulative_emotions["fear"], 
-                                cumulative_emotions["surprise"], cumulative_emotions["angry"],
+                                neutral_percent, happy_percent, sad_percent, fear_percent, 
+                                surprise_percent, angry_percent,
                                 student_id, current_date, selected_course
                             ))
                         else:
@@ -529,8 +544,8 @@ class Start_Class_Interface_Teacher:
                             """
                             my_cursor.execute(insert_emotion_query, (
                                 student_name, student_id, current_date, selected_course,
-                                cumulative_emotions["neutral"], cumulative_emotions["happy"], cumulative_emotions["sad"], cumulative_emotions["fear"], 
-                                cumulative_emotions["surprise"], cumulative_emotions["angry"]
+                                neutral_percent, happy_percent, sad_percent, fear_percent, 
+                                surprise_percent, angry_percent
                             ))
 
                         conn.commit()
@@ -547,14 +562,14 @@ class Start_Class_Interface_Teacher:
         self.video_label.configure(image=imgtk)
         self.video_label.after(10, lambda: self.recognize(faceCascade, clf, selected_course))
 
-
-
     def detect_emotion(self, face_img):
         emotions = self.emotion_detector.detect_emotions(face_img)
         if emotions:
             # Round each emotion value to 2 decimal places and cap at 99.99
             return {emotion: min(round(value, 2), 99.99) for emotion, value in emotions[0]["emotions"].items()}
         return {"neutral": 0, "happy": 0, "sad": 0, "fear": 0, "surprise": 0, "angry": 0}
+
+
 
 
 
