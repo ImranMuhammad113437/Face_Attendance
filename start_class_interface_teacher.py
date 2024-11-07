@@ -44,9 +44,7 @@ class Start_Class_Interface_Teacher:
         # Add the text label in the center of the main_frame
         Label(main_frame, text="Start Class", bg="orange", fg="white", font=("New Time Roman", 20, "bold")).place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        # Assuming this code is inside a class and you call the method to populate the dropdown
-        self.teacher_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
-        self.teacher_input.place(x=80, y=100, width=310)  
+         
 
         # Course dropdown (new dropdown to select the teacher's course)
         self.teacher_course_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
@@ -130,8 +128,7 @@ class Start_Class_Interface_Teacher:
         return_button = Button(self.root, text="Back", command=self.return_to_admit_interface, bg="blue", fg="white", font=("Arial", 12, "bold"))
         return_button.place(x=170, y=15, width=80, height=30)
 
-        self.populate_teacher_dropdown()
-        self.teacher_input.bind("<<ComboboxSelected>>", self.populate_course_dropdown)
+        self.populate_course_dropdown()
         self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -180,9 +177,9 @@ class Start_Class_Interface_Teacher:
                 connection.close()
 
     
-    def populate_course_dropdown(self, event):
+    def populate_course_dropdown(self):
         # Get the selected teacher name
-        selected_teacher = self.teacher_input.get()
+        selected_teacher = self.username
         
         if selected_teacher == "Select Teacher":
             return
@@ -211,34 +208,7 @@ class Start_Class_Interface_Teacher:
         connection.close()
 
     
-    def populate_teacher_dropdown(self):
-        # Connect to the MySQL database
-        connection = mysql.connector.connect(
-            host="localhost",  # Replace with your host if different
-            user="root",
-            password="Nightcore_1134372019!",
-            database="attendnow"
-        )
-        
-        cursor = connection.cursor()
-
-        # SQL query to fetch distinct teacher names
-        query = "SELECT DISTINCT teacher_name FROM timetable"
-        cursor.execute(query)
-        results = cursor.fetchall()
-
-        # Close the database connection
-        connection.close()
-
-        # Extract the teacher names from the results
-        teacher_names = [row[0] for row in results]
-
-        # Populate the dropdown (Combobox) with unique teacher names
-        self.teacher_input['values'] = teacher_names
-
-        self.teacher_input.set("Select Teacher:")
-
-
+    
     def return_to_admit_interface(self):
         self.root.destroy()  # Close the student interface
         new_window = Tk()  # Create a new Tk window for the admit interface
@@ -282,7 +252,7 @@ class Start_Class_Interface_Teacher:
     def face_recog(self):
         selected_course = self.teacher_course_input.get()
         selected_time = self.timing_input.get()  # Get the selected timing
-        selected_teacher = self.teacher_input.get()
+        selected_teacher = self.username
 
         # Validate that all required fields are selected
         if selected_course == "Select Course" or selected_time == "Select Timing" or selected_teacher == "Select Teacher":
@@ -451,7 +421,7 @@ class Start_Class_Interface_Teacher:
 
                         selected_course = self.teacher_course_input.get()
                         selected_time = self.timing_input.get()
-                        selected_teacher = self.teacher_input.get()
+                        selected_teacher = self.username
 
                         current_date = datetime.now().strftime("%Y-%m-%d")
 
@@ -582,6 +552,6 @@ class Start_Class_Interface_Teacher:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Start_Class_Interface_Teacher(root, "Face")
+    obj = Start_Class_Interface_Teacher(root, "Jackie Chan")
     root.mainloop()
     root.resizable(False, False)
