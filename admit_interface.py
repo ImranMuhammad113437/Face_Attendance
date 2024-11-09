@@ -15,6 +15,7 @@ import eye_detection
 import emotion_detection
 import attendance_status_interface
 import report_generater
+import admin_register
 
 class Admit_Interface:
     def __init__(self, root, username):
@@ -51,7 +52,7 @@ class Admit_Interface:
 
         
         main_frame = Frame(background_img_main_position, bd=2, bg="orange")
-        main_frame.place(x=190, y=100, width=670, height=400)  
+        main_frame.place(x=190, y=100, width=670, height=450)  
 
        
         facial_system_frame = LabelFrame(main_frame, text="Facial System", bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
@@ -105,6 +106,18 @@ class Admit_Interface:
         generate_report_button = Button(information_status_frame, text="Generate Report", command=lambda: self.generate_report(username),bg="orange", fg="white", font=("League_Spartan"))
         generate_report_button.place(x=475, y=10, width=150, height=40)
 
+        administration_information_frame = LabelFrame(main_frame, text="Administration Information" ,bg="orange", font=("Arial", 12, "bold"), fg="white", bd=0, highlightbackground="white", highlightcolor="white")
+        administration_information_frame.place(x=10, y=340, width=650, height=100)
+
+        # Admin Registration Button in the new frame
+        admin_registration_button = Button(administration_information_frame, text="Admin Registration", command=lambda: self.admin_regis(username), bg="orange", fg="white", font=("League_Spartan"))
+        admin_registration_button.place(x=5, y=10, width=150, height=40)
+
+
+    def admin_regis(self, username):
+        self.root.destroy()
+        new_window =Tk()
+        admin_register.Admin_Register(new_window,username)
 
     def generate_report(self, username):
         self.root.destroy()  

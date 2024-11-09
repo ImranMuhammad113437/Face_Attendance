@@ -232,7 +232,7 @@ class Face_Recognition_Teacher:
     def face_recog(self):
         selected_course = self.teacher_course_input.get()
         selected_time = self.timing_input.get()  # Get the selected timing
-        selected_teacher = self.teacher_input.get()
+        selected_teacher = self.username
 
         # Validate that all required fields are selected
         if selected_course == "Select Course" or selected_time == "Select Timing" or selected_teacher == "Select Teacher":
@@ -373,7 +373,7 @@ class Face_Recognition_Teacher:
                         
                         selected_course = self.teacher_course_input.get()
                         selected_time = self.timing_input.get()  
-                        selected_teacher = self.teacher_input.get()
+                        selected_teacher = self.username
 
 
                         current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
@@ -473,6 +473,6 @@ class Face_Recognition_Teacher:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Face_Recognition_Teacher(root, "Face")
+    obj = Face_Recognition_Teacher(root, "Jackie Chan")
     root.mainloop()
     root.resizable(False, False)

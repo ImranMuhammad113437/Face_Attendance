@@ -3,7 +3,6 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import mysql.connector
 import admit_interface  # Import the admit_interface module
-import sign_up_page
 import teacher_interface
 
 
@@ -63,11 +62,10 @@ class Login_Page:
         self.is_password_visible = False  # Track visibility state
 
 
+        # Create the login button
         self.login_button = Button(self.login_frame, text="Login", command=self.login, font=("Arial", 14), bg="orange", fg="white")
         self.login_button.place(x=150, y=150, width=100)
-
-        self.signup_button = Button(self.login_frame, text="Sign Up", command=self.open_signup_interface, font=("Arial", 14), bg="orange", fg="white")
-        self.signup_button.place(x=260, y=150, width=100)
+        
 
 
     def toggle_password(self):
@@ -82,8 +80,9 @@ class Login_Page:
         self.is_password_visible = not self.is_password_visible  # Toggle state
 
     def login(self):
-        username = self.username_entry.get()
-        password = self.password_entry.get()
+        # Get values from entry fields and remove trailing/leading spaces
+        username = self.username_entry.get().strip()  # Remove spaces at the start and end
+        password = self.password_entry.get().strip()  # Remove spaces at the start and end
 
         if username and password:
             # Connect to the database
@@ -127,6 +126,7 @@ class Login_Page:
         else:
             messagebox.showerror("Input Error", "Please fill in both fields")
 
+
     def open_admit_interface(self, username):
         # Create a new window for the admit interface and pass the username
         new_window = Tk()  # Create a new Tkinter instance
@@ -137,11 +137,7 @@ class Login_Page:
         new_window = Tk()  # Create a new Tkinter instance
         teacher_interface.Teacher_Interface(new_window, username)  # Pass the username
 
-    def open_signup_interface(self):
-        # Create a new window for the sign-up interface
-        self.root.destroy()
-        new_window = Tk()
-        sign_up_page.Sign_Up_Page(new_window)
+    
 
 if __name__ == "__main__":
     root = Tk()
