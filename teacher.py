@@ -19,6 +19,8 @@ class Teacher_Interface:
         self.var_email = StringVar()
         self.var_password = StringVar()
         self.var_phone_number = StringVar()
+        self.var_username = StringVar()
+
 
        
 
@@ -57,19 +59,19 @@ class Teacher_Interface:
        # Main frame for teacher registration
         # Left side frame for the form
         left_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Teacher Registration Form", bg="white")
-        left_frame.place(x=10, y=10, width=477, height=530)  # Adjust height to accommodate the middle frame
+        left_frame.place(x=10, y=10, width=477, height=470)  # Adjust height to accommodate the middle frame
 
         # Upper frame for input fields
         upper_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Teacher Information")
-        upper_frame.place(x=5, y=0, width=465, height=220)
+        upper_frame.place(x=5, y=0, width=465, height=260)
 
         # Middle frame for search dropdowns and buttons
         middle_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Search & Filter")
-        middle_frame.place(x=5, y=230, width=465, height=70)
+        middle_frame.place(x=5, y=270, width=465, height=70)
 
         # Lower frame for buttons
         lower_frame = LabelFrame(left_frame, bg="white", relief=RIDGE, text="Actions")
-        lower_frame.place(x=5, y=310, width=465, height=120)
+        lower_frame.place(x=5, y=350, width=465, height=100)
 
         # Input fields in the upper frame
         first_name_label = Label(upper_frame, text="First Name:", bg="white", fg="black" )
@@ -96,6 +98,12 @@ class Teacher_Interface:
         phone_number_label.grid(row=4, column=0, padx=10, pady=10, sticky=W)
         self.phone_number_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_phone_number)
         self.phone_number_input.grid(row=4, column=1, padx=10, pady=10)
+
+        # Username Label and Input
+        username_label = Label(upper_frame, text="Username:", bg="white", fg="black")
+        username_label.grid(row=5, column=0, padx=10, pady=10, sticky=W)
+        self.username_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_username)
+        self.username_input.grid(row=5, column=1, padx=10, pady=10)
 
         # Search dropdowns and buttons in the middle frame
         search_label_1 = Label(middle_frame, text="Search By:", bg="white", fg="black")
@@ -221,9 +229,10 @@ class Teacher_Interface:
         email = self.var_email.get()
         password = self.var_password.get()
         phone_number = self.var_phone_number.get()
+        user_name = self.var_username.get()
 
         # Check if all fields are filled
-        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "":
+        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "" or user_name == "":
             messagebox.showerror("Error", "All fields are required")
         else:
             try:
@@ -239,10 +248,10 @@ class Teacher_Interface:
 
                 # Insert data into the teacher_user table
                 insert_query = """
-                INSERT INTO teacher_user (first_name, last_name, email, password, phone_number)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO teacher_user (first_name, last_name, email, password, phone_number,user_name)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """
-                values = (first_name, last_name, email, password, phone_number)
+                values = (first_name, last_name, email, password, phone_number, username)
 
                 cursor.execute(insert_query, values)
                 connection.commit()  # Commit the transaction
@@ -264,7 +273,13 @@ class Teacher_Interface:
         self.fetch_data()
 
     def delete_data(self):
-        if self.var_email.get() == "":
+        first_name = self.var_first_name.get()
+        last_name = self.var_last_name.get()
+        email = self.var_email.get()
+        password = self.var_password.get()
+        phone_number = self.var_phone_number.get()
+
+        if email == "":
             messagebox.showerror("Error", "Email is required to delete the record")
         else:
             try:
@@ -278,8 +293,8 @@ class Teacher_Interface:
                 my_cursor = conn.cursor()
 
                 # SQL delete query to delete record based on email
-                sql = "DELETE FROM teacher_user WHERE email=%s"
-                val = (self.var_email.get(),)
+                sql = "DELETE FROM teacher_user WHERE first_name=%s and last_name=%s and email=%s and password=%s and phone_number=%s"
+                val = (first_name, last_name, email, password, phone_number)
                 my_cursor.execute(sql, val)
 
                 conn.commit()
@@ -294,7 +309,9 @@ class Teacher_Interface:
                 messagebox.showerror("Error", f"Error due to: {str(e)}")
         
     def update_data(self):
-        pass
+        self.delete_data()
+        self.add_data()
+
     def reset_fields(self):
         self.var_first_name.set("")
         self.var_last_name.set("")
@@ -312,6 +329,7 @@ class Teacher_Interface:
         self.var_email.set(data[2]),
         self.var_password.set(data[3]),
         self.var_phone_number.set(data[4])
+        self.var_username.set(data[5])
         
 
 
