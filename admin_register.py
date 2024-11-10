@@ -189,7 +189,49 @@ class Admin_Register:
             messagebox.showerror("Database Error", f"Error: {err}")
     
     def delete_record(self):
-        print("Delete button clicked")
+        # Get the selected username or ID to delete (assuming it's from a selected item)
+        selected_username = self.username_entry.get().strip()  # Or any field where you select the username to delete
+
+        if not selected_username:
+            messagebox.showwarning("Selection Error", "Please select a user to delete.")
+            return
+        
+        # Confirmation dialog before deletion
+        confirmation = messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the record for {selected_username}?")
+        
+        if confirmation:  # If user confirms
+            try:
+                # Connect to the database
+                connection = mysql.connector.connect(
+                    host='localhost',  # Change if necessary
+                    user='root',  # Your MySQL username
+                    password='Nightcore_1134372019!',  # Your MySQL password
+                    database='attendnow'
+                )
+                
+                cursor = connection.cursor()
+
+                # Delete record from admin_user table
+                cursor.execute("DELETE FROM admin_user WHERE user_name = %s", (selected_username,))
+                rows_affected = cursor.rowcount  # Check if a row was deleted
+
+                if rows_affected > 0:
+                    connection.commit()  # Commit the transaction
+                    messagebox.showinfo("Success", f"Record for {selected_username} deleted successfully.")
+                    self.show_all_records()  # Optionally, refresh the list or data shown
+                else:
+                    messagebox.showwarning("No Record Found", f"No record found for {selected_username}.")
+
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+            
+            finally:
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
+        else:
+            messagebox.showinfo("Deletion Cancelled", "No record was deleted.")
+
 
     def update_record(self):
         print("Update button clicked")
