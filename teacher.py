@@ -109,16 +109,22 @@ class Teacher_Interface:
         search_label_1 = Label(middle_frame, text="Search By:", bg="white", fg="black")
         search_label_1.grid(row=0, column=0, padx=3, pady=5, sticky=W)
         
+        # Dropdown menu with specified list including a default "Select Option"
         self.search_dropdown_1 = ttk.Combobox(middle_frame, width=12, state="readonly")
-        self.search_dropdown_1.grid(row=0, column=1, padx=3,pady=5)
+        self.search_dropdown_1['values'] = ("Select Option", "First Name", "Last Name", "Email Address", "Password", "Phone Number", "Username")
+        self.search_dropdown_1.grid(row=0, column=1, padx=3, pady=5)
+
+        # Set "Select Option" as the default value
+        self.search_dropdown_1.current(0)  # Sets "Select Option" as the default option
+
 
         self.search_dropdown_2 = ttk.Combobox(middle_frame, width=15, state="readonly")
         self.search_dropdown_2.grid(row=0, column=2, padx=3, pady=5)
 
-        search_button = Button(middle_frame, text="Search", bg="orange", fg="white", width=10)
+        search_button = Button(middle_frame, text="Search", bg="orange", fg="white", width=10,command=self.search_database)
         search_button.grid(row=0, column=4, padx=3, pady=5)
 
-        show_all_button = Button(middle_frame, text="Show All", bg="orange", fg="white", width=10)
+        show_all_button = Button(middle_frame, text="Show All", bg="orange", fg="white", width=10,command=self.fetch_data)
         show_all_button.grid(row=0, column=5, padx=3, pady=5)
 
         # Buttons in the lower frame
@@ -129,7 +135,7 @@ class Teacher_Interface:
         delete_button = Button(lower_frame, text="Delete", bg="orange",command=self.delete_data, fg="white", width=button_width)
         delete_button.grid(row=0, column=1, padx=3, pady=5)
 
-        update_button = Button(lower_frame, text="Update", bg="orange", fg="white", width=button_width)
+        update_button = Button(lower_frame, text="Update", bg="orange",command=self.update_data ,fg="white", width=button_width)
         update_button.grid(row=1, column=0, padx=3, pady=5)
 
         reset_button = Button(lower_frame, text="Reset", bg="orange", command=self.reset_fields ,fg="white", width=button_width)
@@ -140,7 +146,7 @@ class Teacher_Interface:
         right_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Table Management", bg="white")
         right_frame.place(x=497,y=10,width=475,height=470)  # Right side (table) with height 600
 
-        # Database Frame inside the Right Section
+                # Database Frame inside the Right Section
         database_frame = LabelFrame(right_frame, bd=2, relief=RIDGE)
         database_frame.place(x=5, y=5, width=460, height=400)
 
@@ -148,8 +154,8 @@ class Teacher_Interface:
         scroll_left_right = ttk.Scrollbar(database_frame, orient=HORIZONTAL)
         scroll_up_down = ttk.Scrollbar(database_frame, orient=VERTICAL)
 
-        # Teacher Database Treeview with only relevant information
-        self.teacher_database = ttk.Treeview(database_frame, columns=("First Name", "Last Name", "Email", "Password", "Phone Number"),
+        # Teacher Database Treeview with added "Username" column
+        self.teacher_database = ttk.Treeview(database_frame, columns=("First Name", "Last Name", "Email", "Password", "Phone Number", "Username"),
                                             xscrollcommand=scroll_left_right.set,
                                             yscrollcommand=scroll_up_down.set)
 
@@ -166,7 +172,7 @@ class Teacher_Interface:
         self.teacher_database.heading("Email", text="Email Address")
         self.teacher_database.heading("Password", text="Password")
         self.teacher_database.heading("Phone Number", text="Phone Number")
-
+        self.teacher_database.heading("Username", text="Username")
         # Show headings only
         self.teacher_database["show"] = "headings"
 
@@ -176,12 +182,69 @@ class Teacher_Interface:
         self.teacher_database.column("Email", width=100)
         self.teacher_database.column("Password", width=100)  # Consider hiding this in practice
         self.teacher_database.column("Phone Number", width=100)
+        self.teacher_database.column("Username", width=100)  # Adjust column width as needed
 
         # Packing the Treeview
         self.teacher_database.pack(fill=BOTH, expand=1)
         self.teacher_database.bind("<ButtonRelease>", self.get_cursor)
         self.fetch_data()  # Fetch data on initialization
+        # Bind the function to dropdown 1's selection event
+        self.search_dropdown_1.bind("<<ComboboxSelected>>", self.search_specific)
 
+
+    # Event handler function to populate dropdown 2 based on dropdown 1 selection
+    def search_specific(self, event):
+        selected_option = self.search_dropdown_1.get()
+
+        # Map the selected text in dropdown_1 to actual database column names
+        column_mapping = {
+            "First Name": "first_name",
+            "Last Name": "last_name",
+            "Email Address": "email",
+            "Password": "password",
+            "Phone Number": "phone_number",
+            "Username": "user_name"
+        }
+
+        # Get the corresponding column name
+        column_name = column_mapping.get(selected_option)
+
+        if column_name:
+            # Fetch the data for the selected column
+            try:
+                # Connect to the MySQL database
+                connection = mysql.connector.connect(
+                    host="localhost",  # Adjust if necessary
+                    user="root",
+                    password="Nightcore_1134372019!",
+                    database="attendnow"
+                )
+                cursor = connection.cursor()
+
+                # Query to get unique values in the selected column
+                query = f"SELECT DISTINCT {column_name} FROM teacher_user"
+                cursor.execute(query)
+                results = cursor.fetchall()
+
+                # Extract data from results and update dropdown_2
+                values = [row[0] for row in results]  # Get the first item in each row
+                self.search_dropdown_2['values'] = values  # Update dropdown_2 values
+
+                # Optionally set a default selection
+                if values:
+                    self.search_dropdown_2.current(0)
+                else:
+                    self.search_dropdown_2.set("No data available")
+
+            except mysql.connector.Error as e:
+                print(f"Database error: {e}")
+                self.search_dropdown_2.set("Error")
+
+            finally:
+                # Ensure the connection is closed
+                if connection.is_connected():
+                    cursor.close()
+                    connection.close()
 
     
 
@@ -222,6 +285,61 @@ class Teacher_Interface:
             messagebox.showerror("Error", f"Error due to: {str(e)}", parent=self.root)
 
 
+    # Define the search function to be called when the Search button is clicked
+    def search_database(self):
+        selected_option = self.search_dropdown_1.get()
+        search_value = self.search_dropdown_2.get()
+
+        # Map the dropdown selection to the database column
+        column_mapping = {
+            "First Name": "first_name",
+            "Last Name": "last_name",
+            "Email Address": "email",
+            "Password": "password",
+            "Phone Number": "phone_number",
+            "Username": "user_name"
+        }
+
+        # Get the corresponding column name
+        column_name = column_mapping.get(selected_option)
+
+        # Only proceed if a valid column is selected and a value is entered in dropdown_2
+        if column_name and search_value:
+            try:
+                # Connect to the MySQL database
+                conn = mysql.connector.connect(
+                    host="localhost",
+                    user="root",
+                    password="Nightcore_1134372019!",
+                    database="attendnow"
+                )
+                my_cursor = conn.cursor()
+
+                # Prepare the SQL query with the selected column and value
+                query = f"SELECT * FROM teacher_user WHERE {column_name} = %s"
+                my_cursor.execute(query, (search_value,))  # Use a parameterized query for security
+
+                # Fetch the filtered rows
+                rows = my_cursor.fetchall()
+
+                # Clear the existing data in Treeview
+                self.teacher_database.delete(*self.teacher_database.get_children())
+
+                # Insert each row that matches the search criteria
+                if rows:
+                    for row in rows:
+                        self.teacher_database.insert("", "end", values=row)
+                else:
+                    messagebox.showinfo("No Results", "No matching records found.", parent=self.root)
+
+                conn.close()  # Close the database connection
+
+            except mysql.connector.Error as e:
+                messagebox.showerror("Database Error", f"Error: {str(e)}", parent=self.root)
+        else:
+            messagebox.showwarning("Invalid Search", "Please select a valid search criterion and value.", parent=self.root)
+
+
     def add_data(self):
     # Retrieve the input data from the form
         first_name = self.var_first_name.get()
@@ -251,7 +369,7 @@ class Teacher_Interface:
                 INSERT INTO teacher_user (first_name, last_name, email, password, phone_number,user_name)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """
-                values = (first_name, last_name, email, password, phone_number, username)
+                values = (first_name, last_name, email, password, phone_number, user_name)
 
                 cursor.execute(insert_query, values)
                 connection.commit()  # Commit the transaction
@@ -278,6 +396,7 @@ class Teacher_Interface:
         email = self.var_email.get()
         password = self.var_password.get()
         phone_number = self.var_phone_number.get()
+        user_name = self.var_username.get()
 
         if email == "":
             messagebox.showerror("Error", "Email is required to delete the record")
@@ -293,8 +412,8 @@ class Teacher_Interface:
                 my_cursor = conn.cursor()
 
                 # SQL delete query to delete record based on email
-                sql = "DELETE FROM teacher_user WHERE first_name=%s and last_name=%s and email=%s and password=%s and phone_number=%s"
-                val = (first_name, last_name, email, password, phone_number)
+                sql = "DELETE FROM teacher_user WHERE first_name=%s and last_name=%s and email=%s and password=%s and phone_number=%s and user_name=%s"
+                val = (first_name, last_name, email, password, phone_number,user_name)
                 my_cursor.execute(sql, val)
 
                 conn.commit()
@@ -309,8 +428,64 @@ class Teacher_Interface:
                 messagebox.showerror("Error", f"Error due to: {str(e)}")
         
     def update_data(self):
-        self.delete_data()
-        self.add_data()
+        # Retrieve the input data from the form
+        first_name = self.var_first_name.get()
+        last_name = self.var_last_name.get()
+        email = self.var_email.get()
+        password = self.var_password.get()
+        phone_number = self.var_phone_number.get()
+        user_name = self.var_username.get()  # Username is the unique identifier
+
+        # Check if the user_name field is provided
+        if user_name == "":
+            messagebox.showerror("Error", "Username is required to update the record")
+            return
+
+        # Check if all fields are filled
+        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "":
+            messagebox.showerror("Error", "All fields are required to update the record")
+            return
+
+        try:
+            # Establish a connection to the MySQL database
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+
+            # Update query for the teacher_user table based on user_name
+            update_query = """
+            UPDATE teacher_user
+            SET first_name = %s, last_name = %s, email = %s, password = %s, phone_number = %s
+            WHERE user_name = %s
+            """
+            values = (first_name, last_name, email, password, phone_number, user_name)
+
+            # Execute the update query
+            cursor.execute(update_query, values)
+            connection.commit()  # Commit the changes
+
+            # Check if any rows were affected to confirm if the update was successful
+            if cursor.rowcount > 0:
+                messagebox.showinfo("Success", "Teacher record updated successfully")
+            else:
+                messagebox.showwarning("Not Found", "No record found with the given Username")
+
+            # Refresh the Treeview display
+            self.fetch_data()
+
+        except mysql.connector.Error as err:
+            # Display an error message if any error occurs
+            messagebox.showerror("Database Error", f"Error: {str(err)}")
+        finally:
+            # Close the database connection
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+
 
     def reset_fields(self):
         self.var_first_name.set("")
@@ -318,6 +493,7 @@ class Teacher_Interface:
         self.var_email.set("")
         self.var_password.set("")
         self.var_phone_number.set("")
+        self.var_username.set("")
         
 
     def get_cursor(self, event=""):
