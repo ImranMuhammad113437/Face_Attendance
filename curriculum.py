@@ -69,12 +69,12 @@ class Curriculum_Interface:
         self.search_dropdown.current(0)
         self.search_dropdown.grid(row=0, column=1, padx=3, pady=5, sticky=W)
 
-        # Search InputField
-        self.search_input = ttk.Entry(search_frame, width=30)
-        self.search_input.grid(row=0, column=2, padx=3)
+        # Dropdown Menu for Search Input
+        self.search_input_dropdown = ttk.Combobox(search_frame, state="readonly", width=30)
+        self.search_input_dropdown.grid(row=0, column=2, padx=3, pady=5, sticky=W)
 
         # Search Button
-        search_button = Button(search_frame, text="Search", bg="orange", fg="white", width=20, command=self.show_search)
+        search_button = Button(search_frame, text="Search", bg="orange", fg="white", width=19, command=self.show_search)
         search_button.grid(row=0, column=3, padx=3)
 
         # Show All Button
@@ -150,6 +150,8 @@ class Curriculum_Interface:
         # Packing the Treeview
         self.student_database.pack(fill=BOTH, expand=1)
         self.student_database.bind("<ButtonRelease>", self.get_cursor)
+        self.search_dropdown.bind("<<ComboboxSelected>>", self.course_combolist)
+
 
         self.fetch_data()  # Fetch data on initialization
 
@@ -174,6 +176,55 @@ class Curriculum_Interface:
         new_window = Tk()  # Create a new Tk window
         admit_interface.Admit_Interface(new_window, self.username)  # Open the admit interface with the stored username
 
+
+    # Define a function to populate search_input_dropdown based on the selected category
+    def course_combolist(self, event):
+        selected_option = self.search_dropdown.get()
+
+        try:
+            # Establish the connection to the MySQL database
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+
+            if selected_option == "Department":
+                # Query to fetch distinct departments
+                cursor.execute("SELECT DISTINCT department FROM curriculum")
+                departments = cursor.fetchall()
+
+                # Extract department names from the result and populate the dropdown
+                department_list = ["Select Department"] + [department[0] for department in departments]
+                self.search_input_dropdown["values"] = department_list
+
+            elif selected_option == "Course":
+                # Query to fetch distinct courses
+                cursor.execute("SELECT DISTINCT course FROM curriculum")
+                courses = cursor.fetchall()
+
+                # Extract course names from the result and populate the dropdown
+                course_list = ["Select Course"] + [course[0] for course in courses]
+                self.search_input_dropdown["values"] = course_list
+
+            else:
+                # Reset the input dropdown if no valid selection is made
+                self.search_input_dropdown["values"] = ("Select Option",)
+
+            # Set default selection
+            self.search_input_dropdown.current(0)
+
+        except mysql.connector.Error as err:
+            # Handle any database errors
+            messagebox.showerror("Database Error", f"Error: {str(err)}")
+
+        finally:
+            # Close the database connection
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
 
 
     def fetch_data(self):
@@ -210,10 +261,10 @@ class Curriculum_Interface:
 
     # Placeholder method for search functionality
     def show_search(self):
-        if self.conn and self.search_input.get():
+        if self.conn and self.search_input_dropdown.get():
             cursor = self.conn.cursor()
             search_column = self.search_dropdown.get()
-            search_value = self.search_input.get()
+            search_value = self.search_input_dropdown.get()
             query = f"SELECT Department, Course FROM curriculum WHERE {search_column} LIKE '%{search_value}%'"
             cursor.execute(query)
             rows = cursor.fetchall()
@@ -304,7 +355,19 @@ class Curriculum_Interface:
             print("No valid selection made.")
 
     def reset_fields(self):
-        pass
+        # Reset the 'search_dropdown' to default
+        self.search_dropdown.set("Select Search")
+
+        # Reset the 'search_input_dropdown' to default
+        self.search_input_dropdown.set("Select Option")
+
+        # Clear the 'department_input' field
+        self.department_input.delete(0, END)
+
+        # Clear the 'course_input' field
+        self.course_input.delete(0, END)
+
+
 
     def get_cursor(self, event=""):
         # Get the current selected item from the Treeview

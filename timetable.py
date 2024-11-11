@@ -75,21 +75,9 @@ class Timetable_Information:
         self.search_dropdown.current(0)
         self.search_dropdown.grid(row=0, column=1, padx=3, pady=5, sticky=W)
 
-        # Search Dropdown Sub-Menu
-        
-        search_options = [
-            "Option 1",
-            "Option 2",
-            "Option 3",
-            "Option 4"
-        ]
-
         # Search input as a dropdown
-        self.search_input = ttk.Combobox(search_frame, values=search_options, width=27, state='readonly')
+        self.search_input = ttk.Combobox(search_frame, values=[], width=27, state='readonly')
         self.search_input.grid(row=0, column=2, padx=3)
-
-        # Optionally set a default value for the dropdown
-        self.search_input.current(0)  # This sets the first option as default
 
         # Search Button
         search_button = Button(search_frame, text="Search", bg="orange", fg="white", width=20, command=self.show_search)
@@ -232,6 +220,7 @@ class Timetable_Information:
         self.timetable_database.pack(fill=BOTH, expand=1)
         
         self.timetable_database.bind("<ButtonRelease>",self.get_cursor)
+        self.search_dropdown.bind("<<ComboboxSelected>>", self.update_search_input)
         # Final step, fetch all data from the database to display
         self.fetch_data()
 
@@ -248,6 +237,63 @@ class Timetable_Information:
             messagebox.showerror("Database Error", f"Error: {err}")
             return None
 
+    
+    # Function to update search_input dropdown based on selection in search_dropdown
+    def update_search_input(self,event):
+        selected_option = self.search_dropdown.get()
+
+        # Clear the current values in search_input dropdown
+        self.search_input.set("")
+
+        # Connect to the database
+        try:
+            connection = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="Nightcore_1134372019!",
+                database="attendnow"
+            )
+            cursor = connection.cursor()
+
+            if selected_option == "Department":
+                # Query to fetch distinct departments
+                cursor.execute("SELECT DISTINCT department FROM timetable")
+                values = cursor.fetchall()
+                departments = [row[0] for row in values]  # Extract department names from the result
+                self.search_input["values"] = departments
+            elif selected_option == "Course":
+                # Query to fetch distinct courses
+                cursor.execute("SELECT DISTINCT course FROM timetable")
+                values = cursor.fetchall()
+                courses = [row[0] for row in values]  # Extract course names from the result
+                self.search_input["values"] = courses
+            elif selected_option == "Teacher Name":
+                # Query to fetch distinct teacher names
+                cursor.execute("SELECT DISTINCT teacher_name FROM timetable")
+                values = cursor.fetchall()
+                teachers = [row[0] for row in values]  # Extract teacher names from the result
+                self.search_input["values"] = teachers
+            elif selected_option == "Timing":
+                # Query to fetch distinct timings
+                cursor.execute("SELECT DISTINCT timing FROM timetable")
+                values = cursor.fetchall()
+                timings = [row[0] for row in values]  # Extract timings from the result
+                self.search_input["values"] = timings
+            else:
+                self.search_input["values"] = []  # Reset when no valid selection is made
+
+            # Set default value to the first option after fetching
+            self.search_input.current(0)
+
+        except mysql.connector.Error as err:
+            # Handle any errors
+            messagebox.showerror("Database Error", f"Error: {str(err)}")
+        finally:
+            if connection.is_connected():
+                cursor.close()
+                connection.close()
+    
+    
     def fetch_data(self):
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM timetable")
@@ -295,26 +341,51 @@ class Timetable_Information:
 
 
     def show_search(self):
+        # Get selected search category and search term entered by the user
         search_by = self.search_dropdown.get()
         search_term = self.search_input.get()
 
+        # Check if a valid search term has been entered
+        if not search_term or search_term == "Select Option":
+            messagebox.showerror("Input Error", "Please enter a valid search term.")
+            return
+
+        # Create cursor for executing the query
         cursor = self.conn.cursor()
 
+        # Initialize query and condition based on search category
         if search_by == "Department":
-            query = "SELECT * FROM curriculum WHERE department = %s"
+            query = "SELECT * FROM timetable WHERE department = %s"
+        elif search_by == "Course":
+            query = "SELECT * FROM timetable WHERE course = %s"
         elif search_by == "Teacher Name":
-            query = "SELECT * FROM curriculum WHERE teacher_name = %s"
+            query = "SELECT * FROM timetable WHERE teacher_name = %s"
+        elif search_by == "Timing":
+            query = "SELECT * FROM timetable WHERE timing = %s"
         else:
             messagebox.showerror("Search Error", "Please select a valid search option.")
             return
 
-        cursor.execute(query, (search_term,))
-        rows = cursor.fetchall()
+        try:
+            # Execute the query with the search term
+            cursor.execute(query, (search_term,))
+            rows = cursor.fetchall()
 
-        if rows:
-            self.timetable_database.delete(*self.timetable_database.get_children())
-            for row in rows:
-                self.timetable_database.insert("", END, values=row)
+            if rows:
+                # Clear any existing data in the Treeview
+                self.timetable_database.delete(*self.timetable_database.get_children())
+                # Insert the rows fetched from the database into the Treeview
+                for row in rows:
+                    self.timetable_database.insert("", "end", values=row)
+            else:
+                # Show an error message if no rows match the search term
+                messagebox.showinfo("No Results", "No results found for the search term.")
+        except mysql.connector.Error as err:
+            # Handle any database errors
+            messagebox.showerror("Database Error", f"Error: {str(err)}")
+        finally:
+            cursor.close()
+
 
 
     def update_courses(self, event):
