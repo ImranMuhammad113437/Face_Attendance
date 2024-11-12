@@ -170,11 +170,9 @@ class Timetable_Information:
         delete_button = Button(timetable_editing_frame, text="Delete", bg="orange", fg="white", width=button_width, command=self.delete_data)
         delete_button.grid(row=2, column=1, padx=2, pady=2)
 
-        update_button = Button(timetable_editing_frame, text="Update", bg="orange", fg="white", width=button_width, command=self.update_data)
-        update_button.grid(row=2, column=2, padx=2, pady=2)
-
+        
         reset_button = Button(timetable_editing_frame, text="Reset", bg="orange", fg="white", width=button_width, command=self.reset_fields)
-        reset_button.grid(row=2, column=3, padx=2, pady=2)
+        reset_button.grid(row=2, column=2, padx=2, pady=2)
 
         # Lower Section Frame
         lower_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Timetable Table Management", bg="white")
@@ -304,7 +302,7 @@ class Timetable_Information:
                 self.timetable_database.insert("", END, values=row)
 
     def fetch_teacher_names(self):
-        try:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+        try:
             # Establish a connection to the database
             conn = mysql.connector.connect(
                 host="localhost",
@@ -315,12 +313,12 @@ class Timetable_Information:
 
             my_cursor = conn.cursor()
 
-            # Fetch first and last names from the teacher_user table
-            sql = "SELECT first_name, last_name FROM teacher_user"
+            # Fetch the full_name directly from the teacher_user table
+            sql = "SELECT full_name FROM teacher_user"
             my_cursor.execute(sql)
 
-            # Combine names and populate the list
-            teacher_names = [f"{first} {last}" for first, last in my_cursor.fetchall()]
+            # Populate the list with the fetched names
+            teacher_names = [name[0] for name in my_cursor.fetchall()]
 
             # Add the default "Select Teacher" at the beginning of the list
             teacher_names.insert(0, "Select Teacher")
@@ -465,22 +463,6 @@ class Timetable_Information:
         self.fetch_data()
 
         
-
-    def update_data(self):
-        cursor = self.conn.cursor()
-        query = "UPDATE curriculum SET department = %s, course = %s, teacher_name = %s, timing = %s WHERE department = %s"
-        values = (
-                    self.var_department.get(), 
-                    self.var_course.get(), 
-                    self.var_teacher_name.get(), 
-                    self.var_timing.get(),
-                    self.var_department.get(),
-                )
-        cursor.execute(query, values)
-        self.conn.commit()
-        self.fetch_data()
-        self.reset_fields()
-
     def delete_data(self):
         cursor = self.conn.cursor()
 

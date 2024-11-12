@@ -5,7 +5,8 @@ import os
 import admit_interface  # Import admit_interface for the back button functionality
 import mysql.connector  # Import MySQL Connector
 from tkinter import messagebox
-
+import sys
+import curriculum
 
 class Curriculum_Interface:
     def __init__(self, root, username):
@@ -50,6 +51,11 @@ class Curriculum_Interface:
         # Main Frame for Curriculum Interface
         main_frame = Frame(background_img_main_position, bd=2, bg="orange")
         main_frame.place(x=150, y=100, width=700, height=450)
+
+        # Refresh Page Button
+        refresh_button = Button(background_img_main_position, text="Refresh Page", bg="orange", fg="white", width=19, command=lambda: self.refresh_page(username))
+        refresh_button.place(x=860, y=530)  # Position the button near the bottom of main_frame
+
 
         # Upper Section Frame
         upper_frame = LabelFrame(main_frame, bd=2, relief=RIDGE, text="Curriculum Table", bg="white")
@@ -154,6 +160,11 @@ class Curriculum_Interface:
 
 
         self.fetch_data()  # Fetch data on initialization
+
+    def refresh_page(self, username):
+        self.root.destroy()  # Close the curriculum interface
+        new_window = Tk()  # Create a new Tk window
+        curriculum.Curriculum_Interface(new_window, username)
 
     def connect_to_db(self):
         try:
@@ -263,16 +274,30 @@ class Curriculum_Interface:
     def show_search(self):
         if self.conn and self.search_input_dropdown.get():
             cursor = self.conn.cursor()
+            
+            # Get the selected column and value from the dropdowns
             search_column = self.search_dropdown.get()
             search_value = self.search_input_dropdown.get()
-            query = f"SELECT Department, Course FROM curriculum WHERE {search_column} LIKE '%{search_value}%'"
-            cursor.execute(query)
+            
+            # Construct the query with an exact match
+            query = f"SELECT Department, Course FROM curriculum WHERE {search_column} = %s"
+            
+            # Execute the query with parameterized input to avoid SQL injection
+            cursor.execute(query, (search_value,))
+            
+            # Fetch and display the results
             rows = cursor.fetchall()
-            if len(rows) != 0:
-                self.student_database.delete(*self.student_database.get_children())
+            
+            # Clear existing rows to display the updated data
+            self.student_database.delete(*self.student_database.get_children())
+            
+            if rows:
                 for row in rows:
-                    self.student_database.insert('', END, values=row)
+                    self.student_database.insert('', 'end', values=row)
+                    
+            # Close the cursor
             cursor.close()
+
 
     # Placeholder methods for button functionality
     def add_data(self):
@@ -297,10 +322,6 @@ class Curriculum_Interface:
 
                 # Commit the changes
                 conn.commit()
-
-                # Clear input fields after insertion
-                self.reset_fields()
-
                 # Fetch the updated data and refresh the table
                 self.fetch_data()
 

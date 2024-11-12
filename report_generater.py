@@ -189,13 +189,13 @@ class Report_Generater:
         report_generate_frame = LabelFrame(make_report_frame, text="Report Generate", bg="white", fg="black")
         report_generate_frame.place(x=5, y=400, width=405, height=60)  # Positioned below emotion_status_frame
 
+        # Button for "Display Info"
         display_label = Button(report_generate_frame, bg="orange", fg="white", text="Display Info", command=self.display_student_info)
-        display_label.place(x=50, y=10, width=150)
+        display_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        
-        # Button for "Preview Report"
+        # Button for "Generate Report"
         generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_report)
-        generate_report_button.place(x=250, y=10, width=150)
+        generate_report_button.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
         
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------

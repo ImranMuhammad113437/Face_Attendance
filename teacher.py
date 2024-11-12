@@ -14,8 +14,7 @@ class Teacher_Interface:
         self.root.geometry("1024x590")  # Adjusted window size for side-by-side layout
         self.root.title("AttendNow - Curriculum")
 
-        self.var_first_name = StringVar()
-        self.var_last_name = StringVar()
+        self.var_full_name = StringVar()
         self.var_email = StringVar()
         self.var_password = StringVar()
         self.var_phone_number = StringVar()
@@ -74,16 +73,12 @@ class Teacher_Interface:
         lower_frame.place(x=5, y=350, width=465, height=100)
 
         # Input fields in the upper frame
-        first_name_label = Label(upper_frame, text="First Name:", bg="white", fg="black" )
-        first_name_label.grid(row=0, column=0, padx=10, pady=10, sticky=W)
-        self.first_name_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_first_name)
-        self.first_name_input.grid(row=0, column=1, padx=10, pady=10)
+        full_name_label = Label(upper_frame, text="Full Name:", bg="white", fg="black" )
+        full_name_label.grid(row=0, column=0, padx=10, pady=10, sticky=W)
+        self.full_name_input = ttk.Entry(upper_frame, width=40, textvariable=self.var_full_name)
+        self.full_name_input.grid(row=0, column=1, padx=10, pady=10)
 
-        last_name_label = Label(upper_frame, text="Last Name:", bg="white", fg="black" )
-        last_name_label.grid(row=1, column=0, padx=10, pady=10, sticky=W)
-        self.last_name_input = ttk.Entry(upper_frame, width=40,textvariable=self.var_last_name)
-        self.last_name_input.grid(row=1, column=1, padx=10, pady=10)
-
+    
         email_label = Label(upper_frame, text="Email Address:", bg="white", fg="black" )
         email_label.grid(row=2, column=0, padx=10, pady=10, sticky=W)
         self.email_input = ttk.Entry(upper_frame, width=40,textvariable=self.var_email)
@@ -111,7 +106,7 @@ class Teacher_Interface:
         
         # Dropdown menu with specified list including a default "Select Option"
         self.search_dropdown_1 = ttk.Combobox(middle_frame, width=12, state="readonly")
-        self.search_dropdown_1['values'] = ("Select Option", "First Name", "Last Name", "Email Address", "Password", "Phone Number", "Username")
+        self.search_dropdown_1['values'] = ("Select Option", "Full Name", "Email Address", "Password", "Phone Number", "Username")
         self.search_dropdown_1.grid(row=0, column=1, padx=3, pady=5)
 
         # Set "Select Option" as the default value
@@ -155,7 +150,7 @@ class Teacher_Interface:
         scroll_up_down = ttk.Scrollbar(database_frame, orient=VERTICAL)
 
         # Teacher Database Treeview with added "Username" column
-        self.teacher_database = ttk.Treeview(database_frame, columns=("First Name", "Last Name", "Email", "Password", "Phone Number", "Username"),
+        self.teacher_database = ttk.Treeview(database_frame, columns=( "Full Name", "Email", "Password", "Phone Number", "Username"),
                                             xscrollcommand=scroll_left_right.set,
                                             yscrollcommand=scroll_up_down.set)
 
@@ -167,8 +162,7 @@ class Teacher_Interface:
         scroll_left_right.config(command=self.teacher_database.xview)
 
         # Setting up headings
-        self.teacher_database.heading("First Name", text="First Name")
-        self.teacher_database.heading("Last Name", text="Last Name")
+        self.teacher_database.heading("Full Name", text="Full Name")
         self.teacher_database.heading("Email", text="Email Address")
         self.teacher_database.heading("Password", text="Password")
         self.teacher_database.heading("Phone Number", text="Phone Number")
@@ -177,12 +171,11 @@ class Teacher_Interface:
         self.teacher_database["show"] = "headings"
 
         # Setting column widths
-        self.teacher_database.column("First Name", width=100)
-        self.teacher_database.column("Last Name", width=100)
-        self.teacher_database.column("Email", width=100)
+        self.teacher_database.column("Full Name", width=200)
+        self.teacher_database.column("Email", width=250)
         self.teacher_database.column("Password", width=100)  # Consider hiding this in practice
         self.teacher_database.column("Phone Number", width=100)
-        self.teacher_database.column("Username", width=100)  # Adjust column width as needed
+        self.teacher_database.column("Username", width=200)  # Adjust column width as needed
 
         # Packing the Treeview
         self.teacher_database.pack(fill=BOTH, expand=1)
@@ -198,8 +191,7 @@ class Teacher_Interface:
 
         # Map the selected text in dropdown_1 to actual database column names
         column_mapping = {
-            "First Name": "first_name",
-            "Last Name": "last_name",
+            "Full Name": "full_name",
             "Email Address": "email",
             "Password": "password",
             "Phone Number": "phone_number",
@@ -292,8 +284,7 @@ class Teacher_Interface:
 
         # Map the dropdown selection to the database column
         column_mapping = {
-            "First Name": "first_name",
-            "Last Name": "last_name",
+            "Full Name": "Full_name",
             "Email Address": "email",
             "Password": "password",
             "Phone Number": "phone_number",
@@ -342,15 +333,14 @@ class Teacher_Interface:
 
     def add_data(self):
     # Retrieve the input data from the form
-        first_name = self.var_first_name.get()
-        last_name = self.var_last_name.get()
+        full_name = self.var_full_name.get()
         email = self.var_email.get()
         password = self.var_password.get()
         phone_number = self.var_phone_number.get()
         user_name = self.var_username.get()
 
         # Check if all fields are filled
-        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "" or user_name == "":
+        if full_name == "" or email == "" or password == "" or phone_number == "" or user_name == "":
             messagebox.showerror("Error", "All fields are required")
         else:
             try:
@@ -366,10 +356,10 @@ class Teacher_Interface:
 
                 # Insert data into the teacher_user table
                 insert_query = """
-                INSERT INTO teacher_user (first_name, last_name, email, password, phone_number,user_name)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO teacher_user (full_name, email, password, phone_number,user_name)
+                VALUES (%s, %s, %s, %s, %s)
                 """
-                values = (first_name, last_name, email, password, phone_number, user_name)
+                values = (full_name, email, password, phone_number, user_name)
 
                 cursor.execute(insert_query, values)
                 connection.commit()  # Commit the transaction
@@ -391,8 +381,7 @@ class Teacher_Interface:
         self.fetch_data()
 
     def delete_data(self):
-        first_name = self.var_first_name.get()
-        last_name = self.var_last_name.get()
+        full_name = self.var_full_name.get()
         email = self.var_email.get()
         password = self.var_password.get()
         phone_number = self.var_phone_number.get()
@@ -412,8 +401,8 @@ class Teacher_Interface:
                 my_cursor = conn.cursor()
 
                 # SQL delete query to delete record based on email
-                sql = "DELETE FROM teacher_user WHERE first_name=%s and last_name=%s and email=%s and password=%s and phone_number=%s and user_name=%s"
-                val = (first_name, last_name, email, password, phone_number,user_name)
+                sql = "DELETE FROM teacher_user WHERE full_name=%s and email=%s and password=%s and phone_number=%s and user_name=%s"
+                val = (full_name, email, password, phone_number,user_name)
                 my_cursor.execute(sql, val)
 
                 conn.commit()
@@ -429,8 +418,7 @@ class Teacher_Interface:
         
     def update_data(self):
         # Retrieve the input data from the form
-        first_name = self.var_first_name.get()
-        last_name = self.var_last_name.get()
+        full_name = self.var_full_name.get()
         email = self.var_email.get()
         password = self.var_password.get()
         phone_number = self.var_phone_number.get()
@@ -442,7 +430,7 @@ class Teacher_Interface:
             return
 
         # Check if all fields are filled
-        if first_name == "" or last_name == "" or email == "" or password == "" or phone_number == "":
+        if full_name == "" or email == "" or password == "" or phone_number == "":
             messagebox.showerror("Error", "All fields are required to update the record")
             return
 
@@ -459,10 +447,10 @@ class Teacher_Interface:
             # Update query for the teacher_user table based on user_name
             update_query = """
             UPDATE teacher_user
-            SET first_name = %s, last_name = %s, email = %s, password = %s, phone_number = %s
+            SET full_name = %s, email = %s, password = %s, phone_number = %s
             WHERE user_name = %s
             """
-            values = (first_name, last_name, email, password, phone_number, user_name)
+            values = (full_name, email, password, phone_number, user_name)
 
             # Execute the update query
             cursor.execute(update_query, values)
@@ -488,8 +476,7 @@ class Teacher_Interface:
 
 
     def reset_fields(self):
-        self.var_first_name.set("")
-        self.var_last_name.set("")
+        self.var_full_name.set("")
         self.var_email.set("")
         self.var_password.set("")
         self.var_phone_number.set("")
@@ -500,12 +487,11 @@ class Teacher_Interface:
         cursor_focus=self.teacher_database.focus()
         content=self.teacher_database.item(cursor_focus)
         data=content["values"]
-        self.var_first_name.set(data[0]),
-        self.var_last_name.set(data[1]),
-        self.var_email.set(data[2]),
-        self.var_password.set(data[3]),
-        self.var_phone_number.set(data[4])
-        self.var_username.set(data[5])
+        self.var_full_name.set(data[0]),
+        self.var_email.set(data[1]),
+        self.var_password.set(data[2]),
+        self.var_phone_number.set(data[3])
+        self.var_username.set(data[4])
         
 
 
