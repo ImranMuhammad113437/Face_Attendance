@@ -109,7 +109,7 @@ class Admit_Interface:
         administration_information_frame = LabelFrame(main_frame, text="Administration Information" ,bg="orange", font=("Arial", 12, "bold"), fg="white", bd=0, highlightbackground="white", highlightcolor="white")
         administration_information_frame.place(x=10, y=340, width=650, height=100)
 
-        # Admin Registration Button in the new frame
+        
         admin_registration_button = Button(administration_information_frame, text="Admin Registration", command=lambda: self.admin_regis(username), bg="orange", fg="white", font=("League_Spartan"))
         admin_registration_button.place(x=5, y=10, width=150, height=40)
 
