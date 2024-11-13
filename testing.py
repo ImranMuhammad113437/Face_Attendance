@@ -22,7 +22,7 @@ from reportlab.pdfgen import canvas
 import os
 from tkinter import Frame, Label, Tk
 from PIL import Image, ImageDraw, ImageFont, ImageTk
-from reportlab.lib.pagesizes import letter
+
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
@@ -32,6 +32,27 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
 from reportlab.lib.colors import gray
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+import os
+
+from reportlab.pdfgen import canvas
+from tkinter import messagebox
+import os
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from tkinter import messagebox
+import os
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from tkinter import messagebox
+import os
+import openpyxl
+from tkinter import messagebox
 
 
 class Report_Generater:
@@ -136,7 +157,7 @@ class Report_Generater:
 
         # LabelFrame for "Course" inside the make_report_frame, below the student_info_frame
         course_frame = LabelFrame(make_report_frame, text="Course", bg="white", fg="black")
-        course_frame.place(x=5, y=160, width=405, height=190)  # Positioned below student_info_frame
+        course_frame.place(x=5, y=160, width=405, height=160)  # Positioned below student_info_frame
 
         # Label and Combobox for Course Name
         course_name_label = Label(course_frame, text="Course Name:", bg="white", fg="black")
@@ -152,13 +173,22 @@ class Report_Generater:
         selected_courses_label = Label(course_frame, text="Course Selected:", bg="white", fg="black")
         selected_courses_label.place(x=10, y=45)  # Position the label to the left of the Listbox
 
-        # Listbox to display selected courses
-        self.selected_courses_listbox = Listbox(course_frame, height=5, width=40)
-        self.selected_courses_listbox.place(x=150, y=45)  # Positioning the Listbox
+        # Listbox with scrollbar to display selected courses
+        self.selected_courses_listbox = Listbox(course_frame, height=3, width=40)
+
+        # Create a Scrollbar widget and attach it to the course_frame
+        scrollbar = Scrollbar(course_frame, orient="vertical", command=self.selected_courses_listbox.yview)
+        scrollbar.place(x=375, y=45, height=55)  # Adjust the 'x' position based on listbox's width
+
+        # Configure the Listbox to use the scrollbar
+        self.selected_courses_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Position the Listbox in the course_frame
+        self.selected_courses_listbox.place(x=150, y=45)
 
         # Button to delete selected course from the Listbox
         self.delete_course_button = Button(course_frame, text="Delete Selected Course", command=self.delete_selected_course)
-        self.delete_course_button.place(x=150, y=135)  # 5 pixels gap from the Listbox
+        self.delete_course_button.place(x=150, y=100)  # 5 pixels gap from the Listbox
 
         # Bind the Combobox selection event to call add_course function
         self.course_name_combobox.bind("<<ComboboxSelected>>", lambda event: self.add_course())
@@ -167,7 +197,7 @@ class Report_Generater:
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
        # LabelFrame for "Emotion Status" below the course_frame
         emotion_status_frame = LabelFrame(make_report_frame, text="Emotion Status", bg="white", fg="black")
-        emotion_status_frame.place(x=5, y=350, width=405, height=50)  # Adjusted height to fit in a single row
+        emotion_status_frame.place(x=5, y=320, width=405, height=50)  # Adjusted height to fit in a single row
 
         # Variables to hold the state of the checkboxes
         self.detail_var = BooleanVar()
@@ -187,15 +217,29 @@ class Report_Generater:
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         # LabelFrame for "Report Generate" below the emotion_status_frame
         report_generate_frame = LabelFrame(make_report_frame, text="Report Generate", bg="white", fg="black")
-        report_generate_frame.place(x=5, y=400, width=405, height=60)  # Positioned below emotion_status_frame
+        report_generate_frame.place(x=5, y=370, width=405, height=90)  # Positioned below emotion_status_frame
 
-        # Button for "Display Info"
-        display_label = Button(report_generate_frame, bg="orange", fg="white", text="Display Info", command=self.display_student_info)
-        display_label.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        # Configure columns to expand and fill available space
+        report_generate_frame.columnconfigure(0, weight=1)
+        report_generate_frame.columnconfigure(1, weight=1)
 
-        # Button for "Generate Report"
-        generate_report_button = Button(report_generate_frame, text="Generate Report", bg="orange", fg="white", command=self.generate_report)
-        generate_report_button.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        # Button for "Display Attendance" (formerly "Display Info")
+        display_attendance_button = Button(report_generate_frame, bg="orange", fg="white", text="Display Attendance",command=self.display_student_attendance)
+        display_attendance_button.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+        # Button for "Display Emotion"
+        display_emotion_button = Button(report_generate_frame, bg="orange", fg="white", text="Display Emotion", command=self.display_student_emotion)
+        display_emotion_button.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+
+        # Button for "Generate Attendance" (formerly "Generate Report")
+        generate_attendance_button = Button(report_generate_frame, bg="orange", fg="white", text="Generate Attendance", command=self.generate_report)
+        generate_attendance_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+
+        # Button for "Generate Emotion"
+        generate_emotion_button = Button(report_generate_frame, bg="orange", fg="white", text="Generate Emotion")
+        generate_emotion_button.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+
+
 
         
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -238,6 +282,88 @@ class Report_Generater:
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # Function to update the scroll region
+    def display_student_attendance(self):
+        # Clear previous content in the content_frame
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+
+        # Fetch student ID, name, month, and year
+        student_id = self.student_id_entry.get()
+        student_name = self.student_name_display.cget("text")
+        selected_month = self.month_var.get()  # Fetch selected month
+        selected_year = self.year_var.get()  # Fetch selected year
+
+        # Check if student ID is empty
+        if not student_id:
+            messagebox.showwarning("Input Error", "Please enter a Student ID.")
+            return  # Exit the function if ID is empty
+
+        # Add the title label for the report and center it
+        Label(self.content_frame, text="Report Form", bg="white", fg="black", font=("Arial", 16, "bold")).pack(padx=10, pady=(10, 5), anchor="center", fill="x")
+
+        # Create a frame for the table-like layout with a fixed width of 500
+        table_frame = Frame(self.content_frame, bg="white", width=500)
+        table_frame.pack(padx=10, pady=5, anchor="center")  # Set padding and anchor
+
+        # Set the column width to 250 for both columns
+        table_frame.columnconfigure(0, minsize=250)  # Set minimum width for column 0
+        table_frame.columnconfigure(1, minsize=250)  # Set minimum width for column 1
+
+        # Create rows for each label (Name, ID, Month, Year)
+        # Row 1: Name and ID
+        Label(table_frame, text="Name: " + student_name, bg="white", fg="black").grid(row=0, column=0, sticky="w")  # Name label
+        Label(table_frame, text="ID: " + student_id, bg="white", fg="black").grid(row=0, column=1, sticky="w")  # ID label
+
+        # Row 2: Month and Year
+        Label(table_frame, text="Month: " + selected_month, bg="white", fg="black").grid(row=1, column=0, pady=5, sticky="w")  # Month label
+        Label(table_frame, text="Year: " + selected_year, bg="white", fg="black").grid(row=1, column=1, pady=5, sticky="w")  # Year label
+
+        # Display selected courses label, centered and with font size 14
+        Label(self.content_frame, text="Courses Attendance", bg="white", fg="black", font=("Arial", 14)).pack(anchor="center", padx=10, pady=5)        
+
+        selected_courses = self.selected_courses_listbox.get(0, 'end')
+
+        for course in selected_courses:
+            Label(self.content_frame, text="- " + course, bg="white", fg="black").pack(anchor="w", padx=20)
+            
+            # Fetch the attendance data for each course
+            attendance_data = self.fetch_attendance_data(student_id, course, selected_month, selected_year)
+            
+            # Create a frame for the attendance table
+            table_frame = Frame(self.content_frame, bg="white")
+            table_frame.pack(padx=10, pady=(5, 10))  # Fill both vertically and horizontally
+
+            # Table headers
+            headers = ["Date", "Hour", "Status"]
+            header_bg_color = "lightgray"  # Background color for headers
+
+            for row, header in enumerate(headers):
+                Label(table_frame, text=header, bg=header_bg_color, fg="black", font=("Arial", 10, "bold")).grid(row=0, column=row, sticky="nsew", padx=5, pady=5)
+
+            # Populate the table with attendance data
+            for row_index, (date, attendance_status, course_hour) in enumerate(attendance_data, start=1):
+                status_mark = ''
+                if attendance_status == "Present":
+                    status_mark = "P"
+                elif attendance_status == "Absent":
+                    status_mark = "A"
+                elif attendance_status == "Half-Absent":
+                    status_mark = "P/A"
+
+                # Directly add data without rotation
+                Label(table_frame, text=date, bg="white", fg="black").grid(row=row_index, column=0, padx=5, pady=5)
+                Label(table_frame, text=course_hour, bg="white", fg="black").grid(row=row_index, column=1, padx=5, pady=5)
+                Label(table_frame, text=status_mark, bg="white", fg="black").grid(row=row_index, column=2, padx=5, pady=5)
+
+            # Configure grid weights to allow proper expansion
+            for i in range(len(attendance_data) + 1):  # Number of rows
+                table_frame.grid_rowconfigure(i, weight=1)
+
+            for i in range(len(headers)):  # Number of columns
+                table_frame.grid_columnconfigure(i, weight=1)
+
+    
+    
     def update_scroll_region(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))  # Update the scroll region to encompass the content_frame
 
@@ -304,224 +430,106 @@ class Report_Generater:
         
         return attendance_data
 
+
     def generate_report(self):
-        # Fetch student ID and name from the entry and label
+        # Fetch student details
         student_id = self.student_id_entry.get()
-        student_name = self.student_name_display.cget("text")  # Get text from the label
-        selected_month = self.month_var.get()  # Fetch selected month
+        student_name = self.student_name_display.cget("text")
+        selected_month = self.month_var.get()
         selected_year = self.year_var.get()
-        # Initialize the variable to hold the month text
-        selected_month_text = ""
 
-        # Check the value of selected_month and set the corresponding month name
-        if selected_month == "1":
-            selected_month_text = " January"
-        elif selected_month == "2":
-            selected_month_text = " February"
-        elif selected_month == "3":
-            selected_month_text = " March"
-        elif selected_month == "4":
-            selected_month_text = " April"
-        elif selected_month == "5":
-            selected_month_text = " May"
-        elif selected_month == "6":
-            selected_month_text = " June"
-        elif selected_month == "7":
-            selected_month_text = " July"
-        elif selected_month == "8":
-            selected_month_text = " August"
-        elif selected_month == "9":
-            selected_month_text = " September"
-        elif selected_month == "10":
-            selected_month_text = " October"
-        elif selected_month == "11":
-            selected_month_text = " November"
-        elif selected_month == "12":
-            selected_month_text = " December"
-        else:
-            selected_month_text = "Invalid month"  # Handle invalid month if necessary
+        # Convert month number to name
+        month_names = ["Invalid month", "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"]
+        selected_month_text = month_names[int(selected_month)] if selected_month.isdigit() and 1 <= int(selected_month) <= 12 else "Invalid month"
 
-        # Now selected_month_text holds the corresponding month name
-
-        # Check if student ID is empty
+        # Check for missing Student ID
         if not student_id:
             messagebox.showwarning("Input Error", "Please enter a Student ID.")
-            return  # Exit the function if ID is empty
+            return
 
-        # Register the Arial font
-        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))  # Ensure you have Arial.ttf in the same directory
-
-        # Create a PDF canvas
-        c = canvas.Canvas(student_name + ".pdf", pagesize=letter)
-
-        # Set title properties
-        title = "Report Form"
-        font_name = "Arial"  # Use registered Arial font
-        font_size = 16
-
-        # Set font and color for the title
-        c.setFont(font_name, font_size)
-        c.setFillColor(colors.black)
-
-        # Calculate width and height for centering the title
-        width = c._pagesize[0]
-        text_width = c.stringWidth(title, font_name, font_size)
-
-        # Draw the title at the center of the page
-        c.drawString((width - text_width) / 2, 10 * inch, title)  # Adjust the Y-coordinate as needed
-
-        # Set font and color for table
-        table_font_size = 12
-        c.setFont(font_name, table_font_size)
-
-        # Define table data
-        table_data = [
-            ["Name: " + student_name, "ID: " + student_id],
-            ["Month: " + selected_month_text, "Year: " + selected_year]
-        ]
-
-        # Define padding for the table
-        padding = 0.5 * inch  # Add a padding of 0.5 inches from both sides
-
-        # Calculate cell dimensions
-        available_width = width - (2 * padding)  # Reduce total width by padding on both sides
-        cell_width = available_width / 2  # Divide the available width for 2 columns
-        cell_height = (0.5 * inch) - 10  # Height for each row with vertical padding
-
-        # Position for the table, just below the title
-        table_start_y = (10 * inch) - (cell_height + 0.1 * inch)  # Positioning it below the title
-
-        # Draw the table without borders
-        for row_index, row in enumerate(table_data):
-            for col_index, text in enumerate(row):
-                x = padding + col_index * cell_width  # Calculate X position with padding
-                y = table_start_y - (row_index * cell_height)  # Calculate Y position for the table
-
-                # Draw the text in each cell with X-padding of 0.2 inches and adjust for vertical padding
-                c.drawString(x + 0.2 * inch, y + 0.1 * inch, text)  # Slight offset for vertical padding
-
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # Now add the title below the table
-        # Set font size for the title below the table
-        title_below_font_size = 14
-        c.setFont(font_name, title_below_font_size)
-
-        # Set the text for the title below the table
-        title_below = "Attendance Status"
-
-        # Calculate Y position for the title (add some padding after the table)
-        title_below_y = y - cell_height - 0.3 * inch  # 0.3 inch padding after the table
-
-        # Center the title below the table
-        text_width = c.stringWidth(title_below, font_name, title_below_font_size)
-        c.drawString((width - text_width) / 2, title_below_y, title_below)
-
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # Define folder name
+        folder_name = f"{student_name}_{student_id}_{selected_month_text}_{selected_year}_Emotion"
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
 
         # Fetch the list of selected courses from the listbox
-        selected_courses = self.selected_courses_listbox.get(0, 'end')  # Get all selected courses as a tuple
+        selected_courses = self.selected_courses_listbox.get(0, 'end')
 
-        # Set the starting Y position for printing courses, just below the title
-        course_start_y = title_below_y - 0.5 * inch  # Add some space after the title
+        for course in selected_courses:
+            # Create a new Excel workbook and sheet for each course
+            excel_filename = f"{folder_name}/{student_name}_{student_id}_{course}_{selected_month_text}_{selected_year}.xlsx"
+            wb = openpyxl.Workbook()
+            sheet = wb.active
+            sheet.title = f"{course} Report"
 
-        # Set font size for the courses
-        course_font_size = 12
-        c.setFont(font_name, course_font_size)
-    
-        # Define table headers for each course
-        # Set page dimensions and margins
-        page_width, page_height = A4
-        left_margin = 0.5 * inch
-        right_margin = 0.5 * inch
-        available_width = page_width - left_margin - right_margin
-        course_start_y = page_height - 1 * inch  # Starting Y position at the top of the page
+            # Merge the cells A1 to D1 for the title
+            sheet.merge_cells('A1:D1')
+            sheet['A1'] = "Report Form Attendance"
+            sheet['A1'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
 
-        # Define table headers for each course
-        headers = ["Date", "Hour", "Status"]
-        num_columns = 3  # Date, Hour, Status columns
-        column_width = available_width / num_columns  # Calculate column width
+            # Merge A2:B2 for Name and C2:D2 for ID
+            sheet.merge_cells('A2:B2')
+            sheet['A2'] = f"Name: {student_name}"
+            sheet['A2'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-        # Font settings for title and table text
-        font_name = "Helvetica"
-        title_below_font_size = 14
-        table_header_font_size = 10
-        table_data_font_size = 10
+            sheet.merge_cells('C2:D2')
+            sheet['C2'] = f"ID: {student_id}"
+            sheet['C2'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-        # Title text
-        title_below = "Attendance Status"
+            # Merge A3:B3 for Month and C3:D3 for Year
+            sheet.merge_cells('A3:B3')
+            sheet['A3'] = f"Month: {selected_month_text}"
+            sheet['A3'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-        # Iterate through each selected course
-        for index, course in enumerate(selected_courses):
-            # Decrease Y position for each course (adjust for spacing between tables)
-            course_y = course_start_y - (index * 2 * inch)  # Adjust spacing between courses
+            sheet.merge_cells('C3:D3')
+            sheet['C3'] = f"Year: {selected_year}"
+            sheet['C3'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-            # Print course name as a title
-            c.setFont("Helvetica-Bold", 12)
-            c.drawString(left_margin, course_y, f"Course: {course}")
+            # Merge A4:D4 for Course name
+            sheet.merge_cells('A4:D4')
+            sheet['A4'] = f"Course: {course}"
+            sheet['A4'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-            # Fetch the attendance data for the current course
+            # Add a space before the next section
+            row_start = 6
+
+            # Merge cells A6:D6 for Attendance Status Title
+            sheet.merge_cells('A6:D6')
+            sheet['A6'] = "Attendance Status"
+            sheet['A6'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
+
+            # Set column widths for A, B, C, D to 200 pixels (approximately 200 in Excel units)
+            sheet.column_dimensions['A'].width = 28  # Approximation for pixels
+            sheet.column_dimensions['B'].width = 28
+            sheet.column_dimensions['C'].width = 28
+            sheet.column_dimensions['D'].width = 28
+
+            # Fetch attendance data for the course
             attendance_data = self.fetch_attendance_data_report(student_id, course, selected_month, selected_year)
 
-            # Table Headers
+            # Define headers for attendance data
             headers = ["Date", "Hour", "Status"]
-            left_margin = 0.5 * inch
-            column_width = 2 * inch
-            table_start_y = height - 150
+            sheet[f"A{row_start + 1}"] = headers[0]
+            sheet[f"B{row_start + 1}"] = headers[1]
+            sheet[f"C{row_start + 1}"] = headers[2]
 
-            c.setFont("Helvetica-Bold", 12)
-            for col_index, header in enumerate(headers):
-                header_x = left_margin + col_index * column_width
-                c.drawString(header_x, table_start_y, header)
+            # Populate the attendance data rows
+            row = row_start + 2
+            for row_data in attendance_data:
+                sheet[f"A{row}"] = row_data[0]  # Date
+                sheet[f"B{row}"] = row_data[1]  # Hour
+                sheet[f"C{row}"] = row_data[2]  # Status
+                row += 1
 
-            # Table Rows
-            row_height = 0.4 * inch
-            c.setFont("Helvetica", 10)
-            for data_index, data in enumerate(attendance_data):
-                data_y = table_start_y - ((data_index + 1) * row_height)
-                for col_index, value in enumerate(data):
-                    data_x = left_margin + col_index * column_width
-                    c.drawString(data_x, data_y, str(value))
+            # Save the Excel file
+            wb.save(excel_filename)
+            print(f"Excel file saved as {excel_filename}")
 
-            c.save()
+    
 
 
-        # Iterate through each selected course and print it on the PDF    
-        #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-        # Finalize the PDF
-        c.save()
-
-        print(f"PDF saved as {student_name}.pdf")
-
-
-    def create_rotated_image(self,text, angle, font):
-        # Calculate text size using textbbox
-        bbox = font.getbbox(text)
-        text_width = bbox[2] - bbox[0]  # width
-        text_height = bbox[3] - bbox[1]  # height
-        
-        # Create an image with a transparent background, sized to fit the text
-        img = Image.new('RGBA', (text_width + 10, text_height + 10), (255, 255, 255, 0))  # Add padding
-        d = ImageDraw.Draw(img)
-        
-        # Calculate position to center text
-        text_x = (img.width - text_width) / 2
-        text_y = (img.height - text_height) / 2
-        
-        # Draw the text
-        d.text((text_x, text_y), text, fill=(0, 0, 0), font=font)
-        
-        # Rotate the image
-        img = img.rotate(angle, expand=1)
-        
-        # Convert the image to PhotoImage
-        img = img.convert("RGBA")  # Ensure it's in RGBA mode
-        img_tk = ImageTk.PhotoImage(img)  # Create a PhotoImage
-        return img_tk
-
-
-    def display_student_info(self):
+    def display_student_emotion(self):
         # Clear previous content in the content_frame
         for widget in self.content_frame.winfo_children():
             widget.destroy()
@@ -569,39 +577,52 @@ class Report_Generater:
                 self.get_emotion_status(student_id, student_name, selected_month, selected_year, course)
 
         if self.overall_var.get():
-            self.emotion_status_overall(student_id, student_name, selected_month, selected_year)
+            # Get the list of selected courses from the listbox
+            selected_courses = self.selected_courses_listbox.get(0, 'end')
+
+            for course in selected_courses:
+                self.emotion_status_overall(student_id, student_name, selected_month, selected_year, course)
 
         if self.table_var.get():
-            # Fetch emotional data
-            emotional_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year)
+            selected_courses = self.selected_courses_listbox.get(0, 'end')
 
-            # Create a frame for the emotion status table
-            table_frame = Frame(self.content_frame, bg="white")
-            table_frame.pack(padx=10, pady=(5, 10))  # Add some padding and fill horizontally
+            for course in selected_courses:
+                # Fetch emotional data
+                emotional_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
 
-            # Create table header with each heading in its own cell
-            Label(table_frame, text="Date", bg="white", fg="black").grid(row=0, column=0, padx=5, pady=5)  # Date in row 0, column 0
-            Label(table_frame, text="Neutral", bg="white", fg="black").grid(row=0, column=1, padx=5, pady=5)  # Neutral in row 0, column 1
-            Label(table_frame, text="Happy", bg="white", fg="black").grid(row=0, column=2, padx=5, pady=5)  # Happy in row 0, column 2
-            Label(table_frame, text="Fear", bg="white", fg="black").grid(row=0, column=3, padx=5, pady=5)  # Fear in row 0, column 3
-            Label(table_frame, text="Surprise", bg="white", fg="black").grid(row=0, column=4, padx=5, pady=5)  # Surprise in row 0, column 4
-            Label(table_frame, text="Angry", bg="white", fg="black").grid(row=0, column=5, padx=5, pady=5)  # Angry in row 0, column 5
+                # Create a frame for the emotion status table
+                table_frame = Frame(self.content_frame, bg="white")
+                table_frame.pack(padx=10, pady=(5, 10))  # Add some padding and fill horizontally
 
-            # Populate the table with emotional data
-            for row_index, (date, neutral, happy, sad, fear, surprise, angry) in enumerate(emotional_data, start=1):
-                Label(table_frame, text=date, bg="white", fg="black").grid(row=row_index, column=0, padx=5, pady=5)
-                Label(table_frame, text=neutral, bg="white", fg="black").grid(row=row_index, column=1, padx=5, pady=5)
-                Label(table_frame, text=happy, bg="white", fg="black").grid(row=row_index, column=2, padx=5, pady=5)
-                Label(table_frame, text=fear, bg="white", fg="black").grid(row=row_index, column=3, padx=5, pady=5)
-                Label(table_frame, text=surprise, bg="white", fg="black").grid(row=row_index, column=4, padx=5, pady=5)
-                Label(table_frame, text=angry, bg="white", fg="black").grid(row=row_index, column=5, padx=5, pady=5)
+                # Add the course name as a heading in row 0, spanning across all columns
+                Label(table_frame, text=course, font=("Arial", 12, "bold"), bg="white", fg="black").grid(row=0, column=0, columnspan=6, sticky="w", pady=(0, 5))
 
-            # Update scroll region to encompass all items
-            self.update_scroll_region()
+                # Create table headers in row 1
+                Label(table_frame, text="Date", bg="white", fg="black").grid(row=1, column=0, padx=5, pady=5)
+                Label(table_frame, text="Neutral", bg="white", fg="black").grid(row=1, column=1, padx=5, pady=5)
+                Label(table_frame, text="Happy", bg="white", fg="black").grid(row=1, column=2, padx=5, pady=5)
+                Label(table_frame, text="Sad", bg="white", fg="black").grid(row=1, column=3, padx=5, pady=5)
+                Label(table_frame, text="Fear", bg="white", fg="black").grid(row=1, column=4, padx=5, pady=5)
+                Label(table_frame, text="Surprise", bg="white", fg="black").grid(row=1, column=5, padx=5, pady=5)
+                Label(table_frame, text="Angry", bg="white", fg="black").grid(row=1, column=6, padx=5, pady=5)
+
+                # Populate the table with emotional data, starting from row 2
+                for row_index, (date, neutral, happy, sad, fear, surprise, angry) in enumerate(emotional_data, start=2):
+                    Label(table_frame, text=date, bg="white", fg="black").grid(row=row_index, column=0, padx=5, pady=5)
+                    Label(table_frame, text=neutral, bg="white", fg="black").grid(row=row_index, column=1, padx=5, pady=5)
+                    Label(table_frame, text=happy, bg="white", fg="black").grid(row=row_index, column=2, padx=5, pady=5)
+                    Label(table_frame, text=sad, bg="white", fg="black").grid(row=row_index, column=3, padx=5, pady=5)
+                    Label(table_frame, text=fear, bg="white", fg="black").grid(row=row_index, column=4, padx=5, pady=5)
+                    Label(table_frame, text=surprise, bg="white", fg="black").grid(row=row_index, column=5, padx=5, pady=5)
+                    Label(table_frame, text=angry, bg="white", fg="black").grid(row=row_index, column=6, padx=5, pady=5)
+
+                # Update scroll region to encompass all items
+                self.update_scroll_region()
 
 
 
-    def emotion_status_table(self, student_id, student_name, selected_month, selected_year): 
+
+    def emotion_status_table(self, student_id, student_name, selected_month, selected_year, course): 
         # Connect to the MySQL database
         connection = mysql.connector.connect(
             host="localhost",  # Replace with your host if different
@@ -617,20 +638,21 @@ class Report_Generater:
             SELECT date, neutral, happy, sad, fear, surprise, angry
             FROM student_emotion
             WHERE student_name = %s 
-            AND student_id = %s 
+            AND student_id = %s
+            AND course = %s 
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
 
-        cursor.execute(query, (student_name, student_id, selected_month, selected_year))
+        cursor.execute(query, (student_name, student_id, course,selected_month, selected_year))
         results = cursor.fetchall()
         cursor.close()
         connection.close()
 
         return results
 
-    def emotion_status_overall(self, student_id, student_name, selected_month, selected_year):
+    def emotion_status_overall(self, student_id, student_name, selected_month, selected_year, course):
         # Connect to the MySQL database
         connection = mysql.connector.connect(
             host="localhost",  # Replace with your host if different
@@ -646,13 +668,14 @@ class Report_Generater:
             SELECT date, neutral, happy, sad, fear, surprise, angry
             FROM student_emotion
             WHERE student_name = %s 
-            AND student_id = %s 
+            AND student_id = %s
+            AND course = %s 
             AND MONTH(date) = %s
             AND YEAR(date) = %s
             ORDER BY date;
         """
         
-        cursor.execute(query, (student_name, student_id, selected_month, selected_year))
+        cursor.execute(query, (student_name, student_id, course,selected_month, selected_year))
         results = cursor.fetchall()
         
         # Close the database connection 
