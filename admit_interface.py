@@ -77,23 +77,23 @@ class Admit_Interface:
         information_management_frame.place(x=10, y=120, width=650, height=100)
 
 
-        student_information = Button(information_management_frame, text="Student Details", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
+        student_information = Button(information_management_frame, text="Student Information", command=lambda: self.student_detail(username), bg="orange", fg="white", font=("League_Spartan"))
         student_information.place(x=5, y=10, width=150, height=40)
 
-        teacher_info_button = Button(information_management_frame, text="Faculty Info", command=lambda: self.open_teacher_info(username), bg="orange", fg="white", font=("League_Spartan"))
+        teacher_info_button = Button(information_management_frame, text="Teacher Information", command=lambda: self.open_teacher_info(username), bg="orange", fg="white", font=("League_Spartan"))
         teacher_info_button.place(x=160, y=10, width=150, height=40)
 
-        curriculum_button = Button(information_management_frame, text="Curriculum Overview", command=lambda: self.open_curriculum(username), bg="orange", fg="white", font=("League_Spartan"))
+        curriculum_button = Button(information_management_frame, text="Course Information", command=lambda: self.open_curriculum(username), bg="orange", fg="white", font=("League_Spartan"))
         curriculum_button.place(x=315, y=10, width=150, height=40)
 
-        timetable_button = Button(information_management_frame, text="Schedule Details", command=lambda: self.timetable(username), bg="orange", fg="white", font=("League_Spartan"))
+        timetable_button = Button(information_management_frame, text="Timetable Information", command=lambda: self.timetable(username), bg="orange", fg="white", font=("League_Spartan"))
         timetable_button.place(x=470, y=10, width=150, height=40)
 
 
         information_status_frame = LabelFrame(main_frame, text="Information Status",  bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
         information_status_frame.place(x=10, y=230, width=650, height=100)
 
-        storage_image = Button(information_status_frame, text="Storage", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
+        storage_image = Button(information_status_frame, text="Face Image", command=self.open_image, bg="orange", fg="white", font=("League_Spartan"))
         storage_image.place(x=5, y=10, width=150, height=40)
 
         attendance_summary_button = Button(information_status_frame, text="Emotional Status", command=lambda: self.attendance_summary(username), bg="orange", fg="white", font=("League_Spartan"))

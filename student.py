@@ -513,22 +513,45 @@ class Student:
 
     #Delete Function        
     def delete_data(self):
-            conn = mysql.connector.connect(
-                host=connection_details["server"],
-                port=connection_details["port"],
-                user=connection_details["username"],
-                password=connection_details["password"],
-                database=connection_details["database"]
-            )
-            my_cursor=conn.cursor()
-            sql="DELETE FROM students WHERE student_id=%s"
-            val=(self.var_student_id.get(),)
-            my_cursor.execute(sql,val)
+        # Confirm deletion with the user
+        if messagebox.askyesno("Delete Confirmation", "Are you sure you want to delete this record?", parent=self.root):
+            try:
+                # Connect to the database
+                conn = mysql.connector.connect(
+                    host=connection_details["server"],
+                    port=connection_details["port"],
+                    user=connection_details["username"],
+                    password=connection_details["password"],
+                    database=connection_details["database"]
+                )
+                my_cursor = conn.cursor()
 
-            conn.commit()
-            self.fetch_data()
-            conn.close()
-            messagebox.showinfo("Deletion","Successfully Deleted")
+                # Execute delete query
+                my_cursor.execute("""
+                    DELETE FROM students 
+                    WHERE department = %s AND course = %s AND year = %s AND student_id = %s
+                """, (
+                    self.var_department.get(),
+                    self.var_course.get(),
+                    self.var_year.get(),
+                    self.var_student_id.get()
+                ))
+
+                # Check if any rows were affected (indicating a successful deletion)
+                if my_cursor.rowcount == 0:
+                    messagebox.showinfo("Not Found", "No record found matching the specified details.", parent=self.root)
+                else:
+                    conn.commit()
+                    messagebox.showinfo("Deleted", "Record successfully deleted.", parent=self.root)
+                    self.fetch_data()  # Refresh data display (if implemented)
+
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}", parent=self.root)
+            finally:
+                if conn.is_connected():
+                    my_cursor.close()
+                    conn.close()
+
     #Clearing the information Field
     def reset_data(self):
             self.var_department.set("Select Department"),

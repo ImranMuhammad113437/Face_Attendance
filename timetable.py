@@ -40,7 +40,7 @@ class Timetable_Information:
         title_label.place(x=2, y=2, width=445, height=40)
 
         # Back Button
-        back_button = Button(self.root, text="Back", command=self.go_back, bg="red", fg="white", font=("Arial", 12, "bold"))
+        back_button = Button(self.root, text="Back", command=self.go_back, bg="blue", fg="white", font=("Arial", 12, "bold"))
         back_button.place(x=175, y=15, width=80, height=30)
 
         # Display username on the top right corner

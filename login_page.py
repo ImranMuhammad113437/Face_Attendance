@@ -104,16 +104,17 @@ class Login_Page:
                     # Close the current window and open the admit interface for admin
                     self.root.destroy()  # Close the login page
                     self.open_admit_interface(username)  # Pass username
+
                 else:
-                    # Check teacher_user table
-                    cursor.execute("SELECT * FROM teacher_user WHERE user_name = %s AND password = %s", (username, password))
+                    # Check teacher_user table and retrieve the full name
+                    cursor.execute("SELECT full_name FROM teacher_user WHERE user_name = %s AND password = %s", (username, password))
                     result = cursor.fetchone()
 
                     if result:
-                        # Close the current window and open the admit interface for teacher
+                        full_name = result[0]  # Extract the full_name from the result
+                        # Close the current window and open the teacher interface, passing full_name
                         self.root.destroy()  # Close the login page
-                        self.open_teacher_interface(username)  # You might want to define this method
-
+                        self.open_teacher_interface(full_name)  # Pass full_name to new window
                     else:
                         messagebox.showerror("Login Error", "Invalid Username or Password")
 
@@ -125,6 +126,7 @@ class Login_Page:
                     connection.close()
         else:
             messagebox.showerror("Input Error", "Please fill in both fields")
+
 
 
     def open_admit_interface(self, username):

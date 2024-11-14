@@ -3,7 +3,6 @@ from tkinter import ttk, Listbox
 from tkinter import Frame, Canvas, Scrollbar, Label, messagebox, StringVar, BooleanVar, Entry, Listbox
 from tkinter import LabelFrame, Label, Entry, Button, StringVar
 from tkinter import *
-from PIL import Image, ImageTk
 import admit_interface
 import mysql.connector  # Import your database library
 from tkinter import Label, Frame, messagebox  # Ensure required Tkinter classes are imported
@@ -19,37 +18,14 @@ import calendar
 import os
 from tkinter import Frame, Label, Tk
 from PIL import Image, ImageDraw, ImageFont, ImageTk
-
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import inch
 from reportlab.lib.colors import gray
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
-
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-import os
-from datetime import datetime  # Add this import at the top of your file
-from reportlab.pdfgen import canvas
-from tkinter import messagebox
-import os
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from tkinter import messagebox
-import os
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from tkinter import messagebox
-import os
 import openpyxl
-from tkinter import messagebox
-
+from tkinter import filedialog, messagebox
 
 
 class Report_Generater:
@@ -74,7 +50,7 @@ class Report_Generater:
         left_title_position.place(x=0, y=0, width=163, height=60)
 
         # Back Button
-        back_button = Button(self.root, text="Back", command=self.back_to_main, bg="red", fg="white", font=("Arial", 12, "bold"))
+        back_button = Button(self.root, text="Back", command=self.back_to_main, bg="blue", fg="white", font=("Arial", 12, "bold"))
         back_button.place(x=175, y=15, width=80, height=30)
 
         # Main Frame for Admin Interface
@@ -282,26 +258,39 @@ class Report_Generater:
         # Fetch student ID, name, month, and year
         student_id = self.student_id_entry.get()
         student_name = self.student_name_display.cget("text")
-        selected_month = self.month_var.get()  # Fetch selected month
-        selected_year = self.year_var.get()  # Fetch selected year
+        selected_month = self.month_var.get()
+        selected_year = self.year_var.get()
 
         # Check if student ID is empty
         if not student_id:
             messagebox.showwarning("Input Error", "Please enter a Student ID.")
-            return  # Exit the function if ID is empty
+            return
 
-        # Get the list of selected courses from the listbox
+        # Prompt user to select the folder for saving reports
+        save_directory = filedialog.askdirectory(title="Select Folder to Save Reports")
+        if not save_directory:
+            messagebox.showwarning("Input Error", "Please select a folder to save reports.")
+            return
+
+        # Folder name based on student details and report type
+        folder_name = f"{student_name}_{student_id}_{selected_month}_{selected_year}_Emotion"
+        full_path = os.path.join(save_directory, folder_name)
+
+        # Create folder if it doesn't exist
+        os.makedirs(full_path, exist_ok=True)
+
+        # Get selected courses from the listbox
         selected_courses = self.selected_courses_listbox.get(0, 'end')
 
         for course in selected_courses:
-            # Create a unique filename for each course report
+            # Generate filename for each course report
             filename = f"{student_name}_{student_id}_{course}_report.pdf"
+            file_path = os.path.join(full_path, filename)
 
-            # Initialize PDF canvas with A4 page size
-            pdf = canvas.Canvas(filename, pagesize=A4)
+            # Initialize PDF canvas
+            pdf = canvas.Canvas(file_path, pagesize=A4)
             pdf.setTitle(f"Emotion Report for {course}")
             width, height = A4
-            width, height_2 = A4
 
             # Title and student details
             pdf.setFont("Helvetica-Bold", 16)
@@ -319,147 +308,49 @@ class Report_Generater:
                 pdf.drawString(100, height - 160, "Detailed Emotion Status:")
                 height -= 180  # Adjust for image placement
 
-                # Get the emotion status image using the get_emotion_status_report function
+                # Get emotion status image
                 emotion_img = self.get_emotion_status_report(student_id, student_name, selected_month, selected_year, course)
-
-                # Check if the image exists and then draw it on the PDF
                 if emotion_img:
                     image_path = "emotion_status.jpg"
-                    pdf.drawImage(image_path, 100, height - 290, width=400, height=300)  # Adjusted position and size for image
-                    height -= 300  # Adjust y-position after inserting the image
+                    pdf.drawImage(image_path, 100, height - 290, width=400, height=300)
+                    height -= 300
 
             # Overall view
             if self.overall_var.get():
-                if self.detail_var.get():
-                    pdf.setFont("Helvetica-Bold", 14)
-                    pdf.drawString(100, height, "Overall Emotion Status:")
-                    height -= 20
-
-                    # Call the emotion_status_overall_report function to generate the overall emotion status image
-                    overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
-
-                    # Check if the image exists and then draw it on the PDF
-                    if overall_img:
-                        overall_image_path = "emotion_status_overall.jpg"
-                        pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)  # Adjusted position and size for image
-                        height -= 300  # Adjust y-position after inserting the image
-                else:
-                    pdf.setFont("Helvetica-Bold", 14)
-                    pdf.drawString(100, height - 160, "Overall Emotion Status:")
-                    height -= 180
-
-                    # Call the emotion_status_overall_report function to generate the overall emotion status image
-                    overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
-
-                    # Check if the image exists and then draw it on the PDF
-                    if overall_img:
-                        overall_image_path = "emotion_status_overall.jpg"
-                        pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)  # Adjusted position and size for image
-                        height -= 300  # Adjust y-position after inserting the image
+                pdf.setFont("Helvetica-Bold", 14)
+                pdf.drawString(100, height - 10, "Overall Emotion Status:")
+                overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
+                if overall_img:
+                    overall_image_path = "emotion_status_overall.jpg"
+                    pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)
+                    height -= 300
 
             # Table view
             if self.table_var.get():
-                if self.detail_var.get() and self.overall_var.get():
-                    pdf.showPage()  # Start a new page
-                    pdf.setFont("Helvetica-Bold", 14)
-                    pdf.drawString(100, height_2 - 80, "Emotion Status Table (Detailed Only):")
-                    height_2 -= 20
+                pdf.showPage()
+                pdf.setFont("Helvetica-Bold", 14)
+                pdf.drawString(100, height - 50, "Emotion Status Table:")
+                height -= 70
 
-                    # Display the table headers
-                    pdf.setFont("Helvetica", 10)
-                    column_width = 60  # Set a smaller width for each column
-                    pdf.drawString(100 , height_2 - 100, "Date")
-                    pdf.drawString(100 + column_width, height_2 - 100, "Neutral")
-                    pdf.drawString(100 + 2 * column_width, height_2 - 100, "Happy")
-                    pdf.drawString(100 + 3 * column_width, height_2 - 100, "Sad")
-                    pdf.drawString(100 + 4 * column_width, height_2 - 100, "Fear")
-                    pdf.drawString(100 + 5 * column_width, height_2 - 100, "Surprise")
-                    pdf.drawString(100 + 6 * column_width, height_2 - 100, "Angry")
-                    height_2 -= 10  # Adjust for the next row
+                # Table headers
+                pdf.setFont("Helvetica", 10)
+                column_width = 60
+                headers = ["Date", "Neutral", "Happy", "Sad", "Fear", "Surprise", "Angry"]
+                for i, header in enumerate(headers):
+                    pdf.drawString(100 + i * column_width, height, header)
+                height -= 20
 
-                    # Get emotion data from the emotion_status_table function
-                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
-
-                    for row in emotion_data:
-                        pdf.drawString(100, height_2 - 120, row[0])  # Display date directly as a string
-                        pdf.drawString(100 + column_width, height_2 - 120, str(row[1]))  # Neutral
-                        pdf.drawString(100 + 2 * column_width, height_2 - 120, str(row[2]))  # Happy
-                        pdf.drawString(100 + 3 * column_width, height_2 - 120, str(row[3]))  # Sad
-                        pdf.drawString(100 + 4 * column_width, height_2 - 120, str(row[4]))  # Fear
-                        pdf.drawString(100 + 5 * column_width, height_2 - 120, str(row[5]))  # Surprise
-                        pdf.drawString(100 + 6 * column_width, height_2 - 120, str(row[6]))  # Angry
-                        height_2 -= 20  # Move to the next row
-
-                elif (self.detail_var.get() and not self.overall_var.get()) or (not self.detail_var.get() and self.overall_var.get()):
-                    pdf.setFont("Helvetica-Bold", 14)
-                    pdf.drawString(100, height - 10, "Emotion Status Table (Detailed Only):")
+                # Table data
+                emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
+                for row in emotion_data:
+                    for i, cell in enumerate(row):
+                        pdf.drawString(100 + i * column_width, height, str(cell))
                     height -= 20
-
-                    # Get the emotion status table data
-                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
-
-                    # Create table headers
-                    pdf.setFont("Helvetica-Bold", 10)
-                    column_width = 60  # Set a smaller width for each column
-                    pdf.drawString(100, height - 10, "Date")
-                    pdf.drawString(100 + column_width, height - 10, "Neutral")
-                    pdf.drawString(100 + column_width * 2, height - 10, "Happy")
-                    pdf.drawString(100 + column_width * 3, height - 10, "Sad")
-                    pdf.drawString(100 + column_width * 4, height - 10, "Fear")
-                    pdf.drawString(100 + column_width * 5, height - 10, "Surprise")
-                    pdf.drawString(100 + column_width * 6, height - 10, "Angry")
-                    height -= 20
-
-                    # Populate the table with emotion data
-                    pdf.setFont("Helvetica", 10)
-                    for row in emotion_data:
-                        pdf.drawString(100, height - 10, row[0])  # Date as string
-                        pdf.drawString(100 + column_width, height - 10, str(row[1]))  # Neutral
-                        pdf.drawString(100 + column_width * 2, height - 10, str(row[2]))  # Happy
-                        pdf.drawString(100 + column_width * 3, height - 10, str(row[3]))  # Sad
-                        pdf.drawString(100 + column_width * 4, height - 10, str(row[4]))  # Fear
-                        pdf.drawString(100 + column_width * 5, height - 10, str(row[5]))  # Surprise
-                        pdf.drawString(100 + column_width * 6, height - 10, str(row[6]))  # Angry
-                        height -= 20
-
-                
-
-                elif not self.detail_var.get() and not self.overall_var.get():
-                    pdf.setFont("Helvetica-Bold", 14)
-                    pdf.drawString(100, height - 160, "Emotion Status Table (No Details or Overall):")
-                    height -= 180
-                    
-                    # Get the emotion status table data
-                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
-
-                    # Create table headers
-                    pdf.setFont("Helvetica-Bold", 10)
-                    column_width = 60  # Set a smaller width for each column
-                    pdf.drawString(100, height - 10, "Date")
-                    pdf.drawString(100 + column_width, height - 10, "Neutral")
-                    pdf.drawString(100 + column_width * 2, height - 10, "Happy")
-                    pdf.drawString(100 + column_width * 3, height - 10, "Sad")
-                    pdf.drawString(100 + column_width * 4, height - 10, "Fear")
-                    pdf.drawString(100 + column_width * 5, height - 10, "Surprise")
-                    pdf.drawString(100 + column_width * 6, height - 10, "Angry")
-                    height -= 20
-
-                    # Populate the table with emotion data
-                    pdf.setFont("Helvetica", 10)
-                    for row in emotion_data:
-                        pdf.drawString(100, height - 20, row[0])  # Date as string
-                        pdf.drawString(100 + column_width, height - 20, str(row[1]))  # Neutral
-                        pdf.drawString(100 + column_width * 2, height - 20, str(row[2]))  # Happy
-                        pdf.drawString(100 + column_width * 3, height - 20, str(row[3]))  # Sad
-                        pdf.drawString(100 + column_width * 4, height - 20, str(row[4]))  # Fear
-                        pdf.drawString(100 + column_width * 5, height - 20, str(row[5]))  # Surprise
-                        pdf.drawString(100 + column_width * 6, height - 20, str(row[6]))  # Angry
-                        height -= 20
 
             # Save the PDF
             pdf.save()
 
-            messagebox.showinfo("Success", "PDF reports generated successfully.")
+        messagebox.showinfo("Success", "PDF reports generated and saved successfully.")
 
         
     

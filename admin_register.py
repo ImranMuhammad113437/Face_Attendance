@@ -1,6 +1,7 @@
 from tkinter import Tk, Label, Button, Entry, Frame, LabelFrame, StringVar
 from tkinter import ttk
 from tkinter import *
+import tkinter as tk
 from PIL import Image, ImageTk
 import mysql.connector
 import tkinter.messagebox as messagebox 
@@ -107,9 +108,10 @@ class Admin_Register:
         self.search_by_combobox.grid(row=0, column=1, padx=5, pady=5)
         self.search_by_combobox.set("Select Option")
 
-        # Dropdown Menu for Search Entry (instead of Entry)
-        self.search_entry_combobox = ttk.Combobox(search_frame, state="readonly")
-        self.search_entry_combobox.grid(row=0, column=2, padx=5, pady=5)
+        # Dropdown Menu for Search Entry (changed to Entry field)
+        self.search_entry = tk.Entry(search_frame)
+        self.search_entry.grid(row=0, column=2, padx=5, pady=5)
+
 
         # Buttons
         Button(search_frame, text="Search", bg="orange", fg="white", width=10, command=self.search_record).grid(row=1, column=0, padx=5, pady=5)
@@ -129,18 +131,17 @@ class Admin_Register:
         self.admin_table.pack(fill="both", expand=True)
         # Adding selection cursor
         self.admin_table.bind("<ButtonRelease-1>", self.on_admin_selected)
-        # Bind the update function when the selection changes
-        self.search_by_combobox.bind("<<ComboboxSelected>>", self.update_search_dropdown)
+    
         self.show_all_records()
 
     # Function to search and display records
     def search_record(self):
         # Get the selected search option and the value to search
         search_option = self.search_by_combobox.get()
-        search_value = self.search_entry_combobox.get()
+        search_value = self.search_entry.get()  # Updated to use Entry instead of Combobox
         
         if not search_value:
-            messagebox.showwarning("Input Error", "Please select a search value.")
+            messagebox.showwarning("Input Error", "Please enter a search value.")
             return
         
         # Map search options to column names in the database
@@ -192,13 +193,10 @@ class Admin_Register:
 
         except mysql.connector.Error as err:
             messagebox.showerror("Database Error", f"Error: {err}")
+
     
     
-    def update_search_dropdown(self, event=None):
-        search_values = self.fetch_search_values()  # Get the values for the selected option
-        self.search_entry_combobox['values'] = search_values  # Update the dropdown
-        if search_values:
-            self.search_entry_combobox.set(search_values[0])  # Optionally set the first value as default
+    
 
     
     def fetch_search_values(self):

@@ -130,7 +130,7 @@ class Emotion_Detection:
         self.username_label.place(x=800, y=15)
 
         # Back Button
-        back_button = Button(self.root, text="Back", command=self.go_back, bg="red", fg="white", font=("Arial", 12, "bold"))
+        back_button = Button(self.root, text="Back", command=self.go_back, bg="blue", fg="white", font=("Arial", 12, "bold"))
         back_button.place(x=175, y=15, width=80, height=30)
 
 
