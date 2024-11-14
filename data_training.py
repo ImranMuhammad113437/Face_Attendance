@@ -5,10 +5,10 @@ import cv2
 
 class Data_Training:
     def __init__(self):
-        
+        # Call the training function when the application starts
         self.train_classifier()
 
-    
+    # Function for training the classifier
     def train_classifier(self):
         data_directory = 'data'
         path = [os.path.join(data_directory, f) for f in os.listdir(data_directory)]
@@ -16,11 +16,11 @@ class Data_Training:
         ids = []
 
         for image in path:
-            
+            # Load the image and convert it to grayscale
             img = Image.open(image).convert('L')
             img_numpy = np.array(img, 'uint8')
 
-            
+            # Extract the ID from the filename
             try:
                 id = int(os.path.split(image)[1].split('.')[1])
             except (IndexError, ValueError) as e:
@@ -34,7 +34,7 @@ class Data_Training:
 
         ids = np.array(ids)
 
-        
+        # Train the classifier
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.train(faces, ids)
         clf.write('classifier.xml')

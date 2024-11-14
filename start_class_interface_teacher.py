@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk  
+from tkinter import ttk  # For Treeview
 from PIL import Image, ImageTk
 import mysql.connector
 from datetime import datetime
@@ -25,14 +25,14 @@ class Start_Class_Interface_Teacher:
 
         
 
-        
+        # Background Image
         background_img_face_recognition = Image.open(r"Image\Background.png")
         background_img_face_recognition = background_img_face_recognition.resize((1024, 590), Image.Resampling.LANCZOS)
         self.photo_background_img_face_recognition = ImageTk.PhotoImage(background_img_face_recognition)
         background_img_face_recognition_position = Label(self.root, image=self.photo_background_img_face_recognition)
         background_img_face_recognition_position.place(x=0, y=0, width=1024, height=590)
 
-        
+        # LogoTitle Image
         left_title = Image.open(r"Image\LogoTitle_Left Top.png")
         self.photoleft_title = ImageTk.PhotoImage(left_title)
         left_title_position = Label(self.root, image=self.photoleft_title)
@@ -41,37 +41,37 @@ class Start_Class_Interface_Teacher:
         main_frame = Frame(background_img_face_recognition_position, bd=2, bg="orange")
         main_frame.place(x=300, y=5, width=400, height=50)
 
-        
+        # Add the text label in the center of the main_frame
         Label(main_frame, text="Start Class", bg="orange", fg="white", font=("New Time Roman", 20, "bold")).place(relx=0.5, rely=0.5, anchor=CENTER)
 
          
 
-        
+        # Course dropdown (new dropdown to select the teacher's course)
         self.teacher_course_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
         self.teacher_course_input['values'] = ("Select Course",)
         self.teacher_course_input.current(0)
-        self.teacher_course_input.place(x=80, y=130, width=310)  
+        self.teacher_course_input.place(x=80, y=130, width=310)  # Position below teacher dropdown and above buttons
 
-        
+        # Timing dropdown (new dropdown to select the timing)
         self.timing_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
         self.timing_input['values'] = ("Select Timing",)
         self.timing_input.current(0)
         self.timing_input.place(x=80, y=160, width=310)  
 
 
-        
+        # Start Face Recognition Button
         face_recognition_button = Button(background_img_face_recognition_position, command=self.face_recog, text="Start Class")
-        face_recognition_button.place(x=80, y=190, width=150, height=40)  
+        face_recognition_button.place(x=80, y=190, width=150, height=40)  # Position below the dropdown
 
-        
+        # Stop Face Recognition Button (next to the Start button)
         stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Class", bg="red", fg="white")
-        stop_button.place(x=240, y=190, width=150, height=40)  
+        stop_button.place(x=240, y=190, width=150, height=40)  # Next to the Start button
 
-        
+        # Video display area on the right of the buttons
         self.video_label = Label(background_img_face_recognition_position)
-        self.video_label.place(x=400, y=100, width=600, height=400)  
+        self.video_label.place(x=400, y=100, width=600, height=400)  # Position for video display
     
-        
+        # Create a frame for the Treeview and scrollbar
         tree_frame = Frame(self.root)
         tree_frame.place(x=80, y=250, width=310, height=250)
 
@@ -107,20 +107,20 @@ class Start_Class_Interface_Teacher:
         self.tree.column("Surprise", anchor=CENTER, width=100)
         self.tree.column("Angry", anchor=CENTER, width=100)
 
-        
+        # Create a horizontal scrollbar
         scrollbar = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.tree.xview)
         self.tree.configure(xscrollcommand=scrollbar.set)
 
-        self.tree.pack(side=TOP, fill=BOTH, expand=True)  
-        scrollbar.pack(side=BOTTOM, fill=X)  
+        self.tree.pack(side=TOP, fill=BOTH, expand=True)  # Adjusted packing
+        scrollbar.pack(side=BOTTOM, fill=X)  # Pack scrollbar at the bottom
 
         self.emotion_detector = FER()
         self.total_frames = defaultdict(int)
-        self.attendance_records = {}  
-        self.student_present = set()  
-        self.student_start_times = {}  
+        self.attendance_records = {}  # To track start times
+        self.student_present = set()  # Track recognized students
+        self.student_start_times = {}  # To store start time for each student
         self.cumulative_emotions = {}
-        self.video_cap = None  
+        self.video_cap = None  # Video capture object
         
         self.username_label = Label(self.root, text=f"Logged in as: {self.username}", bg="orange", fg="white", font=("Arial", 12))
         self.username_label.place(x=820, y=15)
@@ -131,7 +131,7 @@ class Start_Class_Interface_Teacher:
         self.populate_course_dropdown()
         self.teacher_course_input.bind("<<ComboboxSelected>>", self.populate_timing_dropdown)
 
-
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     
     def populate_timing_dropdown(self, event):
@@ -142,31 +142,31 @@ class Start_Class_Interface_Teacher:
             return
 
         try:
-            
+            # Connect to the MySQL database 'attendnow'
             connection = mysql.connector.connect(
                 host="localhost",
                 user="root",
-                password="Nightcore_1134372019!",  
+                password="Nightcore_1134372019!",  # Replace with your actual password
                 database="attendnow"
             )
 
             cursor = connection.cursor()
 
-            
+            # SQL query to get the timing based on the selected course
             query = "SELECT timing FROM timetable WHERE course = %s"
             cursor.execute(query, (selected_course,))
 
-            
+            # Fetch all the timings for the selected course
             timings = [timing[0] for timing in cursor.fetchall()]
 
-            
+            # Always show "Select Timing" as the default option
             if timings:
                 self.timing_input['values'] = ["Select Timing"] + timings
             else:
                 messagebox.showinfo("No Timings Found", "No timings available for the selected course.")
                 self.timing_input['values'] = ("Select Timing",)
 
-            
+            # Set the default selection to "Select Timing"
             self.timing_input.current(0)
 
         except mysql.connector.Error as error:
@@ -178,13 +178,13 @@ class Start_Class_Interface_Teacher:
 
     
     def populate_course_dropdown(self):
-        
+        # Get the selected teacher name
         selected_teacher = self.username
         
         if selected_teacher == "Select Teacher":
             return
         
-        
+        # Connect to the MySQL database
         connection = mysql.connector.connect(
             host="localhost",
             user="root",
@@ -197,33 +197,33 @@ class Start_Class_Interface_Teacher:
         cursor.execute(query, (selected_teacher,))
         courses = cursor.fetchall()
 
-        
+        # Set the courses in the dropdown, including the default "Select Course"
         course_list = ["Select Course"] + [course[0] for course in courses]
         self.teacher_course_input['values'] = course_list
         
-        
+        # Automatically select the default option ("Select Course")
         self.teacher_course_input.current(0)
         
-        
+        # Close the database connection
         connection.close()
 
     
     
     def return_to_admit_interface(self):
-        self.root.destroy()  
-        new_window = Tk()  
+        self.root.destroy()  # Close the student interface
+        new_window = Tk()  # Create a new Tk window for the admit interface
         teacher_interface.Teacher_Interface(new_window, self.username)
     
     def mark_attendance(self, id, student_name):
         now = datetime.now()
-        dtString = now.strftime("%H:%M:%S")  
+        dtString = now.strftime("%H:%M:%S")  # Start time for when the student first arrives
 
-        
+        # Store start time for student if not already present
         if id not in self.attendance_records:
             self.attendance_records[id] = {"student_name": student_name, "start_time": dtString, "end_time": ""}
 
         try:
-            
+            # Connect to the MySQL database 'attendnow'
             connection = mysql.connector.connect(
                 host="localhost",
                 user="root",
@@ -232,10 +232,10 @@ class Start_Class_Interface_Teacher:
             )
             cursor = connection.cursor()
 
-            
+            # Insert attendance record without duplicating start time
             if id not in self.student_present:
                 self.student_present.add(id)
-                self.attendance_records[id]["start_time"] = dtString  
+                self.attendance_records[id]["start_time"] = dtString  # Add the start time when student first seen
 
             connection.commit()
 
@@ -251,41 +251,41 @@ class Start_Class_Interface_Teacher:
 
     def face_recog(self):
         selected_course = self.teacher_course_input.get()
-        selected_time = self.timing_input.get()  
+        selected_time = self.timing_input.get()  # Get the selected timing
         selected_teacher = self.username
 
-        
+        # Validate that all required fields are selected
         if selected_course == "Select Course" or selected_time == "Select Timing" or selected_teacher == "Select Teacher":
             messagebox.showwarning("Selection Required", "Please select a valid course, timing, and teacher.")
             return
 
         try:
-            
+            # Connect to the MySQL database 'attendnow'
             connection = mysql.connector.connect(
                 host="localhost",
                 user="root",
-                password="Nightcore_1134372019!",  
+                password="Nightcore_1134372019!",  # Replace with your actual password
                 database="attendnow"
             )
             cursor = connection.cursor()
 
-            
+            # SQL query to retrieve student names and IDs where course matches the selected course
             query = "SELECT student_name, student_id FROM students WHERE course = %s"
             cursor.execute(query, (selected_course,))
 
-            
+            # Fetch all the students for the selected course
             students = cursor.fetchall()
 
-            
+            # Clear the Treeview before inserting new data
             for row in self.tree.get_children():
                 self.tree.delete(row)
 
             if students:
-                
+                # Populate Treeview with student name and ID
                 for student_name, student_id in students:
-                    self.tree.insert("", "end", values=(student_id, student_name, "", ""))  
+                    self.tree.insert("", "end", values=(student_id, student_name, "", ""))  # Empty columns for Start Time and End Time
 
-            
+            # Commit the transaction
             connection.commit()
 
         except mysql.connector.Error as error:
@@ -295,14 +295,14 @@ class Start_Class_Interface_Teacher:
                 cursor.close()
                 connection.close()
 
-        
+        # Load the face detection classifier
         faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-        
+        # Load the face recognition model
         clf = cv2.face.LBPHFaceRecognizer_create()
         clf.read("classifier.xml")
 
-        
+        # Start video capture for face recognition
         self.video_cap = cv2.VideoCapture(0)
         self.recognize(faceCascade, clf, selected_course)
 
@@ -317,7 +317,7 @@ class Start_Class_Interface_Teacher:
         features = faceCascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=10)
 
         for (x, y, w, h) in features:
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)  
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 3)  # Draw rectangle around face
             id, predict = clf.predict(gray_image[y:y + h, x:x + w])
             confidence = int((100 * (1 - predict / 300)))
 
@@ -338,13 +338,13 @@ class Start_Class_Interface_Teacher:
 
             if confidence > 77:
                 face_img = img[y:y + h, x:x + w]
-                detected_emotions = self.detect_emotion(face_img)  
+                detected_emotions = self.detect_emotion(face_img)  # Get detected emotion values
 
-                
+                # Get the live emotion with the highest value
                 live_emotion = max(detected_emotions, key=detected_emotions.get)
                 live_emotion_value = detected_emotions[live_emotion]
 
-                
+                # Initialize or update cumulative emotion values
                 if student_id not in self.cumulative_emotions:
                     self.cumulative_emotions[student_id] = {
                         "neutral": 0, "happy": 0, "sad": 0, "fear": 0, "surprise": 0, "angry": 0, "disgust": 0
@@ -355,12 +355,12 @@ class Start_Class_Interface_Teacher:
                 for emotion, value in detected_emotions.items():
                     cumulative_emotions[emotion] += value
 
-                
+                # Track total frames for each student
                 if student_id not in self.total_frames:
                     self.total_frames[student_id] = 0
                 self.total_frames[student_id] += 1
 
-                
+                # Calculate the percentage for each emotion
                 total_frames = self.total_frames[student_id]
                 if total_frames > 0:
                     neutral_percent = (cumulative_emotions["neutral"] / total_frames) * 100
@@ -372,7 +372,7 @@ class Start_Class_Interface_Teacher:
                 else:
                     neutral_percent = happy_percent = sad_percent = angry_percent = fear_percent = surprise_percent = 0.0
 
-                
+                # Display the live emotion on the video frame
                 cv2.putText(img, f"Name: {student_name}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                 cv2.putText(img, f"ID: {student_id}", (x, y + h + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                 cv2.putText(img, f"Emotion: {live_emotion.capitalize()}", (x, y - 35), cv2.FONT_HERSHEY_COMPLEX, 0.8, (255, 255, 255), 2)
@@ -433,12 +433,22 @@ class Start_Class_Interface_Teacher:
                         )
                         my_cursor = conn.cursor()
 
-                        check_query = 
+                        check_query = """
+                        SELECT * FROM attendance_status 
+                        WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                        """
                         my_cursor.execute(check_query, (student_id, selected_course, selected_time, current_date))
                         record = my_cursor.fetchone()
 
                         if record:
-                            update_query = 
+                            update_query = """
+                            UPDATE attendance_status
+                            SET attendance_status = %s,
+                                start_time = %s,
+                                recorder_timer = %s,
+                                end_time = %s
+                            WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                            """
                             my_cursor.execute(update_query, (
                                 attendance_status,
                                 start_time_str,
@@ -450,7 +460,10 @@ class Start_Class_Interface_Teacher:
                                 current_date
                             ))
                         else:
-                            insert_query = 
+                            insert_query = """
+                            INSERT INTO attendance_status (student_name, student_id, attendance_status, start_time, recorder_timer, end_time, date, course, teacher, course_hour)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                            """
                             my_cursor.execute(insert_query, (
                                 student_name,
                                 student_id,
@@ -467,7 +480,7 @@ class Start_Class_Interface_Teacher:
                         conn.commit()
                         conn.close()
 
-                        
+                        # Update or insert emotion data into "student_emotion" table
                         conn = mysql.connector.connect(
                             host="localhost",
                             user="root",
@@ -476,19 +489,29 @@ class Start_Class_Interface_Teacher:
                         )
                         my_cursor = conn.cursor()
 
-                        check_emotion_query = 
+                        check_emotion_query = """
+                        SELECT * FROM student_emotion
+                        WHERE student_id = %s AND date = %s AND course = %s;
+                        """
                         my_cursor.execute(check_emotion_query, (student_id, current_date, selected_course))
                         emotion_record = my_cursor.fetchone()
 
                         if emotion_record:
-                            update_emotion_query = 
+                            update_emotion_query = """
+                            UPDATE student_emotion
+                            SET neutral = %s, happy = %s, sad = %s, fear = %s, surprise = %s, angry = %s
+                            WHERE student_id = %s AND date = %s AND course = %s;
+                            """
                             my_cursor.execute(update_emotion_query, (
                                 neutral_percent, happy_percent, sad_percent, fear_percent, 
                                 surprise_percent, angry_percent,
                                 student_id, current_date, selected_course
                             ))
                         else:
-                            insert_emotion_query = 
+                            insert_emotion_query = """
+                            INSERT INTO student_emotion (student_name, student_id, date, course, neutral, happy, sad, fear, surprise, angry)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                            """
                             my_cursor.execute(insert_emotion_query, (
                                 student_name, student_id, current_date, selected_course,
                                 neutral_percent, happy_percent, sad_percent, fear_percent, 
@@ -512,7 +535,7 @@ class Start_Class_Interface_Teacher:
     def detect_emotion(self, face_img):
         emotions = self.emotion_detector.detect_emotions(face_img)
         if emotions:
-            
+            # Round each emotion value to 2 decimal places and cap at 99.99
             return {emotion: min(round(value, 2), 99.99) for emotion, value in emotions[0]["emotions"].items()}
         return {"neutral": 0, "happy": 0, "sad": 0, "fear": 0, "surprise": 0, "angry": 0}
 
@@ -521,7 +544,7 @@ class Start_Class_Interface_Teacher:
 
 
     def stop_recog(self):
-        
+        # Step 1: Stop the video capture
         if self.video_cap:
             self.video_cap.release()
         self.video_label.config(image="")

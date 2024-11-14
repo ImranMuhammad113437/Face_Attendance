@@ -391,7 +391,10 @@ class Face_Recognition_Teacher:
                         current_date = datetime.now().strftime("%Y-%m-%d")  
 
                         
-                        check_query = 
+                        check_query = """
+                        SELECT * FROM attendance_status 
+                        WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                        """
 
                         
                         my_cursor.execute(check_query, (student_id, selected_course, selected_time, current_date))
@@ -399,7 +402,14 @@ class Face_Recognition_Teacher:
 
                         if record:
                             
-                            update_query = 
+                            update_query = """
+                            UPDATE attendance_status
+                            SET attendance_status = %s,
+                                start_time = %s,
+                                recorder_timer = %s,
+                                end_time = %s
+                            WHERE student_id = %s AND course = %s AND course_hour = %s AND date = %s;
+                            """
 
                             
                             my_cursor.execute(update_query, (
@@ -415,7 +425,10 @@ class Face_Recognition_Teacher:
 
                         else:
                             
-                            insert_query = 
+                            insert_query = """
+                            INSERT INTO attendance_status (student_name, student_id, attendance_status, start_time, recorder_timer, end_time, date, course, teacher, course_hour)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                            """
 
                             
                             my_cursor.execute(insert_query, (
