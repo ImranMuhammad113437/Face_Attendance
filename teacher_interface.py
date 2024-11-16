@@ -2,10 +2,7 @@ from tkinter import *  # Ensure you import Tk, Button, Frame, Toplevel, etc.
 from PIL import Image, ImageTk
 import os
 import login_page  # Import the login_page module for logout functionality
-import face_recognition_teacher
 import emotion_status_interface_teacher
-import eye_detection
-import emotion_detection_teacher
 import attendance_status_interface_teacher
 import report_generater_interface_teacher
 import start_class_interface_teacher
@@ -54,19 +51,9 @@ class Teacher_Interface:  # Changed class name to Teacher_Interface
         facial_system_frame = LabelFrame(main_frame, text="Facial System", bg="orange", font=("Arial", 12, "bold"),fg="white", bd=0, highlightbackground="white", highlightcolor="white")
         facial_system_frame.place(x=10, y=10, width=650, height=100)
 
-        # Buttons inside Facial System
-        face_recon = Button(facial_system_frame, text="Face Recognition", command=lambda: self.face_page(username), bg="orange", fg="white", font=("League_Spartan"))
-        face_recon.place(x=5, y=10, width=150, height=40)
-
-        eye_detection_button = Button(facial_system_frame, text="Eye Detection", command=lambda: self.eye_detection(username), bg="orange", fg="white", font=("League_Spartan"))
-        eye_detection_button.place(x=160, y=10, width=150, height=40)
-
-        emotion_detection_button = Button(facial_system_frame, text="Emotion Detection", command=lambda: self.emotion_detection_button(username), bg="orange", fg="white", font=("League_Spartan"))
-        emotion_detection_button.place(x=315, y=10, width=150, height=40)
-
         # New button on the right of Emotion Detection
         new_feature_button = Button(facial_system_frame, text="Start Class", command=lambda: self.new_feature(username), bg="orange", fg="white", font=("League_Spartan"))
-        new_feature_button.place(x=470, y=10, width=150, height=40)  # Adjust x position accordingly
+        new_feature_button.place(x=5, y=10, width=150, height=40)  # Adjust x position accordingly
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -100,24 +87,7 @@ class Teacher_Interface:  # Changed class name to Teacher_Interface
         self.root.destroy()  # Close the current interface window
         new_window = Tk()
         attendance_status_interface_teacher.Attendance_Status_Interface_Teacher(new_window, username)
-        
-
-    
-    def eye_detection(self, username):
-        self.root.destroy()  # Close the current interface window
-        new_window = Tk()
-        eye_detection.Eye_Detection(new_window, username)
-
-    def emotion_detection_button(self, username):
-        self.root.destroy()
-        new_window = Tk()
-        emotion_detection_teacher.Emotion_Detection_Teacher(new_window, username)
-
-    
-    def face_page(self, username):
-        self.root.destroy()
-        new_window = Tk()
-        face_recognition_teacher.Face_Recognition_Teacher(new_window, username)
+       
 
     def attendance_summary(self, username):
         self.root.destroy()

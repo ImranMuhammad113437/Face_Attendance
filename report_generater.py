@@ -26,7 +26,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.colors import gray
 import openpyxl
 from tkinter import filedialog, messagebox
-
+from pathlib import Path
 
 class Report_Generater:
     def __init__(self, root, username):
@@ -240,59 +240,33 @@ class Report_Generater:
         self.content_frame.bind("<Configure>", self.update_scroll_region)
 
 
-
-
-        
-
-        
-
-
-
-
-       
-
-       
-
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def generate_emotion_report(self):
-        # Fetch student ID, name, month, and year
+        
         student_id = self.student_id_entry.get()
         student_name = self.student_name_display.cget("text")
-        selected_month = self.month_var.get()
-        selected_year = self.year_var.get()
+        selected_month = self.month_var.get()  
+        selected_year = self.year_var.get()  
 
-        # Check if student ID is empty
+        
         if not student_id:
             messagebox.showwarning("Input Error", "Please enter a Student ID.")
-            return
+            return  
 
-        # Prompt user to select the folder for saving reports
-        save_directory = filedialog.askdirectory(title="Select Folder to Save Reports")
-        if not save_directory:
-            messagebox.showwarning("Input Error", "Please select a folder to save reports.")
-            return
-
-        # Folder name based on student details and report type
-        folder_name = f"{student_name}_{student_id}_{selected_month}_{selected_year}_Emotion"
-        full_path = os.path.join(save_directory, folder_name)
-
-        # Create folder if it doesn't exist
-        os.makedirs(full_path, exist_ok=True)
-
-        # Get selected courses from the listbox
+        
         selected_courses = self.selected_courses_listbox.get(0, 'end')
 
         for course in selected_courses:
-            # Generate filename for each course report
+            
             filename = f"{student_name}_{student_id}_{course}_report.pdf"
-            file_path = os.path.join(full_path, filename)
 
-            # Initialize PDF canvas
-            pdf = canvas.Canvas(file_path, pagesize=A4)
+            
+            pdf = canvas.Canvas(filename, pagesize=A4)
             pdf.setTitle(f"Emotion Report for {course}")
             width, height = A4
+            width, height_2 = A4
 
-            # Title and student details
+            
             pdf.setFont("Helvetica-Bold", 16)
             pdf.drawCentredString(width / 2, height - 50, "Emotion Report")
             pdf.setFont("Helvetica", 12)
@@ -302,56 +276,153 @@ class Report_Generater:
             pdf.drawString(400, height - 100, f"Year: {selected_year}")
             pdf.drawString(100, height - 120, f"Course: {course}")
 
-            # Detail view
+            
             if self.detail_var.get():
                 pdf.setFont("Helvetica-Bold", 14)
                 pdf.drawString(100, height - 160, "Detailed Emotion Status:")
-                height -= 180  # Adjust for image placement
+                height -= 180  
 
-                # Get emotion status image
+                
                 emotion_img = self.get_emotion_status_report(student_id, student_name, selected_month, selected_year, course)
+
+                
                 if emotion_img:
                     image_path = "emotion_status.jpg"
-                    pdf.drawImage(image_path, 100, height - 290, width=400, height=300)
-                    height -= 300
+                    pdf.drawImage(image_path, 100, height - 290, width=400, height=300)  
+                    height -= 300  
 
-            # Overall view
+            
             if self.overall_var.get():
-                pdf.setFont("Helvetica-Bold", 14)
-                pdf.drawString(100, height - 10, "Overall Emotion Status:")
-                overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
-                if overall_img:
-                    overall_image_path = "emotion_status_overall.jpg"
-                    pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)
-                    height -= 300
-
-            # Table view
-            if self.table_var.get():
-                pdf.showPage()
-                pdf.setFont("Helvetica-Bold", 14)
-                pdf.drawString(100, height - 50, "Emotion Status Table:")
-                height -= 70
-
-                # Table headers
-                pdf.setFont("Helvetica", 10)
-                column_width = 60
-                headers = ["Date", "Neutral", "Happy", "Sad", "Fear", "Surprise", "Angry"]
-                for i, header in enumerate(headers):
-                    pdf.drawString(100 + i * column_width, height, header)
-                height -= 20
-
-                # Table data
-                emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
-                for row in emotion_data:
-                    for i, cell in enumerate(row):
-                        pdf.drawString(100 + i * column_width, height, str(cell))
+                if self.detail_var.get():
+                    pdf.setFont("Helvetica-Bold", 14)
+                    pdf.drawString(100, height, "Overall Emotion Status:")
                     height -= 20
 
-            # Save the PDF
+                    
+                    overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
+
+                    
+                    if overall_img:
+                        overall_image_path = "emotion_status_overall.jpg"
+                        pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)  
+                        height -= 300  
+                else:
+                    pdf.setFont("Helvetica-Bold", 14)
+                    pdf.drawString(100, height - 160, "Overall Emotion Status:")
+                    height -= 180
+
+                    
+                    overall_img = self.emotion_status_overall_report(student_id, student_name, selected_month, selected_year, course)
+
+                    
+                    if overall_img:
+                        overall_image_path = "emotion_status_overall.jpg"
+                        pdf.drawImage(overall_image_path, 100, height - 290, width=400, height=300)  
+                        height -= 300  
+
+            
+            if self.table_var.get():
+                if self.detail_var.get() and self.overall_var.get():
+                    pdf.showPage()  
+                    pdf.setFont("Helvetica-Bold", 14)
+                    pdf.drawString(100, height_2 - 80, "Emotion Status Table (Detailed Only):")
+                    height_2 -= 20
+
+                    
+                    pdf.setFont("Helvetica", 10)
+                    column_width = 60  
+                    pdf.drawString(100 , height_2 - 100, "Date")
+                    pdf.drawString(100 + column_width, height_2 - 100, "Neutral")
+                    pdf.drawString(100 + 2 * column_width, height_2 - 100, "Happy")
+                    pdf.drawString(100 + 3 * column_width, height_2 - 100, "Sad")
+                    pdf.drawString(100 + 4 * column_width, height_2 - 100, "Fear")
+                    pdf.drawString(100 + 5 * column_width, height_2 - 100, "Surprise")
+                    pdf.drawString(100 + 6 * column_width, height_2 - 100, "Angry")
+                    height_2 -= 10  
+
+                    
+                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
+
+                    for row in emotion_data:
+                        pdf.drawString(100, height_2 - 120, row[0])  
+                        pdf.drawString(100 + column_width, height_2 - 120, str(row[1]))  
+                        pdf.drawString(100 + 2 * column_width, height_2 - 120, str(row[2]))  
+                        pdf.drawString(100 + 3 * column_width, height_2 - 120, str(row[3]))  
+                        pdf.drawString(100 + 4 * column_width, height_2 - 120, str(row[4]))  
+                        pdf.drawString(100 + 5 * column_width, height_2 - 120, str(row[5]))  
+                        pdf.drawString(100 + 6 * column_width, height_2 - 120, str(row[6]))  
+                        height_2 -= 20  
+
+                elif (self.detail_var.get() and not self.overall_var.get()) or (not self.detail_var.get() and self.overall_var.get()):
+                    pdf.setFont("Helvetica-Bold", 14)
+                    pdf.drawString(100, height - 10, "Emotion Status Table (Detailed Only):")
+                    height -= 20
+
+                    
+                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
+
+                    
+                    pdf.setFont("Helvetica-Bold", 10)
+                    column_width = 60  
+                    pdf.drawString(100, height - 10, "Date")
+                    pdf.drawString(100 + column_width, height - 10, "Neutral")
+                    pdf.drawString(100 + column_width * 2, height - 10, "Happy")
+                    pdf.drawString(100 + column_width * 3, height - 10, "Sad")
+                    pdf.drawString(100 + column_width * 4, height - 10, "Fear")
+                    pdf.drawString(100 + column_width * 5, height - 10, "Surprise")
+                    pdf.drawString(100 + column_width * 6, height - 10, "Angry")
+                    height -= 20
+
+                    
+                    pdf.setFont("Helvetica", 10)
+                    for row in emotion_data:
+                        pdf.drawString(100, height - 10, row[0])  
+                        pdf.drawString(100 + column_width, height - 10, str(row[1]))  
+                        pdf.drawString(100 + column_width * 2, height - 10, str(row[2]))  
+                        pdf.drawString(100 + column_width * 3, height - 10, str(row[3]))  
+                        pdf.drawString(100 + column_width * 4, height - 10, str(row[4]))  
+                        pdf.drawString(100 + column_width * 5, height - 10, str(row[5]))  
+                        pdf.drawString(100 + column_width * 6, height - 10, str(row[6]))  
+                        height -= 20
+
+                
+
+                elif not self.detail_var.get() and not self.overall_var.get():
+                    pdf.setFont("Helvetica-Bold", 14)
+                    pdf.drawString(100, height - 160, "Emotion Status Table (No Details or Overall):")
+                    height -= 180
+                    
+                    
+                    emotion_data = self.emotion_status_table(student_id, student_name, selected_month, selected_year, course)
+
+                    
+                    pdf.setFont("Helvetica-Bold", 10)
+                    column_width = 60  
+                    pdf.drawString(100, height - 10, "Date")
+                    pdf.drawString(100 + column_width, height - 10, "Neutral")
+                    pdf.drawString(100 + column_width * 2, height - 10, "Happy")
+                    pdf.drawString(100 + column_width * 3, height - 10, "Sad")
+                    pdf.drawString(100 + column_width * 4, height - 10, "Fear")
+                    pdf.drawString(100 + column_width * 5, height - 10, "Surprise")
+                    pdf.drawString(100 + column_width * 6, height - 10, "Angry")
+                    height -= 20
+
+                    
+                    pdf.setFont("Helvetica", 10)
+                    for row in emotion_data:
+                        pdf.drawString(100, height - 20, row[0])  
+                        pdf.drawString(100 + column_width, height - 20, str(row[1]))  
+                        pdf.drawString(100 + column_width * 2, height - 20, str(row[2]))  
+                        pdf.drawString(100 + column_width * 3, height - 20, str(row[3]))  
+                        pdf.drawString(100 + column_width * 4, height - 20, str(row[4]))  
+                        pdf.drawString(100 + column_width * 5, height - 20, str(row[5]))  
+                        pdf.drawString(100 + column_width * 6, height - 20, str(row[6]))  
+                        height -= 20
+
+            
             pdf.save()
 
-        messagebox.showinfo("Success", "PDF reports generated and saved successfully.")
-
+            messagebox.showinfo("Success", "PDF reports generated successfully.")
         
     
     def display_student_attendance(self):
@@ -520,27 +591,31 @@ class Report_Generater:
             messagebox.showwarning("Input Error", "Please enter a Student ID.")
             return
 
-        # Define folder name
+        # Define path to the Downloads folder
+        downloads_path = Path.home() / "Downloads"
+        
+        # Folder name based on student details
         folder_name = f"{student_name}_{student_id}_{selected_month_text}_{selected_year}_Attendance"
-        if not os.path.exists(folder_name):
-            os.makedirs(folder_name)
+        full_path = os.path.join(downloads_path, folder_name)
+
+        # Create folder in Downloads if it doesn't exist
+        os.makedirs(full_path, exist_ok=True)
 
         # Fetch the list of selected courses from the listbox
         selected_courses = self.selected_courses_listbox.get(0, 'end')
 
         for course in selected_courses:
             # Create a new Excel workbook and sheet for each course
-            excel_filename = f"{folder_name}/{student_name}_{student_id}_{course}_{selected_month_text}_{selected_year}.xlsx"
+            excel_filename = os.path.join(full_path, f"{student_name}_{student_id}_{course}_{selected_month_text}_{selected_year}.xlsx")
             wb = openpyxl.Workbook()
             sheet = wb.active
             sheet.title = f"{course} Report"
 
-            # Merge the cells A1 to D1 for the title
+            # Merge cells and set titles and student details
             sheet.merge_cells('A1:D1')
             sheet['A1'] = "Report Form Attendance"
             sheet['A1'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
-
-            # Merge A2:B2 for Name and C2:D2 for ID
+            
             sheet.merge_cells('A2:B2')
             sheet['A2'] = f"Name: {student_name}"
             sheet['A2'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
@@ -549,7 +624,6 @@ class Report_Generater:
             sheet['C2'] = f"ID: {student_id}"
             sheet['C2'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-            # Merge A3:B3 for Month and C3:D3 for Year
             sheet.merge_cells('A3:B3')
             sheet['A3'] = f"Month: {selected_month_text}"
             sheet['A3'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
@@ -558,35 +632,30 @@ class Report_Generater:
             sheet['C3'] = f"Year: {selected_year}"
             sheet['C3'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-            # Merge A4:D4 for Course name
             sheet.merge_cells('A4:D4')
             sheet['A4'] = f"Course: {course}"
             sheet['A4'].alignment = openpyxl.styles.Alignment(horizontal='left', vertical='center')
 
-            # Add a space before the next section
+            # Attendance Status title
             row_start = 6
-
-            # Merge cells A6:D6 for Attendance Status Title
             sheet.merge_cells('A6:D6')
             sheet['A6'] = "Attendance Status"
             sheet['A6'].alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
 
-            # Set column widths for A, B, C, D to 200 pixels (approximately 200 in Excel units)
-            sheet.column_dimensions['A'].width = 28  # Approximation for pixels
+            # Set column widths
+            sheet.column_dimensions['A'].width = 28
             sheet.column_dimensions['B'].width = 28
             sheet.column_dimensions['C'].width = 28
             sheet.column_dimensions['D'].width = 28
 
-            # Fetch attendance data for the course
+            # Fetch and populate attendance data
             attendance_data = self.fetch_attendance_data_report(student_id, course, selected_month, selected_year)
-
-            # Define headers for attendance data
             headers = ["Date", "Hour", "Status"]
             sheet[f"A{row_start + 1}"] = headers[0]
             sheet[f"B{row_start + 1}"] = headers[1]
             sheet[f"C{row_start + 1}"] = headers[2]
 
-            # Populate the attendance data rows
+            # Fill rows with attendance data
             row = row_start + 2
             for row_data in attendance_data:
                 sheet[f"A{row}"] = row_data[0]  # Date
@@ -597,6 +666,9 @@ class Report_Generater:
             # Save the Excel file
             wb.save(excel_filename)
             print(f"Excel file saved as {excel_filename}")
+
+        # Display success message
+        messagebox.showinfo("Success", f"Excel reports generated and saved in '{full_path}'.")
 
     
 
