@@ -4,6 +4,7 @@ from PIL import Image, ImageTk
 import mysql.connector
 from datetime import datetime
 from tkinter import messagebox
+import face_recognition
 import cv2
 from datetime import datetime, timedelta
 import csv
@@ -64,7 +65,7 @@ class Face_Recognition:
         face_recognition_button.place(x=80, y=190, width=150, height=40)  # Position below the dropdown
 
         # Stop Face Recognition Button (next to the Start button)
-        stop_button = Button(background_img_face_recognition_position, command=self.stop_recog, text="Stop Class", bg="red", fg="white")
+        stop_button = Button(background_img_face_recognition_position, command=lambda: self.stop_recog(username), text="Stop Class", bg="red", fg="white")
         stop_button.place(x=240, y=190, width=150, height=40)  # Next to the Start button
 
         # Video display area on the right of the buttons
@@ -378,9 +379,13 @@ class Face_Recognition:
                     
                     # Check if the student ID matches
                     if str(student_id) == row_data[0]:
-                        # Get the start time from the Treeview row data
-                        start_time_str = row_data[2]
-                        start_time = datetime.strptime(start_time_str, "%H:%M:%S")
+                        # Check if start_time_str is not empty before parsing
+                        if row_data[2]:  # Check if there's a start time in the Treeview row
+                            start_time_str = row_data[2]
+                            start_time = datetime.strptime(start_time_str, "%H:%M:%S")
+                        else:
+                            # If it's empty, set start_time to current time
+                            start_time = datetime.now()
 
                         # Calculate the total time elapsed
                         current_time = datetime.now()
@@ -406,7 +411,6 @@ class Face_Recognition:
                         selected_time = self.timing_input.get()  
                         selected_teacher = self.teacher_input.get()
 
-
                         current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
 
                         # Database connection
@@ -417,9 +421,6 @@ class Face_Recognition:
                             database="attendnow"
                         )
                         my_cursor = conn.cursor()
-
-                        # Get the current date
-                        current_date = datetime.now().strftime("%Y-%m-%d")  # Get current date
 
                         # Check if the record already exists
                         check_query = """
@@ -495,11 +496,24 @@ class Face_Recognition:
         self.video_label.after(10, lambda: self.recognize(faceCascade, clf, selected_course))
 
 
-    def stop_recog(self):
+
+    def stop_recog(self, username):
         # Step 1: Stop the video capture
         if self.video_cap:
             self.video_cap.release()
         self.video_label.config(image="")
+
+        # Step 2: Clear the Treeview (table)
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Step 3: Destroy the current window and reopen it with the username
+        self.root.destroy()
+        new_window =Tk() 
+        face_recognition = Face_Recognition(new_window, username)  # Pass the username to the FaceRecognition instance
+        
+
+
 
 
 if __name__ == "__main__":

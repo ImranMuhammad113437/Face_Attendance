@@ -10,6 +10,8 @@ import os
 from tkcalendar import DateEntry
 import admit_interface
 import re
+import random
+import string
 
 
 with open(r".vscode\settings.json") as file:
@@ -34,6 +36,7 @@ class Student:
         self.var_email=StringVar()
         self.var_phone_number=StringVar()
         self.var_address=StringVar()
+        self.var_row_id=StringVar()
      
     #Background Image
         background_img_student=Image.open(r"Image\Background.png")
@@ -143,20 +146,33 @@ class Student:
         phone_num_label.grid(row=2,column=2,padx=5,sticky=W)
         phone_num_input=ttk.Entry(class_student_frame,textvariable=self.var_phone_number)
         phone_num_input.grid(row=2,column=3,pady=10,sticky=W)
-        #Address
-        address_label=Label(class_student_frame,text="Address")
-        address_label.grid(row=3,column=0,padx=5,sticky=W)
-        address_input=ttk.Entry(class_student_frame,textvariable=self.var_address)
-        address_input.grid(row=3,column=1,pady=10,sticky=W)
+        # Address
+        address_label = Label(class_student_frame, text="Address")
+        address_label.grid(row=3, column=0, padx=5, sticky=W)
+
+        address_input = ttk.Entry(class_student_frame, textvariable=self.var_address, width=60)
+        address_input.grid(row=3, column=1, columnspan=3, pady=10, sticky=W)
+
+
         
         #Selection Button
         self.var_take_photo=StringVar()
-        take_photo_label=Label(class_student_frame,text="Photo Sample")
-        take_photo_label.grid(row=4,column=0,padx=5,sticky=W)
-        take_photo_dropdown=ttk.Combobox(class_student_frame,text="Take Photo",textvariable=self.var_take_photo,state="readonly")
-        take_photo_dropdown["value"]=("Select Option","Yes","No")
+        # Photo Sample
+        take_photo_label = Label(class_student_frame, text="Photo Sample")
+        take_photo_label.grid(row=4, column=0, padx=5, sticky=W)
+
+        take_photo_dropdown = ttk.Combobox(class_student_frame, text="Take Photo", textvariable=self.var_take_photo, state="readonly")
+        take_photo_dropdown["value"] = ("Select Option", "Yes", "No")
         take_photo_dropdown.current(0)
-        take_photo_dropdown.grid(row=4,column=1,pady=10)
+        take_photo_dropdown.grid(row=4, column=1, pady=10)
+
+        # Row ID
+        row_id_label = Label(class_student_frame, text="Row ID")
+        row_id_label.grid(row=4, column=2, padx=5, sticky=W)
+
+        row_id_input = ttk.Entry(class_student_frame, textvariable=self.var_row_id, state="readonly")
+        row_id_input.grid(row=4, column=3, pady=5, sticky=W)
+
         #Button Upper Frame Section 
         button_upper_frame=Frame(class_student_frame,bd=2,relief=RIDGE,bg="white")
         button_upper_frame.place(x=5,y=210,width=450)
@@ -220,58 +236,94 @@ class Student:
         show_all_button=Button(search_frame,text="Show All",bg="orange",fg="white",width=10,command=self.fetch_data)
         show_all_button.grid(row=0,column=4,padx=3)
  #Database Frame
-        database_frame=LabelFrame(right_frame,bd=2,relief=RIDGE)
-        database_frame.place(x=5,y=55,width=462,height=390)   
-        scroll_left_right=ttk.Scrollbar(database_frame,orient=HORIZONTAL)
-        scroll_up_down=ttk.Scrollbar(database_frame,orient=VERTICAL)
-        self.student_database=ttk.Treeview(database_frame,columns=("Department",
-                                                                   "Course",
-                                                                   "Year",
-                                                                   "Semester",
-                                                                   "Student ID",
-                                                                   "Student Name",
-                                                                   "Gender",
-                                                                   "Date of Birth",
-                                                                   "Email",
-                                                                   "Phone Number",
-                                                                   "Address",
-                                                                   "Photo"),xscrollcommand=scroll_left_right.set,yscrollcommand=scroll_up_down.set)
-        
-        scroll_left_right.pack(side=BOTTOM,fill=X)
-        scroll_up_down.pack(side=RIGHT,fill=Y)       
+        database_frame = LabelFrame(right_frame, bd=2, relief=RIDGE)
+        database_frame.place(x=5, y=55, width=462, height=390)   
+        scroll_left_right = ttk.Scrollbar(database_frame, orient=HORIZONTAL)
+        scroll_up_down = ttk.Scrollbar(database_frame, orient=VERTICAL)
+
+        self.student_database = ttk.Treeview(
+            database_frame,
+            columns=("Row ID", "Department", "Course", "Year", "Semester", 
+                    "Student ID", "Student Name", "Gender", "Date of Birth", 
+                    "Email", "Phone Number", "Address", "Photo"),
+            xscrollcommand=scroll_left_right.set,
+            yscrollcommand=scroll_up_down.set
+        )
+
+        scroll_left_right.pack(side=BOTTOM, fill=X)
+        scroll_up_down.pack(side=RIGHT, fill=Y)
         scroll_left_right.config(command=self.student_database.xview)
         scroll_up_down.config(command=self.student_database.yview)
-        self.student_database.heading("Department",text="Department")
-        self.student_database.heading("Course",text="Course")
-        self.student_database.heading("Year",text="Year")
-        self.student_database.heading("Semester",text="Semester")
-        self.student_database.heading("Student ID",text="Student ID")
-        self.student_database.heading("Student Name",text="Student Name")
-        self.student_database.heading("Gender",text="Gender")
-        self.student_database.heading("Date of Birth",text="Date of Birth")
-        self.student_database.heading("Email",text="Email")
-        self.student_database.heading("Phone Number",text="Phone Number")
-        self.student_database.heading("Address",text="Address")
-        self.student_database.heading("Photo",text="Photo")
-        self.student_database["show"]="headings"
-        self.student_database.column("Department",width=100)
-        self.student_database.column("Course",width=100)
-        self.student_database.column("Year",width=100)
-        self.student_database.column("Semester",width=100)
-        self.student_database.column("Student ID",width=100)
-        self.student_database.column("Student Name",width=100)
-        self.student_database.column("Gender",width=100)
-        self.student_database.column("Date of Birth",width=100)
-        self.student_database.column("Email",width=100)
-        self.student_database.column("Phone Number",width=100)
-        self.student_database.column("Address",width=100)
-        self.student_database.column("Photo",width=100)     
-        self.student_database.pack(fill=BOTH,expand=1)
-        self.student_database.bind("<ButtonRelease>",self.get_cursor)
+
+        # Define the headings
+        self.student_database.heading("Row ID", text="Row ID")
+        self.student_database.heading("Department", text="Department")
+        self.student_database.heading("Course", text="Course")
+        self.student_database.heading("Year", text="Year")
+        self.student_database.heading("Semester", text="Semester")
+        self.student_database.heading("Student ID", text="Student ID")
+        self.student_database.heading("Student Name", text="Student Name")
+        self.student_database.heading("Gender", text="Gender")
+        self.student_database.heading("Date of Birth", text="Date of Birth")
+        self.student_database.heading("Email", text="Email")
+        self.student_database.heading("Phone Number", text="Phone Number")
+        self.student_database.heading("Address", text="Address")
+        self.student_database.heading("Photo", text="Photo")
+
+        self.student_database["show"] = "headings"
+
+        # Define column properties
+        self.student_database.column("Row ID", width=80)
+        self.student_database.column("Department", width=100)
+        self.student_database.column("Course", width=100)
+        self.student_database.column("Year", width=100)
+        self.student_database.column("Semester", width=100)
+        self.student_database.column("Student ID", width=100)
+        self.student_database.column("Student Name", width=100)
+        self.student_database.column("Gender", width=100)
+        self.student_database.column("Date of Birth", width=100)
+        self.student_database.column("Email", width=100)
+        self.student_database.column("Phone Number", width=100)
+        self.student_database.column("Address", width=100)
+        self.student_database.column("Photo", width=100)
+
+        self.student_database.pack(fill=BOTH, expand=1)
+        self.student_database.bind("<ButtonRelease>", self.get_cursor)
+
         self.fetch_data()
         
     #Function
     #This is to ADD the information to the database.
+    def train_classifier(self):
+        data_directory = 'data'
+        path = [os.path.join(data_directory, f) for f in os.listdir(data_directory)]
+        faces = []
+        ids = []
+
+        for image in path:
+            # Load the image and convert it to grayscale
+            img = Image.open(image).convert('L')
+            img_numpy = np.array(img, 'uint8')
+
+            # Extract the ID from the filename
+            try:
+                id = int(os.path.split(image)[1].split('.')[1])
+            except (IndexError, ValueError) as e:
+                print(f"Error processing file {image}: {e}")
+                continue
+
+            faces.append(img_numpy)
+            ids.append(id)
+
+        ids = np.array(ids)
+
+        # Train the classifier
+        clf = cv2.face.LBPHFaceRecognizer_create()
+        clf.train(faces, ids)
+        clf.write('classifier.xml')
+        cv2.destroyAllWindows()
+
+
 
     def get_departments(self):
             # Connect to the MySQL database
@@ -370,20 +422,20 @@ class Student:
             # Close connection
             conn.close()
 
-    def add_data(self):
-        # Validate the fields before proceeding
-        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course":
-            messagebox.showerror("Missing Field", "All Fields are required to be filled!", parent=self.root)
-        elif not self.var_student_id.get().isdigit():  # Check if Student ID is numerical
-            messagebox.showerror("Invalid Input", "Student ID must be numerical", parent=self.root)
-        elif not re.match("^[A-Za-z][A-Za-z ]*$", self.var_student_name.get()):  # Check if Student Name is alphabetic with middle spaces allowed
-            messagebox.showerror("Invalid Input", "Student Name must contain only alphabets and spaces, no leading or trailing spaces", parent=self.root)
-        elif self.var_email.get() != "N/A" and not re.match(r"[^@]+@[^@]+\.[^@]+", self.var_email.get()):  # Validate Email
-            messagebox.showerror("Invalid Input", "Email must be in a valid format or 'N/A'", parent=self.root)
-        elif not self.var_phone_number.get().isdigit():  # Check if Phone Number is numerical
-            messagebox.showerror("Invalid Input", "Phone Number must be numerical", parent=self.root)
-        else:
-            # All inputs are valid, proceed to add the data to the database
+
+    def generate_unique_id(self):
+        """
+        Generates a unique alphanumeric ID.
+        Checks the database to ensure the ID is not already present.
+        
+        Returns:
+            str: A unique alphanumeric ID.
+        """
+        while True:
+            # Generate a random 8-character alphanumeric ID
+            unique_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            
+            # Check if the ID already exists in the database
             conn = mysql.connector.connect(
                 host=connection_details["server"],
                 port=connection_details["port"],
@@ -392,25 +444,98 @@ class Student:
                 database=connection_details["database"]
             )
             my_cursor = conn.cursor()
-            my_cursor.execute("INSERT INTO students VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                            (
-                                self.var_department.get(),
-                                self.var_course.get(),
-                                self.var_year.get(),
-                                self.var_semester.get(),
-                                self.var_student_id.get(),
-                                self.var_student_name.get(),
-                                self.var_gender.get(),
-                                self.var_date_of_birth.get(),
-                                self.var_email.get(),
-                                self.var_phone_number.get(),
-                                self.var_address.get(),
-                                self.var_take_photo.get()
-                            ))
-            conn.commit()
-            self.fetch_data()
+            my_cursor.execute("SELECT COUNT(*) FROM students WHERE ticket_roll = %s", (unique_id,))
+            result = my_cursor.fetchone()
             conn.close()
-            messagebox.showinfo("Successful", "Student Added", parent=self.root)
+            
+            if result[0] == 0:  # If the ID does not exist in the database, return it
+                return unique_id
+
+    def add_data(self):
+        """
+        Adds student data to the database with a unique ticket_roll.
+        Ensures no duplicate entries for the same student in the same course and department.
+        """
+        # Validate the fields before proceeding
+        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course":
+            messagebox.showerror("Missing Field", "All Fields are required to be filled!", parent=self.root)
+        elif not self.var_student_id.get().isdigit():  # Check if Student ID is numerical
+            messagebox.showerror("Invalid Input", "Student ID must be numerical", parent=self.root)
+        elif not re.match("^[A-Za-z][A-Za-z ]*$", self.var_student_name.get()):  # Validate Student Name
+            messagebox.showerror("Invalid Input", "Student Name must contain only alphabets and spaces, no leading or trailing spaces", parent=self.root)
+        elif self.var_email.get() != "N/A" and not re.match(r"[^@]+@[^@]+\.[^@]+", self.var_email.get()):  # Validate Email
+            messagebox.showerror("Invalid Input", "Email must be in a valid format or 'N/A'", parent=self.root)
+        elif not self.var_phone_number.get().isdigit():  # Validate Phone Number
+            messagebox.showerror("Invalid Input", "Phone Number must be numerical", parent=self.root)
+        else:
+            try:
+                # Connect to the database
+                conn = mysql.connector.connect(
+                    host=connection_details["server"],
+                    port=connection_details["port"],
+                    user=connection_details["username"],
+                    password=connection_details["password"],
+                    database=connection_details["database"]
+                )
+                my_cursor = conn.cursor()
+
+                # Check for duplicate student in the same course and department
+                my_cursor.execute("""
+                    SELECT COUNT(*) FROM students 
+                    WHERE student_id = %s AND department = %s AND course = %s
+                """, (
+                    self.var_student_id.get(),
+                    self.var_department.get(),
+                    self.var_course.get()
+                ))
+                result = my_cursor.fetchone()
+
+                if result[0] > 0:
+                    # If duplicate found, show an error message
+                    messagebox.showerror(
+                        "Duplicate Entry", 
+                        "This student is already registered in the same department and course!", 
+                        parent=self.root
+                    )
+                else:
+                    # Generate a unique ticket_roll
+                    unique_ticket_roll = self.generate_unique_id()
+
+                    # Insert the data into the database
+                    my_cursor.execute("""
+                        INSERT INTO students (department, course, year, semester, student_id, student_name, 
+                                            gender, date_of_birth, email, phone_number, address, photo_sample, ticket_roll)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        self.var_department.get(),
+                        self.var_course.get(),
+                        self.var_year.get(),
+                        self.var_semester.get(),
+                        self.var_student_id.get(),
+                        self.var_student_name.get(),
+                        self.var_gender.get(),
+                        self.var_date_of_birth.get(),
+                        self.var_email.get(),
+                        self.var_phone_number.get(),
+                        self.var_address.get(),
+                        self.var_take_photo.get(),
+                        unique_ticket_roll
+                    ))
+
+                    conn.commit()
+                    self.fetch_data()
+                    messagebox.showinfo(
+                        "Successful", 
+                        "Student Added with Ticket Roll: " + unique_ticket_roll, 
+                        parent=self.root
+                    )
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred: {str(e)}", parent=self.root)
+            finally:
+                conn.close()
+                
+        self.train_classifier()
+
     
     def return_to_admit_interface(self):
         self.root.destroy()  # Close the student interface
@@ -419,36 +544,37 @@ class Student:
 
 
     def fetch_data(self):
+            """
+            Fetch data from the 'students' table and display it in the Treeview, skipping the first column.
+            """
+            try:
+                # Establish connection
+                conn = mysql.connector.connect(
+                    host=connection_details["server"],
+                    port=connection_details["port"],
+                    user=connection_details["username"],
+                    password=connection_details["password"],
+                    database=connection_details["database"]
+                )
 
-        try:
-        # Establish connection
-            conn = mysql.connector.connect(
-            host=connection_details["server"],
-            port=connection_details["port"],
-            user=connection_details["username"],
-            password=connection_details["password"],
-            database=connection_details["database"]
-            )
-        
-        # Create a cursor and execute the query
-            my_cursor = conn.cursor()
-            my_cursor.execute("SELECT * FROM students")
-        
-        # Fetch all data
-            data = my_cursor.fetchall()
-        
-        # Check if data exists and update treeview
-            if len(data) != 0:
-                self.student_database.delete(*self.student_database.get_children())
-                for i in data:
-                    self.student_database.insert("", "end", values=i)
+                # Create a cursor and execute the query
+                my_cursor = conn.cursor()
+                my_cursor.execute("SELECT * FROM students")
 
-        except mysql.connector.Error as err:
-            print(f"Error: {err}")
-    
-        finally:
-            # Close connection in the finally block
-            conn.close()
+                # Fetch all data
+                data = my_cursor.fetchall()
+
+                # Check if data exists and update Treeview
+                if len(data) != 0:
+                    self.student_database.delete(*self.student_database.get_children())  # Clear current Treeview
+                    for row in data:
+                        self.student_database.insert("", "end", values=row[0:])  # Skip the first column
+            except mysql.connector.Error as err:
+                print(f"Error: {err}")
+            finally:
+                # Close connection in the finally block
+                conn.close()
+
 
 
       #Getting the Cursor
@@ -456,60 +582,97 @@ class Student:
         cursor_focus=self.student_database.focus()
         content=self.student_database.item(cursor_focus)
         data=content["values"]
-        self.var_department.set(data[0]),
-        self.var_course.set(data[1]),
-        self.var_year.set(data[2]),
-        self.var_semester.set(data[3]),
-        self.var_student_id.set(data[4]),
-        self.var_student_name.set(data[5]),
-        self.var_gender.set(data[6]),
-        self.var_date_of_birth.set(data[7]),
-        self.var_email.set(data[8]),
-        self.var_phone_number.set(data[9]),
-        self.var_address.set(data[10]),
-        self.var_take_photo.set(data[11])
-    #Update the information
+        self.var_department.set(data[1]),
+        self.var_course.set(data[2]),
+        self.var_year.set(data[3]),
+        self.var_semester.set(data[4]),
+        self.var_student_id.set(data[5]),
+        self.var_student_name.set(data[6]),
+        self.var_gender.set(data[7]),
+        self.var_date_of_birth.set(data[8]),
+        self.var_email.set(data[9]),
+        self.var_phone_number.set(data[10]),
+        self.var_address.set(data[11]),
+        self.var_take_photo.set(data[12])
+        self.var_row_id.set(data[0])
+    
     def update_data(self):
-        if self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course":
-            messagebox.showerror("Missing Field", "All Fields are required to be filled!", parent=self.root)
-        else:
-            conn = mysql.connector.connect(
-                host=connection_details["server"],
-                port=connection_details["port"],
-                user=connection_details["username"],
-                password=connection_details["password"],
-                database=connection_details["database"]
-            )
-            my_cursor = conn.cursor()
-            
-            # Modified SQL query with multiple conditions in WHERE clause
-            my_cursor.execute("""
-                UPDATE students 
-                SET department=%s, course=%s, year=%s, semester=%s, student_name=%s, gender=%s, date_of_birth=%s, 
-                    email=%s, phone_number=%s, address=%s, photo_sample=%s 
-                WHERE department=%s AND course=%s AND year=%s AND student_id=%s
-            """, (
-                self.var_department.get(),
-                self.var_course.get(),
-                self.var_year.get(),
-                self.var_semester.get(),
-                self.var_student_name.get(),
-                self.var_gender.get(),
-                self.var_date_of_birth.get(),
-                self.var_email.get(),
-                self.var_phone_number.get(),
-                self.var_address.get(),
-                self.var_take_photo.get(),
-                self.var_department.get(),  # Adding the condition values for WHERE clause
-                self.var_course.get(),
-                self.var_year.get(),
-                self.var_student_id.get()
-            ))
-            
-            messagebox.showinfo("Success", "Student Updated")
-            conn.commit()
-            self.fetch_data()
+        # Check for mandatory fields
+        if self.var_row_id.get() == "" or self.var_department.get() == "Select Department" or self.var_course.get() == "Select Course":
+            messagebox.showerror("Missing Field", "All fields are required to be filled!", parent=self.root)
+            return
+
+        # Establish database connection
+        conn = mysql.connector.connect(
+            host=connection_details["server"],
+            port=connection_details["port"],
+            user=connection_details["username"],
+            password=connection_details["password"],
+            database=connection_details["database"]
+        )
+        my_cursor = conn.cursor()
+
+        # Check if the record exists
+        my_cursor.execute("""
+            SELECT ticket_roll 
+            FROM students 
+            WHERE ticket_roll=%s
+        """, (self.var_row_id.get(),))
+        existing_data = my_cursor.fetchone()
+
+        if not existing_data:
+            messagebox.showerror("Error", "Student record not found!", parent=self.root)
             conn.close()
+            return
+
+        # Check for duplicates (same department, course, student_id, student_name)
+        my_cursor.execute("""
+            SELECT ticket_roll 
+            FROM students 
+            WHERE department=%s AND course=%s AND student_id=%s AND student_name=%s
+        """, (
+            self.var_department.get(),
+            self.var_course.get(),
+            self.var_student_id.get(),
+            self.var_student_name.get()
+        ))
+        duplicate_data = my_cursor.fetchone()
+
+        if duplicate_data and duplicate_data[0] != self.var_row_id.get():
+            messagebox.showerror("Duplicate Record", "A student with the same department, course, student ID, and name already exists!", parent=self.root)
+            conn.close()
+            return
+
+        # Proceed with the update for all fields except ticket_roll
+        my_cursor.execute("""
+            UPDATE students 
+            SET department=%s, course=%s, year=%s, semester=%s, student_id=%s, student_name=%s,
+                gender=%s, date_of_birth=%s, email=%s, phone_number=%s, address=%s, photo_sample=%s
+            WHERE ticket_roll=%s
+        """, (
+            self.var_department.get(),
+            self.var_course.get(),
+            self.var_year.get(),
+            self.var_semester.get(),
+            self.var_student_id.get(),
+            self.var_student_name.get(),
+            self.var_gender.get(),
+            self.var_date_of_birth.get(),
+            self.var_email.get(),
+            self.var_phone_number.get(),
+            self.var_address.get(),
+            self.var_take_photo.get(),
+            self.var_row_id.get()
+        ))
+
+        conn.commit()
+        messagebox.showinfo("Success", "Student Updated", parent=self.root)
+        self.fetch_data()
+        conn.close()
+
+
+
+
 
     #Delete Function        
     def delete_data(self):
@@ -565,7 +728,6 @@ class Student:
             self.var_email.set(""),
             self.var_phone_number.set(""),
             self.var_address.set(""),
-            self.var_teacher.set(""),
             self.var_take_photo.set("")
     #Dataset generate
     def generate_dataset(self):
