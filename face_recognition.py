@@ -37,11 +37,58 @@ class Face_Recognition:
         left_title_position = Label(self.root, image=self.photoleft_title)
         left_title_position.place(x=0, y=0, width=163, height=60)
 
-        main_frame = Frame(background_img_face_recognition_position, bd=2, bg="orange")
-        main_frame.place(x=300, y=5, width=400, height=50)
+        self.main_frame2 = Frame(background_img_face_recognition_position, bg="orange")
+        self.main_frame2.place(x=180, y=10, width=824, height=60)
 
-        # Add the text label in the center of the main_frame
-        Label(main_frame, text="Face Recognition", bg="orange", fg="white", font=("New Time Roman", 20, "bold")).place(relx=0.5, rely=0.5, anchor=CENTER)
+        # Add the "ghost button" on the left
+        def on_enter(event):
+            back_button.config(image=back_hover_image, bg="white")  # Change to hover image and background
+
+        def on_leave(event):
+            back_button.config(image=back_default_image, bg="red")  # Change to default image and background
+
+    
+
+        # Load the images using Pillow for resizing
+        back_default_pil_image = Image.open("Image/back.png").resize((60, 60), Image.Resampling.LANCZOS)  # Resize to 60x60
+        back_hover_pil_image = Image.open("Image/back (1).png").resize((60, 60), Image.Resampling.LANCZOS)  # Resize to 60x60
+
+        # Convert Pillow images to Tkinter-compatible PhotoImage
+        back_default_image = ImageTk.PhotoImage(back_default_pil_image)
+        back_hover_image = ImageTk.PhotoImage(back_hover_pil_image)
+
+        # Create the back button
+        back_button = Button(
+            self.main_frame2,
+            image=back_default_image,
+            bg="red",
+            bd=0,  # Remove button border
+            activebackground="white",  # Background color when pressed
+            command=self.return_to_admit_interface  # Function to call on click
+        )
+        back_button.place(x=0, y=0, width=60, height=60)
+
+        # Bind hover events
+        back_button.bind("<Enter>", on_enter)  # Hover over
+        back_button.bind("<Leave>", on_leave)  # Hover out
+
+        # Add the "Student Information" label
+        save_button = Label(self.main_frame2, text="Face Recognition Testing", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        save_button.place(x=80, y=10, width=340, height=40)  # Positioned next to the back button
+
+        # Create the username label
+        self.username_label = Label(self.main_frame2, text=f"{username}", bg="orange", fg="white", font=("Arial", 12))
+
+        # Update x-position of the username so it aligns to the right of the frame
+        frame_width = 824  # The width of the frame
+        button_width = 60  # Width of the ghost button
+        gap = 10           # Gap between the button and username label
+        label_width = self.username_label.winfo_reqwidth()  # Get the width of the username label
+
+        # Position the username label on the right
+        self.username_label.place(x=frame_width - label_width - 10, y=0, height=60)  # 10px gap from the right edge
+
+        
 
         # Assuming this code is inside a class and you call the method to populate the dropdown
         self.teacher_input = ttk.Combobox(background_img_face_recognition_position, width=28, state="readonly")
@@ -106,11 +153,8 @@ class Face_Recognition:
         self.student_start_times = {}  # To store start time for each student
         self.video_cap = None  # Video capture object
         
-        self.username_label = Label(self.root, text=f"Logged in as: {self.username}", bg="orange", fg="white", font=("Arial", 12))
-        self.username_label.place(x=820, y=15)
         
-        return_button = Button(self.root, text="Back", command=self.return_to_admit_interface, bg="blue", fg="white", font=("Arial", 12, "bold"))
-        return_button.place(x=170, y=15, width=80, height=30)
+        
 
         self.populate_teacher_dropdown()
         self.teacher_input.bind("<<ComboboxSelected>>", self.populate_course_dropdown)
@@ -518,6 +562,6 @@ class Face_Recognition:
 
 if __name__ == "__main__":
     root = Tk()
-    obj = Face_Recognition(root, "Face")
+    obj = Face_Recognition(root, "Imran Adil Oyong Muhammad")
     root.mainloop()
     root.resizable(False, False)

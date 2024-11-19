@@ -26,9 +26,59 @@ class Attendance_Status_Interface:
         left_title_position = Label(self.root, image=self.photoleft_title)
         left_title_position.place(x=0, y=0, width=163, height=60)
 
-        # Logout Button (next to the logo)
-        back_button = Button(self.root, text="Back", command=self.go_back, bg="blue", fg="white", font=("Arial", 12, "bold"))
-        back_button.place(x=175, y=15, width=80, height=30)
+        #Title
+        self.main_frame2 = Frame(background_img_main_position, bg="orange")
+        self.main_frame2.place(x=180, y=10, width=824, height=60)
+
+        # Add the "ghost button" on the left
+        def on_enter(event):
+            back_button.config(image=back_hover_image, bg="white")  # Change to hover image and background
+
+        def on_leave(event):
+            back_button.config(image=back_default_image, bg="red")  # Change to default image and background
+
+    
+
+        # Load the images using Pillow for resizing
+        back_default_pil_image = Image.open("Image/back.png").resize((60, 60), Image.Resampling.LANCZOS)  # Resize to 60x60
+        back_hover_pil_image = Image.open("Image/back (1).png").resize((60, 60), Image.Resampling.LANCZOS)  # Resize to 60x60
+
+        # Convert Pillow images to Tkinter-compatible PhotoImage
+        back_default_image = ImageTk.PhotoImage(back_default_pil_image)
+        back_hover_image = ImageTk.PhotoImage(back_hover_pil_image)
+
+        # Create the back button
+        back_button = Button(
+            self.main_frame2,
+            image=back_default_image,
+            bg="red",
+            bd=0,  # Remove button border
+            activebackground="white",  # Background color when pressed
+            command=self.go_back  # Function to call on click
+        )
+        back_button.place(x=0, y=0, width=60, height=60)
+
+        # Bind hover events
+        back_button.bind("<Enter>", on_enter)  # Hover over
+        back_button.bind("<Leave>", on_leave)  # Hover out
+
+        # Add the "Student Information" label
+        save_button = Label(self.main_frame2, text="Attendance Status Management", bg="orange", fg="white", font=("New Time Roman", 20, "bold"))
+        save_button.place(x=70, y=10, width=420, height=40)  # Positioned next to the back button
+
+        # Create the username label
+        self.username_label = Label(self.main_frame2, text=f"{username}", bg="orange", fg="white", font=("Arial", 12))
+
+        # Update x-position of the username so it aligns to the right of the frame
+        frame_width = 824  # The width of the frame
+        button_width = 60  # Width of the ghost button
+        gap = 10           # Gap between the button and username label
+        label_width = self.username_label.winfo_reqwidth()  # Get the width of the username label
+
+        # Position the username label on the right
+        self.username_label.place(x=frame_width - label_width - 10, y=0, height=60)  # 10px gap from the right edge
+
+
 
         # Main Frame (Orange background) to hold the upper and lower sections
         main_frame = Frame(self.root, bd=2, bg="orange")
